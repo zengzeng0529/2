@@ -2,718 +2,827 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>濟州島生日慶生遊 🍊</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Kiwi+Maru:wght@400;500&family=Zen+Maru+Gothic:wght@400;700;900&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        jejuOrange: '#FF9E59',   // 溫暖亮橘
-                        jejuSoft: '#FFF2E6',     // 輕柔淡橘
-                        jejuGreen: '#66B386',    // 濟州綠葉
-                        jejuMint: '#EDF7F1',     // 淡綠背景
-                        jejuSky: '#EBF5FB',      // 圖片延伸的天空粉藍
-                        jejuWarmWhite: '#FAF8F5' // 溫潤雪白
-                    },
-                    fontFamily: { sans: ['Kiwi Maru', 'Zen Maru Gothic', 'Noto Sans TC', 'sans-serif'] }
-                }
-            }
-        }
-    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MUMU STUDIO | 沐目 美睫記帳系統</title>
     <style>
-        body { background-color: #EBF5FB; } /* 依照橫幅底色做延伸的背景 */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        * { -webkit-tap-highlight-color: transparent; }
-        .ghost-card { opacity: 0.3; background: #FFF2E6 !important; transform: scale(0.98); }
-        /* 裝飾用的石頭爺爺與橘子飄浮小動畫 */
-        .deco-icon { animation: float 4s ease-in-out infinite; }
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-6px) rotate(5deg); }
+        /* --- 韓系奶油風 變數設定 --- */
+        :root {
+            --bg-cream: #FDFBF7;
+            --main-butter: #F5EBE0;
+            --accent-latte: #E3D5CA;
+            --text-dark: #4A3E3D;
+            --text-muted: #8C7A78;
+            --pure-white: #FFFFFF;
+            --shadow-soft: rgba(140, 122, 120, 0.08);
+            --delete-red: #E07A5F;
+            --income-green: #95B46A;
+            --expense-red: #E07A5F;
+        }
+
+        /* --- 全局樣式 --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-cream);
+            color: var(--text-dark);
+            padding-top: 60px; /* 留給頂部快選列的空間 */
+            padding-bottom: 30px;
+        }
+
+        /* --- 頂部快選列 (Quick Toolbar) --- */
+        .top-toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background-color: var(--pure-white);
+            box-shadow: 0 2px 10px var(--shadow-soft);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 1000;
+            padding: 0 10px;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 15px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn.active {
+            background-color: var(--main-butter);
+            color: var(--text-dark);
+            font-weight: bold;
+        }
+
+        /* --- 店名 Header --- */
+        .shop-header {
+            text-align: center;
+            margin: 25px 0 15px 0;
+        }
+        .shop-header h1 {
+            font-size: 22px;
+            letter-spacing: 2px;
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+        .shop-header p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            letter-spacing: 1px;
+        }
+
+        /* --- 頁面容器切換 --- */
+        .page {
+            display: none;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* --- 圓弧卡片方框通用樣式 --- */
+        .card-box {
+            background-color: var(--pure-white);
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 4px 20px var(--shadow-soft);
+            margin-bottom: 20px;
+            border: 1px solid rgba(227, 213, 202, 0.3);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--text-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* ==================== 頁面 1: 月曆 ==================== */
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .calendar-header button {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: var(--text-dark);
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+        .calendar-header span {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            row-gap: 12px;
+            text-align: center;
+        }
+
+        .day-cell {
+            position: relative;
+            height: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            cursor: pointer;
+            color: var(--text-dark);
+        }
+
+        .day-cell.empty {
+            cursor: default;
+        }
+
+        /* 深色圓形背景 (標記當日或選中日) */
+        .day-cell .day-number {
+            position: relative;
+            z-index: 2;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        /* 當日樣式（預設深色圓形） */
+        .day-cell.today .day-number {
+            background-color: var(--text-muted);
+            color: var(--pure-white);
+        }
+
+        /* 被點選的日期樣式 */
+        .day-cell.selected .day-number {
+            background-color: var(--text-dark) !important;
+            color: var(--pure-white) !important;
+        }
+
+        /* 日期下方的小記帳提示點 */
+        .day-dot {
+            width: 4px;
+            height: 4px;
+            background-color: var(--accent-latte);
+            border-radius: 50%;
+            position: absolute;
+            bottom: 2px;
+            z-index: 3;
+        }
+
+        /* 新增紀錄快速表單 */
+        .quick-add-form {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .quick-add-form select, .quick-add-form input {
+            border: 1px solid var(--accent-latte);
+            border-radius: 12px;
+            padding: 8px 10px;
+            font-size: 14px;
+            color: var(--text-dark);
+            background-color: var(--bg-cream);
+            outline: none;
+        }
+        .quick-add-form select { width: 75px; }
+        .quick-add-form input[type="text"] { flex: 2; }
+        .quick-add-form input[type="number"] { flex: 1; min-width: 70px; }
+        .quick-add-form button {
+            background-color: var(--text-dark);
+            color: var(--pure-white);
+            border: none;
+            border-radius: 12px;
+            padding: 0 15px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* 條列式紀錄列表 */
+        .record-list {
+            list-style: none;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .record-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(227, 213, 202, 0.2);
+            font-size: 14px;
+        }
+        .record-item:last-child {
+            border-bottom: none;
+        }
+
+        .record-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .type-tag {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+        .type-tag.inc { background-color: #E8F0FE; color: #1A73E8; }
+        .type-tag.exp { background-color: #FCE8E6; color: var(--delete-red); }
+
+        .record-amount {
+            font-weight: 600;
+            margin-right: 10px;
+        }
+        .record-amount.inc { color: var(--income-green); }
+        .record-amount.exp { color: var(--expense-red); }
+
+        .btn-delete {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s ease;
+        }
+        .btn-delete:active {
+            transform: scale(0.85);
+        }
+
+        .no-data {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+            padding: 20px 0;
+        }
+
+        /* ==================== 頁面 2: 總紀錄 ==================== */
+        .search-bar {
+            margin-bottom: 15px;
+            width: 100%;
+            border: 1px solid var(--accent-latte);
+            border-radius: 12px;
+            padding: 10px;
+            font-size: 14px;
+            outline: none;
+            background-color: var(--pure-white);
+        }
+        
+        .all-records-container {
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .all-record-date-group {
+            margin-bottom: 15px;
+        }
+
+        .date-group-title {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 5px;
+            background-color: var(--main-butter);
+            padding: 2px 8px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+
+        /* ==================== 頁面 3: 報表 ==================== */
+        .report-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .summary-mini-card {
+            background-color: var(--bg-cream);
+            padding: 15px;
+            border-radius: 16px;
+            text-align: center;
+            border: 1px solid rgba(227, 213, 202, 0.4);
+        }
+
+        .summary-mini-card p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .summary-mini-card h3 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .progress-bar-bg {
+            background-color: var(--main-butter);
+            height: 8px;
+            border-radius: 4px;
+            width: 100%;
+            margin-top: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background-color: var(--text-muted);
+            width: 0%;
+            transition: width 0.5s ease;
         }
     </style>
 </head>
-<body class="flex justify-center min-h-screen text-stone-800 antialiased font-sans">
+<body>
 
-    <div id="app" class="w-full max-w-md bg-jejuWarmWhite min-h-screen relative flex flex-col shadow-2xl pb-32">
-        
-        <div class="w-full h-[250px] relative bg-cover bg-center border-b border-orange-100" style="background-image: url('IMG_2980.png');">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+    <nav class="top-toolbar">
+        <button class="nav-btn active" onclick="switchPage('calendar-page', this)">1. 月曆</button>
+        <button class="nav-btn" onclick="switchPage('all-records-page', this)">2. 總紀錄</button>
+        <button class="nav-btn" onclick="switchPage('reports-page', this)">3. 報表</button>
+    </nav>
+
+    <header class="shop-header">
+        <h1>MUMU STUDIO</h1>
+        <p>沐 目 ﹒ 美 睫 記 帳 系統</p>
+    </header>
+
+    <main id="calendar-page" class="page active">
+        <div class="card-box">
+            <div class="calendar-header">
+                <button onclick="changeMonth(-1)">❮</button>
+                <span id="calendar-month-year">2026 年 6 月</span>
+                <button onclick="changeMonth(1)">❯</button>
+            </div>
             
-            <div class="absolute top-6 left-5 text-stone-800 drop-shadow-[0_2px_4px_rgba(255,255,255,0.85)]">
-                <span class="bg-jejuOrange text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-sm tracking-wider">JEJU BIRTHDAY TRIP 🎂</span>
-                <h1 class="text-xl font-black mt-1 text-orange-950">濟州島生日自駕遊 ✨</h1>
+            <div class="weekdays">
+                <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
             </div>
-
-            <div class="absolute bottom-6 right-4 flex gap-1 bg-white/95 backdrop-blur-md p-1.5 rounded-2xl shadow-lg border border-orange-100/60 z-20">
-                <button @click="currentTab = 'schedule'" class="w-9 h-9 rounded-xl flex items-center justify-center transition-all" :class="currentTab === 'schedule' ? 'bg-jejuOrange text-white font-bold scale-105 shadow-sm' : 'text-stone-500 hover:bg-orange-50'">
-                    <i class="fa-solid fa-location-dot text-sm"></i>
-                </button>
-                <button @click="currentTab = 'info'" class="w-9 h-9 rounded-xl flex items-center justify-center transition-all" :class="currentTab === 'info' ? 'bg-jejuOrange text-white font-bold scale-105 shadow-sm' : 'text-stone-500 hover:bg-orange-50'">
-                    <i class="fa-solid fa-info text-sm"></i>
-                </button>
-                <button @click="currentTab = 'shop'" class="w-9 h-9 rounded-xl flex items-center justify-center transition-all" :class="currentTab === 'shop' ? 'bg-jejuOrange text-white font-bold scale-105 shadow-sm' : 'text-stone-500 hover:bg-orange-50'">
-                    <i class="fa-solid fa-basket-shopping text-sm"></i>
-                </button>
-                <button @click="currentTab = 'cost'" class="w-9 h-9 rounded-xl flex items-center justify-center transition-all" :class="currentTab === 'cost' ? 'bg-jejuOrange text-white font-bold scale-105 shadow-sm' : 'text-stone-500 hover:bg-orange-50'">
-                    <i class="fa-solid fa-wallet text-sm"></i>
-                </button>
-                <button @click="currentTab = 'pack'" class="w-9 h-9 rounded-xl flex items-center justify-center transition-all" :class="currentTab === 'pack' ? 'bg-jejuOrange text-white font-bold scale-105 shadow-sm' : 'text-stone-500 hover:bg-orange-50'">
-                    <i class="fa-solid fa-suitcase text-sm"></i>
-                </button>
-            </div>
-        </div>
-
-        <div class="flex-1 bg-jejuWarmWhite rounded-t-[32px] -mt-7 relative z-10 p-4 pt-6">
             
-            <div class="absolute top-4 right-6 text-xl opacity-20 deco-icon pointer-events-none">🍊🗿🌿</div>
-
-            <div v-if="currentTab === 'schedule'" class="space-y-4">
-                
-                <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar snap-x">
-                    <button v-for="day in dateMenu" :key="day.id" @click="selectedDay = day.id"
-                        class="flex-shrink-0 w-[58px] py-2 rounded-2xl flex flex-col items-center transition-all border snap-center"
-                        :class="selectedDay === day.id ? 'bg-jejuOrange text-white border-jejuOrange font-bold shadow-md' : 'bg-white text-stone-500 border-orange-100/60'">
-                        <span class="text-base font-black tracking-tight" :class="selectedDay === day.id ? 'text-white' : 'text-stone-800'">{{ day.weekday }}</span>
-                        <span class="text-xs opacity-90">{{ day.dateNum }}</span>
-                    </button>
+            <div id="calendar-days" class="days-grid">
                 </div>
-
-                <div class="bg-gradient-to-r from-orange-400/10 via-amber-500/5 to-jejuGreen/5 border border-orange-100 rounded-2xl p-3 flex items-center justify-between shadow-xs">
-                    <div class="flex items-center gap-2.5">
-                        <span class="text-2xl text-amber-500"><i class="fa-solid fa-cloud-sun animate-pulse"></i></span>
-                        <div>
-                            <p class="text-[9px] text-stone-400 font-bold uppercase tracking-wider">Jeju Island Weather</p>
-                            <p class="text-xs font-bold text-stone-700">🌈 今日濟州島多雲時晴 · 體感舒適</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-sm font-black text-jejuOrange">23°C</p>
-                        <p class="text-[9px] text-stone-400">體感 24°C</p>
-                    </div>
-                </div>
-
-                <div id="drag-container" class="space-y-3 relative">
-                    <div v-for="(item, index) in filteredSchedules" :key="item.id" :data-id="item.id" class="relative">
-                        
-                        <div v-if="index > 0" class="py-2 flex items-center justify-center gap-2 text-xs text-jejuGreen font-bold bg-jejuMint rounded-xl border border-dashed border-green-200/80 my-2">
-                            <i class="fa-solid" :class="getTransitIcon(item.transitMode)"></i>
-                            <span>預估交通：{{ item.transitTime || '15' }} 分鐘</span>
-                        </div>
-                        <div v-else-if="index === 0 && selectedDay !== 1" class="py-2 flex items-center justify-center gap-2 text-xs text-orange-600/80 bg-orange-50 rounded-xl border border-dashed border-orange-200 my-2">
-                            <i class="fa-solid fa-hotel"></i>
-                            <span>🚗 出發自前一日下榻的住宿飯店</span>
-                        </div>
-
-                        <div v-if="item.category === '航班'" class="bg-sky-50 border border-sky-200 rounded-2xl p-4 shadow-sm border-l-4 border-l-sky-400">
-                            <div class="flex justify-between items-center mb-1">
-                                <span class="bg-sky-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-md uppercase"><i class="fa-solid fa-plane mr-1"></i>Flight</span>
-                                <span class="text-xs font-black text-sky-800">{{ item.time }}</span>
-                            </div>
-                            <h3 class="font-black text-sm text-sky-950">{{ item.name }}</h3>
-                            <p class="text-xs text-sky-800 bg-white/70 p-2 rounded-xl mt-2 border border-sky-100" v-if="item.note"><i class="fa-solid fa-info-circle mr-1"></i>{{ item.note }}</p>
-                        </div>
-
-                        <div v-else class="bg-white border border-stone-100 rounded-2xl p-4 shadow-sm relative">
-                            <div class="absolute right-3 top-3 flex items-center gap-1.5">
-                                <button @click="openEditModal(item)" class="text-stone-300 hover:text-jejuOrange p-1"><i class="fa-regular fa-pen-to-square"></i></button>
-                                <span class="drag-handle cursor-grab text-stone-300 hover:text-stone-500 p-1"><i class="fa-solid fa-grip-lines"></i></span>
-                            </div>
-
-                            <div class="flex items-center gap-2 mb-2">
-                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" :class="getCategoryBadgeStyle(item.category)">
-                                    {{ item.category }}
-                                </span>
-                                <span class="text-xs font-bold text-stone-400"><i class="fa-regular fa-clock mr-1"></i>{{ item.time }}</span>
-                            </div>
-
-                            <h3 class="font-bold text-base text-stone-800 pr-14">{{ item.name }}</h3>
-                            
-                            <div class="mt-2.5 space-y-1 text-xs text-stone-500 border-l-2 border-orange-100/70 pl-2.5">
-                                <p v-if="item.hours"><strong class="text-stone-600">⏱️ 營業時間:</strong> {{ item.hours }}</p>
-                                <p v-if="item.ticket"><strong class="text-amber-600">🎫 門票:</strong> {{ item.ticket }}</p>
-                                <p v-if="item.note" class="text-stone-600 font-medium mt-1">📝 {{ item.note }}</p>
-                            </div>
-
-                            <div class="mt-3 pt-3 border-t border-stone-50 flex justify-end">
-                                <a :href="'https://map.naver.com/v5/search/' + encodeURIComponent(item.name)" target="_blank" 
-                                   class="text-xs font-bold text-white bg-jejuOrange px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow-xs hover:bg-orange-500 transition">
-                                    <i class="fa-solid fa-location-arrow"></i>Naver Map 導航
-                                </a>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
-                <button @click="openAddModal" class="fixed bottom-24 right-6 w-14 h-14 bg-jejuOrange text-white rounded-full flex items-center justify-center text-xl shadow-lg border-2 border-white z-40">
-                    <i class="fa-solid fa-plus"></i>
-                </button>
-            </div>
-
-            <div v-if="currentTab === 'info'" class="space-y-4 pb-12">
-                
-                <section class="bg-white rounded-2xl p-4 border border-stone-100 shadow-xs">
-                    <h2 class="text-xs font-black tracking-wider text-jejuOrange uppercase mb-3 flex items-center gap-1.5">
-                        <i class="fa-solid fa-calculator"></i> 韓元智慧換算台幣 (KRW ➔ TWD)
-                    </h2>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-[10px] text-stone-400 font-bold mb-1">輸入韓幣 (KRW)</label>
-                            <input type="number" v-model="calcKRW" placeholder="₩ 0" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-sm font-bold focus:outline-none focus:border-jejuOrange">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] text-stone-400 font-bold mb-1">台幣估計 (最新當日匯率 0.024)</label>
-                            <div class="w-full bg-orange-50 border border-orange-100 rounded-xl px-3 py-2 text-sm font-black text-jejuOrange mt-0.5">
-                                NT$ {{ Math.round(calcKRW * 0.024) || 0 }}
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="bg-white rounded-2xl p-4 border border-stone-100 shadow-xs space-y-3">
-                    <h2 class="text-xs font-black tracking-wider text-stone-400 uppercase flex items-center gap-1.5"><i class="fa-solid fa-plane-departure"></i> FLIGHT INFO</h2>
-                    <div class="p-3 bg-stone-50 rounded-xl space-y-1 text-xs">
-                        <div class="flex justify-between font-bold text-stone-700"><span>🛫 去程 9/14 (台灣虎航 IT670)</span><span class="text-jejuOrange">飛行 2h 00m</span></div>
-                        <p class="font-medium text-stone-500">高雄小港機場 (KHH) 15:50 ➔ 濟州國際機場 (CJU) 18:50</p>
-                    </div>
-                    <div class="p-3 bg-stone-50 rounded-xl space-y-1 text-xs">
-                        <div class="flex justify-between font-bold text-stone-700"><span>🛬 回程 9/19 (台灣虎航 IT671)</span><span class="text-jejuGreen">飛行 2h 25m</span></div>
-                        <p class="font-medium text-stone-500">濟州國際機場 (CJU) 10:50 ➔ 高雄小港機場 (KHH) 12:15</p>
-                    </div>
-                </section>
-
-                <section class="bg-white rounded-2xl p-4 border border-stone-100 shadow-xs space-y-3">
-                    <h2 class="text-xs font-black tracking-wider text-stone-400 uppercase flex items-center gap-1.5"><i class="fa-solid fa-hotel"></i> STAY HOTELS</h2>
-                    <div v-for="h in hotelList" :key="h.date" class="pb-3 last:pb-0 border-b last:border-0 border-stone-100 text-xs">
-                        <div class="flex justify-between items-start gap-2">
-                            <div>
-                                <span class="font-bold text-stone-800 block">📅 {{ h.date }} 住宿</span>
-                                <p class="text-stone-500 mt-0.5 leading-relaxed pr-2">{{ h.addr || '（今日行程彈性安排中）' }}</p>
-                            </div>
-                            <a v-if="h.addr" :href="'https://map.naver.com/v5/search/' + encodeURIComponent(h.addr)" target="_blank" class="shrink-0 bg-orange-50 text-jejuOrange text-xs font-bold px-2.5 py-1 rounded-xl shadow-xs">導航</a>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="bg-white rounded-2xl p-4 border border-stone-100 shadow-xs text-xs space-y-3">
-                    <h2 class="text-xs font-black tracking-wider text-stone-400 uppercase flex items-center gap-1.5"><i class="fa-solid fa-car-side"></i> RENTAL & EMERGENCY</h2>
-                    <div class="flex justify-between items-center p-2.5 bg-orange-50/50 rounded-xl border border-orange-100/40">
-                        <div>
-                            <p class="font-bold text-stone-800">🚗 樂天租車 LOTTE RENT-A-CAR</p>
-                            <p class="text-stone-400 text-[11px] mt-0.5">租用期間：9/14 20:00 - 9/19 08:00</p>
-                        </div>
-                        <a href="https://map.naver.com/v5/search/LOTTE+Rent-a-car+Jeju" target="_blank" class="bg-jejuOrange text-white font-bold px-3 py-1.5 rounded-xl text-[11px]">導航店面</a>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2 text-center pt-1">
-                        <a href="tel:112" class="bg-rose-50 border border-rose-100 py-2 rounded-xl block text-rose-600 font-bold"><i class="fa-solid fa-shield-halved mr-1"></i>112 警察局</a>
-                        <a href="tel:119" class="bg-rose-50 border border-rose-100 py-2 rounded-xl block text-rose-600 font-bold"><i class="fa-solid fa-ambulance mr-1"></i>119 救護車</a>
-                    </div>
-                </section>
-            </div>
-
-            <div v-if="currentTab === 'shop'" class="space-y-3">
-                <h2 class="text-xs font-black tracking-wider text-jejuOrange uppercase"><i class="fa-solid fa-basket-shopping"></i> 購物伴手禮清單袋</h2>
-
-                <div v-if="shoppingList.length === 0" class="text-center py-16 text-xs text-stone-400 font-medium">✨ 這裡還空空的，按右下角「＋」拍下想買的名產吧！</div>
-                
-                <div class="grid grid-cols-2 gap-3">
-                    <div v-for="shop in shoppingList" :key="shop.id" class="bg-white border border-stone-100 rounded-2xl overflow-hidden shadow-sm flex flex-col relative">
-                        <button @click="deleteShopItem(shop.id)" class="absolute top-2 right-2 w-6 h-6 bg-black/40 text-white rounded-full text-xs flex items-center justify-center z-10"><i class="fa-solid fa-xmark"></i></button>
-                        <div class="w-full h-32 bg-stone-50 flex items-center justify-center overflow-hidden">
-                            <img v-if="shop.img" :src="shop.img" class="w-full h-full object-cover">
-                            <i v-else class="fa-regular fa-image text-3xl text-stone-300"></i>
-                        </div>
-                        <div class="p-2.5">
-                            <p class="font-bold text-xs text-stone-800">{{ shop.name }}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <button @click="openAddShopModal" class="fixed bottom-24 right-6 w-14 h-14 bg-jejuOrange text-white rounded-full flex items-center justify-center text-xl shadow-lg border-2 border-white z-40">
-                    <i class="fa-solid fa-plus"></i>
-                </button>
-            </div>
-
-            <div v-if="currentTab === 'cost'" class="space-y-4 pb-12">
-                <div class="bg-gradient-to-br from-stone-800 via-stone-700 to-orange-950 text-white p-5 rounded-3xl shadow-sm relative overflow-hidden">
-                    <p class="text-[10px] font-bold tracking-widest text-orange-400 uppercase">Total Trip Expenses</p>
-                    <p class="text-3xl font-black mt-1">₩ {{ totalCostKRW.toLocaleString() }}</p>
-                    <div class="w-full h-px bg-white/10 my-2.5"></div>
-                    <p class="text-xs text-stone-200">折合台幣：<span class="text-jejuOrange font-black">NT$ {{ Math.round(totalCostKRW * 0.024).toLocaleString() }}</span></p>
-                </div>
-
-                <section class="bg-white rounded-2xl p-4 border border-orange-100 shadow-xs">
-                    <h3 class="text-xs font-black text-jejuOrange mb-2.5 flex items-center gap-1.5"><i class="fa-solid fa-users"></i> 曾曾、小陳、涵涵、小恩、公費 智慧平分清算</h3>
-                    <div v-if="splitResults.length === 0" class="text-stone-400 text-xs py-2">目前尚無代墊支出，大家都互不相欠囉！</div>
-                    <div v-else class="space-y-2 text-xs">
-                        <div v-for="res in splitResults" class="p-2 bg-stone-50 rounded-xl flex justify-between items-center font-medium">
-                            <span>🤝 <strong class="text-stone-700">{{ res.from }}</strong> 應給 <strong class="text-stone-700">{{ res.to }}</strong></span>
-                            <span class="text-jejuGreen font-bold">₩ {{ Math.round(res.amount).toLocaleString() }}</span>
-                        </div>
-                    </div>
-                </section>
-
-                <div class="space-y-2">
-                    <div v-for="c in costs" :key="c.id" class="bg-white border border-stone-100 rounded-xl p-3 flex justify-between items-center shadow-xs">
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded text-white" :class="getCostCategoryStyle(c.category)">{{ c.category }}</span>
-                                <h4 class="font-bold text-xs text-stone-800">{{ c.name }}</h4>
-                            </div>
-                            <p class="text-[10px] text-stone-400 mt-1">{{ c.date }} · {{ c.payer }}買單 · {{ c.payMethod }} <span v-if="c.note">({{ c.note }})</span></p>
-                        </div>
-                        <div class="text-right flex items-center gap-2">
-                            <div>
-                                <p class="font-bold text-stone-800 text-xs">₩{{ c.amount.toLocaleString() }}</p>
-                                <p class="text-[9px] text-stone-400">NT${{ Math.round(c.amount * 0.024).toLocaleString() }}</p>
-                            </div>
-                            <button @click="deleteCost(c.id)" class="text-stone-300 hover:text-rose-500 text-xs p-1"><i class="fa-solid fa-trash-can"></i></button>
-                        </div>
-                    </div>
-                </div>
-
-                <button @click="openAddCostModal" class="fixed bottom-24 right-6 w-14 h-14 bg-jejuOrange text-white rounded-full flex items-center justify-center text-xl shadow-lg border-2 border-white z-40">
-                    <i class="fa-solid fa-plus"></i>
-                </button>
-            </div>
-
-            <div v-if="currentTab === 'pack'" class="space-y-4 pb-12">
-                
-                <div class="bg-amber-50 border border-amber-200/60 rounded-2xl p-4 shadow-xs">
-                    <h3 class="text-xs font-black text-amber-800 flex items-center gap-1.5 uppercase mb-2">
-                        <i class="fa-solid fa-passport"></i> 濟州島自駕旅遊重要提醒
-                    </h3>
-                    <ul class="text-xs text-amber-900/80 space-y-1.5 list-disc list-inside font-medium leading-relaxed">
-                        <li><strong>駕照必備：</strong>必須帶台灣「原始機車/汽車駕照」+「國際駕照」兩張才能取車。</li>
-                        <li><strong>導航守則：</strong>Google Map在韓國無法導航，請確認夥伴們手機都點開排程中的 Naver Map 連結。</li>
-                        <li><strong>右轉新規：</strong>南韓路口紅燈右轉必須先完全「靜止停下一秒」，確認沒行人再前進。</li>
-                    </ul>
-                </div>
-
-                <div class="space-y-3">
-                    <div v-for="(list, cat) in packingData" :key="cat" class="bg-white border border-stone-100 rounded-2xl p-4 shadow-xs">
-                        <div class="flex justify-between items-center border-b border-stone-100 pb-2 mb-3">
-                            <h4 class="font-bold text-xs text-stone-800 flex items-center gap-1.5">
-                                <i class="fa-solid fa-box-open text-jejuOrange"></i> {{ cat }}
-                            </h4>
-                            <button @click="addItemToPack(cat)" class="text-[10px] font-bold text-jejuGreen bg-jejuMint px-2 py-0.5 rounded-lg">+ 新增品項</button>
-                        </div>
-                        
-                        <div class="space-y-2">
-                            <div v-for="(item, idx) in list" :key="idx" class="flex items-center justify-between text-xs">
-                                <label class="flex items-center gap-2 cursor-pointer flex-1">
-                                    <input type="checkbox" v-model="item.checked" class="w-4 h-4 rounded border-stone-300 text-jejuOrange accent-jejuOrange">
-                                    <span :class="{'line-through text-stone-300 font-normal': item.checked}" class="font-bold text-stone-700">{{ item.name }}</span>
-                                </label>
-                                <div class="flex items-center gap-2">
-                                    <div class="flex items-center border border-stone-200 rounded-lg overflow-hidden bg-stone-50 text-[10px]">
-                                        <button @click="item.qty > 1 ? item.qty-- : null" class="px-1.5 text-stone-500 hover:bg-stone-200">-</button>
-                                        <span class="px-1.5 font-bold text-stone-700">{{ item.qty }}</span>
-                                        <button @click="item.qty++" class="px-1.5 text-stone-500 hover:bg-stone-200">+</button>
-                                    </div>
-                                    <button @click="deletePackItem(cat, idx)" class="text-stone-300 hover:text-rose-500 p-1"><i class="fa-solid fa-trash"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
         </div>
 
-        <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 backdrop-blur-md border-t border-stone-100 py-2.5 px-6 flex justify-between items-center shadow-[0_-4px_16px_rgba(0,0,0,0.04)] z-40 rounded-t-2xl">
-            <button @click="currentTab = 'schedule'" class="flex flex-col items-center gap-0.5 text-stone-400" :class="{'text-jejuOrange font-bold': currentTab === 'schedule'}">
-                <i class="fa-solid fa-calendar-days text-lg"></i><span class="text-[10px]">行程表</span>
-            </button>
-            <button @click="currentTab = 'info'" class="flex flex-col items-center gap-0.5 text-stone-400" :class="{'text-jejuOrange font-bold': currentTab === 'info'}">
-                <i class="fa-solid fa-circle-info text-lg"></i><span class="text-[10px]">資訊</span>
-            </button>
-            <button @click="currentTab = 'shop'" class="flex flex-col items-center gap-0.5 text-stone-400" :class="{'text-jejuOrange font-bold': currentTab === 'shop'}">
-                <i class="fa-solid fa-bag-shopping text-lg"></i><span class="text-[10px]">購物袋</span>
-            </button>
-            <button @click="currentTab = 'cost'" class="flex flex-col items-center gap-0.5 text-stone-400" :class="{'text-jejuOrange font-bold': currentTab === 'cost'}">
-                <i class="fa-solid fa-receipt text-lg"></i><span class="text-[10px]">記帳分帳</span>
-            </button>
-            <button @click="currentTab = 'pack'" class="flex flex-col items-center gap-0.5 text-stone-400" :class="{'text-jejuOrange font-bold': currentTab === 'pack'}">
-                <i class="fa-solid fa-suitcase text-lg"></i><span class="text-[10px]">準備箱</span>
-            </button>
-        </nav>
+        <div class="card-box">
+            <div class="card-title">
+                <span id="selected-date-label">6月10日 收支紀錄</span>
+            </div>
 
-        <div v-if="showModal" class="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-            <div class="bg-white rounded-3xl w-full max-w-sm p-5 space-y-3 shadow-xl text-xs">
-                <h3 class="font-bold text-sm text-stone-800 border-b pb-2">{{ isEditMode ? '編輯/刪除自駕景點' : '新增自駕行程卡片' }}</h3>
-                <div>
-                    <label class="block font-bold text-stone-400 mb-1">分類</label>
-                    <select v-model="modalData.category" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2">
-                        <option>景點</option><option>住宿</option><option>美食</option><option>購物</option><option>航班</option><option>其他</option>
-                    </select>
+            <div class="quick-add-form">
+                <select id="add-type">
+                    <option value="收入">收入</option>
+                    <option value="支出">支出</option>
+                </select>
+                <input type="text" id="add-note" placeholder="項目（如：美睫、材料）" autocomplete="off">
+                <input type="number" id="add-amount" placeholder="金額" inputmode="numeric">
+                <button onclick="addRecord()">新增</button>
+            </div>
+
+            <ul id="day-record-list" class="record-list">
+                </ul>
+        </div>
+    </main>
+
+    <main id="all-records-page" class="page">
+        <div class="card-box">
+            <div class="card-title">歷史所有明細</div>
+            <input type="text" id="search-input" class="search-bar" placeholder="🔍 輸入關鍵字搜尋（如：客名、備註）" oninput="renderAllRecords()">
+            
+            <div id="all-records-container" class="all-records-container">
                 </div>
-                <div>
-                    <label class="block font-bold text-stone-400 mb-1">目標地名稱</label>
-                    <input type="text" v-model="modalData.name" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2">
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block font-bold text-stone-400 mb-1">時間</label>
-                        <input type="time" v-model="modalData.time" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2">
-                    </div>
-                    <div>
-                        <label class="block font-bold text-stone-400 mb-1">前進交通工具</label>
-                        <select v-model="modalData.transitMode" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2">
-                            <option value="drive">🚗 開車自駕</option><option value="walk">🚶 步行走路</option><option value="bus">🚌 大眾運輸</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block font-bold text-stone-400 mb-1">預估交通耗時 (分)</label>
-                        <input type="number" v-model="modalData.transitTime" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2">
-                    </div>
-                    <div>
-                        <label class="block font-bold text-stone-400 mb-1">營業時間</label>
-                        <input type="text" v-model="modalData.hours" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2">
-                    </div>
-                </div>
-                <div v-if="modalData.category === '景點'">
-                    <label class="block font-bold text-stone-400 mb-1">門票</label>
-                    <input type="text" v-model="modalData.ticket" placeholder="如 ₩6,000 / 免費" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2">
-                </div>
-                <div>
-                    <label class="block font-bold text-stone-400 mb-1">特色與備註</label>
-                    <textarea v-model="modalData.note" rows="2" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2"></textarea>
-                </div>
-                <div class="flex gap-2 justify-end pt-2 font-bold">
-                    <button v-if="isEditMode" @click="confirmDeleteSchedule" class="px-3 py-2 bg-rose-50 text-rose-600 rounded-xl mr-auto">刪除</button>
-                    <button @click="showModal = false" class="px-4 py-2 text-stone-400">取消</button>
-                    <button @click="saveSchedule" class="px-5 py-2 bg-jejuOrange text-white rounded-xl">儲存</button>
-                </div>
+        </div>
+    </main>
+
+    <main id="reports-page" class="page">
+        <div class="report-summary">
+            <div class="summary-mini-card">
+                <p>本月總收入</p>
+                <h3 id="rep-total-income" style="color: var(--income-green);">$0</h3>
+            </div>
+            <div class="summary-mini-card">
+                <p>本月總支出</p>
+                <h3 id="rep-total-expense" style="color: var(--expense-red);">$0</h3>
             </div>
         </div>
 
-        <div v-if="showShopModal" class="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-            <div class="bg-white rounded-3xl w-full max-w-sm p-5 space-y-3 shadow-xl text-xs">
-                <h3 class="font-bold text-sm text-stone-800 border-b pb-2">放入名產清單</h3>
-                <div>
-                    <label class="block font-bold text-stone-400 mb-1">名產/物品名稱</label>
-                    <input type="text" v-model="modalShopData.name" placeholder="如 漢拏山橘子果醬" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2">
-                </div>
-                <div>
-                    <label class="block font-bold text-stone-400 mb-1">上傳商品照片 (相機直接拍)</label>
-                    <input type="file" @change="handleImageUpload" accept="image/*" class="w-full text-stone-500">
-                </div>
-                <div class="flex gap-2 justify-end pt-2 font-bold">
-                    <button @click="showShopModal = false" class="px-4 py-2 text-stone-400">取消</button>
-                    <button @click="saveShopItem" class="px-5 py-2 bg-jejuOrange text-white rounded-xl">新增</button>
-                </div>
+        <div class="card-box">
+            <div class="card-title">
+                <span>財務分析與排行</span>
+                <span id="report-month-label" style="font-size: 13px; color: var(--text-muted);"></span>
+            </div>
+            
+            <div class="stat-row" style="margin-bottom: 20px;">
+                <span style="font-weight: bold;">本月營運淨利:</span>
+                <span id="rep-net-profit" style="font-size: 18px; font-weight: bold;">$0</span>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <p style="font-size: 14px; font-weight: 600; margin-bottom: 10px;">收入項目排行</p>
+                <div id="income-ranking-container">
+                    </div>
             </div>
         </div>
-
-        <div v-if="showCostModal" class="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-            <div class="bg-white rounded-3xl w-full max-w-sm p-5 space-y-3 shadow-xl text-xs">
-                <h3 class="font-bold text-sm text-stone-800 border-b pb-2">新增旅遊花費紀錄</h3>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block font-bold text-stone-400 mb-1">花費類別</label>
-                        <select v-model="modalCostData.category" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2">
-                            <option>交通</option><option>飲食</option><option>住宿</option><option>門票</option><option>購物</option><option>其他</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block font-bold text-stone-400 mb-1">誰代墊付款？</label>
-                        <select v-model="modalCostData.payer" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 font-bold text-jejuOrange">
-                            <option>曾曾</option><option>小陳</option><option>涵涵</option><option>小恩</option><option>公費</option>
-                        </select>
-                    </div>
-                </div>
-                <div>
-                    <label class="block font-bold text-stone-400 mb-1">項目名稱</label>
-                    <input type="text" v-model="modalCostData.name" placeholder="如 黑豬肉一條街晚餐" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2">
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block font-bold text-stone-400 mb-1">金額 (韓元 KRW)</label>
-                        <input type="number" v-model="modalCostData.amount" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2">
-                    </div>
-                    <div>
-                        <label class="block font-bold text-stone-400 mb-1">付款方式</label>
-                        <select v-model="modalCostData.payMethod" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2">
-                            <option>現金</option><option>信用卡</option>
-                        </select>
-                    </div>
-                </div>
-                <div>
-                    <label class="block font-bold text-stone-400 mb-1">備註</label>
-                    <input type="text" v-model="modalCostData.note" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2">
-                </div>
-                <div class="flex gap-2 justify-end pt-2 font-bold">
-                    <button @click="showCostModal = false" class="px-4 py-2 text-stone-400">取消</button>
-                    <button @click="saveCostItem" class="px-5 py-2 bg-jejuOrange text-white rounded-xl">儲存</button>
-                </div>
-            </div>
-        </div>
-
-    </div>
+    </main>
 
     <script>
-        const { createApp, ref, computed, onMounted, nextTick, watch } = Vue;
+        // --- 初始化資料與狀態 ---
+        let records = JSON.parse(localStorage.getItem('mumu_records')) || [];
+        
+        let currentDate = new Date(); // 用於月曆切換
+        const todayStr = formatDateString(new Date()); // 今天的 YYYY-MM-DD
+        let selectedDateStr = todayStr; // 預設點選日期為今天
 
-        createApp({
-            setup() {
-                const currentTab = ref('schedule');
-                const selectedDay = ref(1);
-                const calcKRW = ref(null);
+        // 初始化載入
+        window.onload = function() {
+            initCalendar();
+            renderDayRecords();
+        };
 
-                // 行程表日期選單
-                const dateMenu = ref([
-                    { id: 1, weekday: 'Sat', dateNum: '9/14' },
-                    { id: 2, weekday: 'Sun', dateNum: '9/15' },
-                    { id: 3, weekday: 'Mon', dateNum: '9/16' },
-                    { id: 4, weekday: 'Tue', dateNum: '9/17' },
-                    { id: 5, weekday: 'Wed', dateNum: '9/18' },
-                    { id: 6, weekday: 'Thu', dateNum: '9/19' }
-                ]);
+        // --- 輔助函式：格式化日期為 YYYY-MM-DD ---
+        function formatDateString(dateObj) {
+            const y = dateObj.getFullYear();
+            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const d = String(dateObj.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
 
-                // 住宿基礎配置
-                const hotelList = ref([
-                    { date: '9/14', addr: '36 Eomjang-ro, 濟州島, 濟州特別自治道 63056, 南韓' },
-                    { date: '9/15', addr: '7808 Iljudong-ro 오른쪽 모래색 단독주택, Seogwipo-si, 濟州特別自治道 63609, 南韓' },
-                    { date: '9/16', addr: '' },
-                    { date: '9/17', addr: 'Gobeundalseo-gil32 Gongrot, 濟州島, 濟州特別自治道 63343, 南韓' },
-                    { date: '9/18', addr: '조함해안로 59-4, 濟州島, 濟州特別自治道 63331, 南韓' }
-                ]);
+        // --- 導覽頁面切換 ---
+        function switchPage(pageId, btnElement) {
+            // 切換按鈕高亮
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
 
-                // 初始行程核心數據
-                const schedules = ref([
-                    { id: 's1', day: 1, time: '15:50', category: '航班', name: '🛫 去程：小港機場 KHH ➔ 濟州機場 CJU 18:50', note: '航班時間共 2 小時。壽星慶生團：曾曾、小陳、涵涵、小恩、公費出發！', transitMode: 'drive', transitTime: 0 },
-                    { id: 's2', day: 1, time: '20:00', category: '住宿', name: '樂天租車據點領車 ➔ 開車前往 14日飯店 Check-In', hours: '24小時營業', note: '首晚入住：36 Eomjang-ro', transitMode: 'drive', transitTime: 25 },
-                    { id: 's3', day: 2, time: '10:30', category: '景點', name: '涯月邑 橘子海景海濱公路 🍊', hours: '全天開放', ticket: '免費', note: '自駕拍照超美！交通時間已將第一天飯店位置計入計算。', transitMode: 'drive', transitTime: 30 },
-                    { id: 's4', day: 6, time: '08:00', category: '其他', name: '返回樂天租車處辦理還車手續', hours: '08:00 截止', note: '記得還車前確認油箱是否需要加滿油喔！', transitMode: 'drive', transitTime: 20 },
-                    { id: 's5', day: 6, time: '10:50', category: '航班', name: '🛬 回程：濟州機場 CJU ➔ 高雄小港機場 KHH 12:15', note: '飛行時間共 2 小時 25 分。濟州自駕慶生之旅收穫滿滿！', transitMode: 'drive', transitTime: 10 }
-                ]);
+            // 切換顯示頁面
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
 
-                // 購物與花費數據陣列
-                const shoppingList = ref([]);
-                const costs = ref([
-                    { id: 'c1', category: '交通', name: '樂天租車費用（預約總計）', date: '2026-09-14', amount: 180000, payer: '公費', payMethod: '信用卡', note: '已含完整自駕險' }
-                ]);
-
-                // 旅遊導覽準備箱架構
-                const packingData = ref({
-                    '隨身背包 🎒': [
-                        { name: '中華民國護照（有效期限內）', qty: 1, checked: true },
-                        { name: '台灣車輛駕照正本 + 國際駕照', qty: 1, checked: false }
-                    ],
-                    '手提行李 🧳': [
-                        { name: '行動電源與手機充電組', qty: 1, checked: false },
-                        { name: '自駕車用手機架（看導航必備）', qty: 1, checked: false }
-                    ],
-                    '托運行李 📦': [
-                        { name: '海島風出遊衣服與慶生裝扮', qty: 6, checked: false },
-                        { name: '個人隨身常備藥品與防曬乳', qty: 2, checked: false }
-                    ]
-                });
-
-                // 控制彈窗狀態變數
-                const showModal = ref(false);
-                const isEditMode = ref(false);
-                const modalData = ref({});
-                const showShopModal = ref(false);
-                const modalShopData = ref({ name: '', img: '' });
-                const showCostModal = ref(false);
-                const modalCostData = ref({});
-
-                // 根據選定日期過濾，並按照抵達時間進行升序排列
-                const filteredSchedules = computed(() => {
-                    return schedules.value
-                        .filter(s => s.day === selectedDay.value)
-                        .sort((a, b) => a.time.localeCompare(b.time));
-                });
-
-                // 記帳總和
-                const totalCostKRW = computed(() => {
-                    return costs.value.reduce((sum, c) => sum + Number(c.amount || 0), 0);
-                });
-
-                // 核心智慧分帳清算引擎 (包含曾曾、小陳、涵涵、小恩、公費)
-                const splitResults = computed(() => {
-                    const members = ['曾曾', '小陳', '涵涵', '小恩', '公費'];
-                    let balance = { '曾曾': 0, '小陳': 0, '涵涵': 0, '小恩': 0, '公費': 0 };
-                    
-                    // 計算每個人代墊支出與被平分支出間的淨額
-                    costs.value.forEach(c => {
-                        const amount = Number(c.amount || 0);
-                        balance[c.payer] += amount;
-                        const share = amount / 5;
-                        members.forEach(m => balance[m] -= share);
-                    });
-
-                    let debtors = [], creditors = [];
-                    members.forEach(m => {
-                        if (balance[m] < -1) debtors.push({ name: m, amount: -balance[m] });
-                        else if (balance[m] > 1) creditors.push({ name: m, amount: balance[m] });
-                    });
-
-                    let debts = [];
-                    let i = 0, j = 0;
-                    while (i < debtors.length && j < creditors.length) {
-                        let debtor = debtors[i];
-                        let creditor = creditors[j];
-                        let settleAmount = Math.min(debtor.amount, creditor.amount);
-
-                        debts.push({ from: debtor.name, to: creditor.name, amount: settleAmount });
-                        debtor.amount -= settleAmount;
-                        creditor.amount -= settleAmount;
-
-                        if (debtor.amount < 1) i++;
-                        if (creditor.amount < 1) j++;
-                    }
-                    return debts;
-                });
-
-                // 樣式對應小工具
-                const getCategoryBadgeStyle = (cat) => {
-                    const styles = {
-                        '景點': 'bg-jejuMint text-jejuGreen border border-green-200',
-                        '住宿': 'bg-orange-50 text-jejuOrange border border-orange-200',
-                        '美食': 'bg-amber-50 text-amber-700 border border-amber-200',
-                        '購物': 'bg-purple-50 text-purple-600 border border-purple-200',
-                        '航班': 'bg-blue-50 text-blue-600 border border-blue-200'
-                    };
-                    return styles[cat] || 'bg-stone-50 text-stone-500 border border-stone-200';
-                };
-
-                const getCostCategoryStyle = (cat) => {
-                    const styles = { '交通': 'bg-blue-500', '飲食': 'bg-amber-500', '住宿': 'bg-stone-700' };
-                    return styles[cat] || 'bg-stone-400';
-                };
-
-                const getTransitIcon = (mode) => {
-                    if (mode === 'walk') return 'fa-person-walking';
-                    if (mode === 'bus') return 'fa-bus';
-                    return 'fa-car';
-                };
-
-                // 行程增刪改處理機制
-                const openAddModal = () => {
-                    isEditMode.value = false;
-                    modalData.value = { id: '', day: selectedDay.value, time: '12:00', category: '景點', name: '', transitMode: 'drive', transitTime: 15, hours: '', ticket: '', note: '' };
-                    showModal.value = true;
-                };
-
-                const openEditModal = (item) => {
-                    isEditMode.value = true;
-                    modalData.value = { ...item };
-                    showModal.value = true;
-                };
-
-                const saveSchedule = () => {
-                    if (!modalData.value.name.trim()) return alert('請填入景點/行程目的地名稱');
-                    if (isEditMode.value) {
-                        const idx = schedules.value.findIndex(s => s.id === modalData.value.id);
-                        if (idx !== -1) schedules.value[idx] = { ...modalData.value };
-                    } else {
-                        modalData.value.id = String(Date.now());
-                        schedules.value.push({ ...modalData.value });
-                    }
-                    showModal.value = false;
-                };
-
-                const confirmDeleteSchedule = () => {
-                    if (confirm('確定要刪除這張行程卡片嗎？這個動作無法復原。')) {
-                        schedules.value = schedules.value.filter(s => s.id !== modalData.value.id);
-                        showModal.value = false;
-                    }
-                };
-
-                // 購物籃相機拍照/照片上傳
-                const openAddShopModal = () => {
-                    modalShopData.value = { name: '', img: '' };
-                    showShopModal.value = true;
-                };
-
-                const handleImageUpload = (e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (event) => { modalShopData.value.img = event.target.result; };
-                        reader.readAsDataURL(file);
-                    }
-                };
-
-                const saveShopItem = () => {
-                    if (!modalShopData.value.name) return alert('商品名稱不能留白');
-                    shoppingList.value.push({ id: Date.now(), ...modalShopData.value });
-                    showShopModal.value = false;
-                };
-
-                const deleteShopItem = (id) => { shoppingList.value = shoppingList.value.filter(s => s.id !== id); };
-
-                // 記帳多功能增刪
-                const openAddCostModal = () => {
-                    const todayStr = new Date().toISOString().split('T')[0];
-                    modalCostData.value = { id: '', category: '飲食', name: '', date: todayStr, amount: null, payer: '曾曾', payMethod: '現金', note: '' };
-                    showCostModal.value = true;
-                };
-
-                const saveCostItem = () => {
-                    if (!modalCostData.value.name || !modalCostData.value.amount) return alert('請完整填寫消費內容和金額');
-                    modalCostData.value.id = String(Date.now());
-                    costs.value.push({ ...modalCostData.value });
-                    showCostModal.value = false;
-                };
-
-                const deleteCost = (id) => { costs.value = costs.value.filter(c => c.id !== id); };
-
-                // 行李箱打包管理
-                const addItemToPack = (cat) => {
-                    const name = prompt('請輸入欲新增防漏帶行李項目：');
-                    if (name && name.trim()) {
-                        packingData.value[cat].push({ name: name.trim(), qty: 1, checked: false });
-                    }
-                };
-                const deletePackItem = (cat, idx) => { packingData.value[cat].splice(idx, 1); };
-
-                // 實作拖曳上下移動卡片排序 (SortableJS)
-                const initSortable = () => {
-                    const el = document.getElementById('drag-container');
-                    if (!el) return;
-                    Sortable.create(el, {
-                        handle: '.drag-handle',
-                        ghostClass: 'ghost-card',
-                        animation: 200,
-                        onEnd: (evt) => {
-                            const orderIds = Array.from(el.children).map(child => child.getAttribute('data-id'));
-                            let dayItems = schedules.value.filter(s => s.day === selectedDay.value);
-                            dayItems.sort((a, b) => orderIds.indexOf(a.id) - orderIds.indexOf(b.id));
-                            schedules.value = schedules.value.filter(s => s.day !== selectedDay.value).concat(dayItems);
-                        }
-                    });
-                };
-
-                watch([currentTab, selectedDay], () => {
-                    if (currentTab.value === 'schedule') { nextTick(() => initSortable()); }
-                });
-
-                onMounted(() => { initSortable(); });
-
-                return {
-                    currentTab, selectedDay, dateMenu, hotelList, schedules, filteredSchedules, getCategoryBadgeStyle, getTransitIcon,
-                    showModal, isEditMode, modalData, openAddModal, openEditModal, saveSchedule, confirmDeleteSchedule,
-                    shoppingList, showShopModal, modalShopData, openAddShopModal, saveShopItem, deleteShopItem, handleImageUpload,
-                    costs, totalCostKRW, splitResults, showCostModal, modalCostData, openAddCostModal, saveCostItem, deleteCost, getCostCategoryStyle,
-                    packingData, addItemToPack, deletePackItem, calcKRW
-                };
+            // 進入特定頁面時重新整理資料
+            if (pageId === 'all-records-page') {
+                renderAllRecords();
+            } else if (pageId === 'reports-page') {
+                renderReports();
+            } else if (pageId === 'calendar-page') {
+                initCalendar();
+                renderDayRecords();
             }
-        }).mount('#app');
+        }
+
+        // ==================== 頁面 1: 月曆與動態渲染 ====================
+        function initCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            // 更新月曆標題
+            document.getElementById('calendar-month-year').innerText = `${year} 年 ${month + 1} 月`;
+
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const totalDays = new Date(year, month + 1, 0).getDate();
+
+            const daysContainer = document.getElementById('calendar-days');
+            daysContainer.innerHTML = '';
+
+            // 填補上個月空白
+            for (let i = 0; i < firstDayIndex; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.classList.add('day-cell', 'empty');
+                daysContainer.appendChild(emptyCell);
+            }
+
+            // 生成當月日期
+            for (let day = 1; day <= totalDays; day++) {
+                const dayCell = document.createElement('div');
+                dayCell.classList.add('day-cell');
+
+                const currentCellDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                
+                dayCell.innerHTML = `<div class="day-number">${day}</div>`;
+
+                // 檢查是否有記帳紀錄，有則顯示提示小點
+                const hasRecord = records.some(r => r.date === currentCellDateStr);
+                if (hasRecord) {
+                    const dot = document.createElement('div');
+                    dot.classList.add('day-dot');
+                    dayCell.appendChild(dot);
+                }
+
+                // 處理「當日預設」與「點選」的深色圓形邏輯
+                // 1. 如果是今天，先加上 today 樣式（預設深色圓形）
+                if (currentCellDateStr === todayStr) {
+                    dayCell.classList.add('today');
+                }
+                // 2. 如果是被使用者點選的日期，加上 selected 樣式（此時 CSS 權重會覆蓋 today）
+                if (currentCellDateStr === selectedDateStr) {
+                    dayCell.classList.add('selected');
+                }
+
+                // 點擊日期事件
+                dayCell.onclick = function() {
+                    selectedDateStr = currentCellDateStr;
+                    
+                    // 移除其他日期的選取狀態，並將此日期設為選取
+                    document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('selected'));
+                    dayCell.classList.add('selected');
+
+                    renderDayRecords();
+                };
+
+                daysContainer.appendChild(dayCell);
+            }
+        }
+
+        function changeMonth(direction) {
+            currentDate.setMonth(currentDate.getMonth() + direction);
+            initCalendar();
+        }
+
+        // 渲染指定日期的收支明細
+        function renderDayRecords() {
+            // 更新下方方框的日期標題
+            const dateParts = selectedDateStr.split('-');
+            document.getElementById('selected-date-label').innerText = `${parseInt(dateParts[1])}月${parseInt(dateParts[2])}日 收支紀錄`;
+
+            const dayRecords = records.filter(r => r.date === selectedDateStr);
+            const listContainer = document.getElementById('day-record-list');
+            listContainer.innerHTML = '';
+
+            if (dayRecords.length === 0) {
+                listContainer.innerHTML = '<li class="no-data">今日尚無收支紀錄清單</li>';
+                return;
+            }
+
+            dayRecords.forEach(rec => {
+                const li = document.createElement('li');
+                li.classList.add('record-item');
+
+                const isInc = rec.type === '收入';
+                const typeClass = isInc ? 'inc' : 'exp';
+                const sign = isInc ? '+' : '-';
+
+                li.innerHTML = `
+                    <div class="record-info">
+                        <span class="type-tag ${typeClass}">${rec.type}</span>
+                        <span>${escapeHtml(rec.note)}</span>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <span class="record-amount ${typeClass}">${sign}$${rec.amount}</span>
+                        <button class="btn-delete" onclick="deleteRecord('${rec.id}')">🗑️</button>
+                    </div>
+                `;
+                listContainer.appendChild(li);
+            });
+        }
+
+        // 新增收支紀錄
+        function addRecord() {
+            const type = document.getElementById('add-type').value;
+            const noteInput = document.getElementById('add-note');
+            const amountInput = document.getElementById('add-amount');
+
+            const note = noteInput.value.trim() || (type === '收入' ? '美睫服務' : '雜項支出');
+            const amount = parseInt(amountInput.value);
+
+            if (isNaN(amount) || amount <= 0) {
+                alert('請輸入正確的金額數字');
+                return;
+            }
+
+            const newRecord = {
+                id: 'id_' + Date.now() + Math.random().toString(36).substr(2, 4),
+                date: selectedDateStr,
+                type: type,
+                note: note,
+                amount: amount
+            };
+
+            records.push(newRecord);
+            saveData();
+
+            // 清空輸入欄位
+            noteInput.value = '';
+            amountInput.value = '';
+
+            // 重新整理 UI
+            initCalendar();
+            renderDayRecords();
+        }
+
+        // 刪除單筆紀錄
+        function deleteRecord(id) {
+            if(confirm('確定要刪除此筆紀錄嗎？')) {
+                records = records.filter(r => r.id !== id);
+                saveData();
+                initCalendar();
+                renderDayRecords();
+            }
+        }
+
+
+        // ==================== 頁面 2: 總紀錄 邏輯 ====================
+        function renderAllRecords() {
+            const container = document.getElementById('all-records-container');
+            const searchKey = document.getElementById('search-input').value.toLowerCase().trim();
+            container.innerHTML = '';
+
+            // 篩選符合關鍵字的紀錄
+            let filtered = records;
+            if (searchKey) {
+                filtered = records.filter(r => 
+                    r.note.toLowerCase().includes(searchKey) || 
+                    r.type.includes(searchKey) ||
+                    r.date.includes(searchKey)
+                );
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="no-data">找不到相關紀錄</div>';
+                return;
+            }
+
+            // 按日期由新到舊排序
+            filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            // 群組化按日期顯示
+            let currentGroupDate = "";
+            let currentGroupDiv = null;
+
+            filtered.forEach(rec => {
+                if (rec.date !== currentGroupDate) {
+                    currentGroupDate = rec.date;
+                    
+                    const groupWrapper = document.createElement('div');
+                    groupWrapper.classList.add('all-record-date-group');
+                    
+                    const dateTitle = document.createElement('div');
+                    dateTitle.classList.add('date-group-title');
+                    dateTitle.innerText = rec.date;
+                    groupWrapper.appendChild(dateTitle);
+                    
+                    container.appendChild(groupWrapper);
+                    currentGroupDiv = groupWrapper;
+                }
+
+                const item = document.createElement('div');
+                item.classList.add('record-item');
+                const isInc = rec.type === '收入';
+                const typeClass = isInc ? 'inc' : 'exp';
+                
+                item.innerHTML = `
+                    <div class="record-info">
+                        <span class="type-tag ${typeClass}">${rec.type}</span>
+                        <span>${escapeHtml(rec.note)}</span>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span>
+                        <button class="btn-delete" onclick="deleteRecordFromTotal('${rec.id}')">🗑️</button>
+                    </div>
+                `;
+                currentGroupDiv.appendChild(item);
+            });
+        }
+
+        function deleteRecordFromTotal(id) {
+            if(confirm('確定要刪除此筆紀錄嗎？')) {
+                records = records.filter(r => r.id !== id);
+                saveData();
+                renderAllRecords();
+            }
+        }
+
+
+        // ==================== 頁面 3: 報表 邏輯 ====================
+        function renderReports() {
+            // 以當前月曆選擇的月份作為報表基準月
+            const targetYear = currentDate.getFullYear();
+            const targetMonth = currentDate.getMonth(); // 0-11
+            
+            document.getElementById('report-month-label').innerText = `${targetYear}年${targetMonth+1}月 統計`;
+
+            // 篩選當月資料
+            const monthRecords = records.filter(r => {
+                const d = new Date(r.date);
+                return d.getFullYear() === targetYear && d.getMonth() === targetMonth;
+            });
+
+            let totalIncome = 0;
+            let totalExpense = 0;
+            let itemRanking = {};
+
+            monthRecords.forEach(r => {
+                if (r.type === '收入') {
+                    totalIncome += r.amount;
+                    // 統計各項收入項目的累積金額排行
+                    itemRanking[r.note] = (itemRanking[r.note] || 0) + r.amount;
+                } else {
+                    totalExpense += r.amount;
+                }
+            });
+
+            const netProfit = totalIncome - totalExpense;
+
+            // 渲染看板數字
+            document.getElementById('rep-total-income').innerText = `$${totalIncome.toLocaleString()}`;
+            document.getElementById('rep-total-expense').innerText = `$${totalExpense.toLocaleString()}`;
+            
+            const netProfitEl = document.getElementById('rep-net-profit');
+            netProfitEl.innerText = `${netProfit >= 0 ? '' : '-'}$${Math.abs(netProfit).toLocaleString()}`;
+            netProfitEl.style.color = netProfit >= 0 ? 'var(--income-green)' : 'var(--expense-red)';
+
+            // 渲染排行
+            const rankingContainer = document.getElementById('income-ranking-container');
+            rankingContainer.innerHTML = '';
+
+            // 轉為陣列並排序
+            const sortedRank = Object.keys(itemRanking).map(key => {
+                return { note: key, amount: itemRanking[key] };
+            }).sort((a, b) => b.amount - a.amount);
+
+            if(sortedRank.length === 0) {
+                rankingContainer.innerHTML = '<p class="no-data" style="font-size:12px;">本月無收入項目排行</p>';
+                return;
+            }
+
+            const maxAmount = sortedRank[0].amount; // 最高金額者為 100% 條
+
+            sortedRank.forEach((item, index) => {
+                const percentage = maxAmount > 0 ? (item.amount / maxAmount) * 100 : 0;
+                
+                const rankRow = document.createElement('div');
+                rankRow.style.marginBottom = '12px';
+                rankRow.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--text-dark);">
+                        <span>${index + 1}. ${escapeHtml(item.note)}</span>
+                        <span style="font-weight:600;">$${item.amount.toLocaleString()}</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" style="width: ${percentage}%"></div>
+                    </div>
+                `;
+                rankingContainer.appendChild(rankRow);
+            });
+        }
+
+
+        // ==================== 全域資料儲存與防範 ====================
+        function saveData() {
+            localStorage.setItem('mumu_records', JSON.stringify(records));
+        }
+
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
     </script>
 </body>
 </html>
