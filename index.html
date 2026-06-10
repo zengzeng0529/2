@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MUMU STUDIO | 沐目 美睫記帳與客戶管理系統</title>
+    <title>MUMU STUDIO | 沐目 美睫記帳與客戶CRM系統</title>
     <style>
         /* --- 韓系奶油風 變數設定 --- */
         :root {
@@ -17,6 +17,7 @@
             --delete-red: #E07A5F;
             --income-green: #95B46A;
             --expense-red: #E07A5F;
+            --birthday-pink: #E6B8A2;
         }
 
         /* --- 全局樣式 --- */
@@ -31,7 +32,7 @@
         body {
             background-color: var(--bg-cream);
             color: var(--text-dark);
-            padding-top: 65px; /* 留給頂部快選列的空間 */
+            padding-top: 65px; 
             padding-bottom: 30px;
         }
 
@@ -123,6 +124,7 @@
         /* ==================== 頁面 1: 月曆 ==================== */
         .calendar-header {
             display: flex;
+            justify-open: space-between;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
@@ -209,9 +211,6 @@
             gap: 8px;
             margin-bottom: 10px;
         }
-        .form-row-full {
-            grid-column: span 2;
-        }
         .input-style {
             width: 100%;
             border: 1px solid var(--accent-latte);
@@ -235,7 +234,7 @@
             margin-top: 5px;
         }
 
-        /* 條列式明細樣式擴充 */
+        /* 條列式明細樣式 */
         .record-list { list-style: none; }
         .record-item {
             border-bottom: 1px solid rgba(227, 213, 202, 0.2);
@@ -249,15 +248,8 @@
             align-items: center;
             margin-bottom: 4px;
         }
-        .rec-mid {
-            font-size: 13px;
-            color: var(--text-dark);
-            margin-bottom: 3px;
-        }
-        .rec-bot {
-            font-size: 11px;
-            color: var(--text-muted);
-        }
+        .rec-mid { font-size: 13px; color: var(--text-dark); margin-bottom: 3px; }
+        .rec-bot { font-size: 11px; color: var(--text-muted); }
 
         .type-tag {
             font-size: 10px;
@@ -273,123 +265,82 @@
         .record-amount.inc { color: var(--income-green); }
         .record-amount.exp { color: var(--expense-red); }
 
-        .btn-delete {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            padding-left: 10px;
-        }
+        .btn-delete { background: none; border: none; cursor: pointer; font-size: 16px; padding-left: 10px; }
 
-        /* ==================== 通用搜尋列 ==================== */
-        .search-container {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 15px;
-        }
+        /* ==================== 通用搜尋列與滾動框 ==================== */
+        .search-container { display: flex; gap: 8px; margin-bottom: 15px; }
         .search-bar {
-            flex: 1;
-            border: 1px solid var(--accent-latte);
-            border-radius: 12px;
-            padding: 10px;
-            font-size: 14px;
-            outline: none;
-            background-color: var(--pure-white);
+            flex: 1; border: 1px solid var(--accent-latte); border-radius: 12px;
+            padding: 10px; font-size: 14px; outline: none; background-color: var(--pure-white);
         }
         .btn-search-icon {
-            background-color: var(--main-butter);
-            border: 1px solid var(--accent-latte);
-            border-radius: 12px;
-            width: 42px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 16px;
+            background-color: var(--main-butter); border: 1px solid var(--accent-latte);
+            border-radius: 12px; width: 42px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 16px;
         }
-
-        /* ==================== 頁面 2 & 4 容器 ==================== */
-        .scroll-container {
-            max-height: 60vh;
-            overflow-y: auto;
-        }
+        .scroll-container { max-height: 55vh; overflow-y: auto; }
         .date-group-title {
-            font-size: 12px;
-            color: var(--text-muted);
-            font-weight: 600;
-            margin: 10px 0 5px 0;
-            background-color: var(--main-butter);
-            padding: 2px 8px;
-            border-radius: 6px;
-            display: inline-block;
+            font-size: 12px; color: var(--text-muted); font-weight: 600; margin: 10px 0 5px 0;
+            background-color: var(--main-butter); padding: 2px 8px; border-radius: 6px; display: inline-block;
         }
 
         /* ==================== 頁面 3: 報表 ==================== */
-        .report-summary {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
+        .report-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
         .summary-mini-card {
-            background-color: var(--bg-cream);
-            padding: 15px;
-            border-radius: 16px;
-            text-align: center;
+            background-color: var(--bg-cream); padding: 15px; border-radius: 16px; text-align: center;
             border: 1px solid rgba(227, 213, 202, 0.4);
         }
         .summary-mini-card p { font-size: 12px; color: var(--text-muted); margin-bottom: 5px; }
         .summary-mini-card h3 { font-size: 18px; font-weight: 700; }
+        .stat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 14px; }
+        .progress-bar-bg { background-color: var(--main-butter); height: 6px; border-radius: 3px; width: 100%; margin-top: 4px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background-color: var(--text-muted); width: 0%; transition: width 0.5s ease; }
 
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            font-size: 14px;
-        }
-        .progress-bar-bg {
-            background-color: var(--main-butter);
-            height: 6px;
-            border-radius: 3px;
-            width: 100%;
-            margin-top: 4px;
-            overflow: hidden;
-        }
-        .progress-bar-fill {
-            height: 100%;
-            background-color: var(--text-muted);
-            width: 0%;
-            transition: width 0.5s ease;
-        }
-
-        /* ==================== 頁面 4: 客戶資料卡片 ==================== */
-        .customer-card {
-            background-color: var(--bg-cream);
+        /* ==================== 頁面 4: 客戶壽星專區與卡片編輯 ==================== */
+        .birthday-banner {
+            background-color: #FFF0EB;
+            border: 1px dashed var(--birthday-pink);
             border-radius: 16px;
-            padding: 15px;
-            margin-bottom: 12px;
-            border: 1px solid rgba(227, 213, 202, 0.5);
+            padding: 12px;
+            margin-bottom: 15px;
         }
-        .customer-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px dashed var(--accent-latte);
-            padding-bottom: 8px;
-            margin-bottom: 8px;
+        .birthday-banner-title {
+            font-size: 13px; font-weight: bold; color: #D87A60; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;
         }
+        .birthday-list { font-size: 12px; color: var(--text-dark); list-style: none; padding-left: 4px;}
+        .birthday-list li { margin-bottom: 3px; }
+
+        .customer-card {
+            background-color: var(--bg-cream); border-radius: 16px; padding: 14px; margin-bottom: 12px;
+            border: 1px solid rgba(227, 213, 202, 0.5); cursor: pointer; transition: background-color 0.2s;
+        }
+        .customer-card:hover { background-color: #F7EFE5; }
+        .customer-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--accent-latte); padding-bottom: 6px; margin-bottom: 8px; }
         .customer-name { font-weight: bold; font-size: 15px; }
         .customer-deposit { font-size: 13px; color: #1A73E8; font-weight: 600; }
-        .customer-detail-row {
-            font-size: 12px;
-            color: var(--text-dark);
-            margin-bottom: 4px;
+        .customer-detail-row { font-size: 12px; color: var(--text-dark); margin-bottom: 3px; }
+        
+        /* 展開的編輯與明細區塊 */
+        .customer-expanded-zone {
+            margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(227, 213, 202, 0.4);
+            display: none; /* 預設隱藏，點擊才打開 */
         }
+        .customer-card.open .customer-expanded-zone { display: block; }
+        .edit-crm-group {
+            background-color: var(--pure-white); padding: 10px; border-radius: 12px;
+            border: 1px solid var(--accent-latte); margin-bottom: 8px;
+        }
+        .edit-crm-title { font-size: 11px; font-weight: bold; color: var(--text-muted); margin-bottom: 6px; }
+        .btn-mini-save {
+            background-color: var(--text-dark); color: var(--pure-white); border: none;
+            border-radius: 8px; padding: 6px 12px; font-size: 11px; cursor: pointer; float: right; margin-top: 4px;
+        }
+        .no-data { text-align: center; color: var(--text-muted); font-size: 14px; padding: 20px 0; }
     </style>
 </head>
 <body>
 
+    <!-- 頂部快選列 -->
     <nav class="top-toolbar">
         <button class="nav-btn active" onclick="switchPage('calendar-page', this)">1. 月曆</button>
         <button class="nav-btn" onclick="switchPage('all-records-page', this)">2. 總紀錄</button>
@@ -397,11 +348,13 @@
         <button class="nav-btn" onclick="switchPage('customers-page', this)">4. 客戶資料</button>
     </nav>
 
+    <!-- 店名商標 -->
     <header class="shop-header">
         <h1>MUMU STUDIO</h1>
         <p>沐 目 ﹒ 美 睫 記 帳 與 客 戶 管 理</p>
     </header>
 
+    <!-- ==================== 頁面 1: 月曆 ==================== -->
     <main id="calendar-page" class="page active">
         <div class="card-box">
             <div class="calendar-header">
@@ -416,33 +369,31 @@
         </div>
 
         <div class="card-box">
-            <div class="card-title">
-                <span id="selected-date-label">6月10日 收支紀錄</span>
-            </div>
-
+            <div class="card-title"><span id="selected-date-label">6月10日 收支紀錄</span></div>
+            <!-- 表單欄位 -->
             <div style="margin-bottom: 18px; padding-bottom: 15px; border-bottom: 1px solid rgba(227, 213, 202, 0.4);">
                 <div class="form-group">
                     <select id="add-type" class="input-style">
-                        <option value="收入">收入 (美睫服務/儲值)</option>
+                        <option value="收入">收入 (美睫/儲值)</option>
                         <option value="支出">支出 (店鋪開銷)</option>
                     </select>
-                    <input type="text" id="add-cust-name" class="input-style" placeholder="客戶姓名 (支出可不填)">
+                    <input type="text" id="add-cust-name" class="input-style" placeholder="客戶姓名 (支出可空)">
                 </div>
                 <div class="form-group">
-                    <input type="text" id="add-project" class="input-style" placeholder="施作項目 (如: 單次美睫、購買材料)">
+                    <input type="text" id="add-project" class="input-style" placeholder="施作項目 (如: 單次美睫)">
                     <input type="number" id="add-amount" class="input-style" placeholder="金額" inputmode="numeric">
                 </div>
                 <div class="form-group">
-                    <input type="number" id="add-deposit" class="input-style" placeholder="儲值金餘額 (不更動可留空)" inputmode="numeric">
+                    <input type="number" id="add-deposit" class="input-style" placeholder="儲值餘額 (無改動可空)" inputmode="numeric">
                     <input type="text" id="add-note" class="input-style" placeholder="備註說明 📝">
                 </div>
                 <button class="btn-submit" onclick="addRecord()">確認新增紀錄</button>
             </div>
-
             <ul id="day-record-list" class="record-list"></ul>
         </div>
     </main>
 
+    <!-- ==================== 頁面 2: 總紀錄 ==================== -->
     <main id="all-records-page" class="page">
         <div class="card-box">
             <div class="card-title">歷史所有明細</div>
@@ -454,35 +405,29 @@
         </div>
     </main>
 
+    <!-- ==================== 頁面 3: 報表 ==================== -->
     <main id="reports-page" class="page">
         <div class="report-summary">
-            <div class="summary-mini-card">
-                <p>本月總收入</p>
-                <h3 id="rep-total-income" style="color: var(--income-green);">$0</h3>
-            </div>
-            <div class="summary-mini-card">
-                <p>本月總支出</p>
-                <h3 id="rep-total-expense" style="color: var(--expense-red);">$0</h3>
-            </div>
+            <div class="summary-mini-card"><p>本月總收入</p><h3 id="rep-total-income" style="color: var(--income-green);">$0</h3></div>
+            <div class="summary-mini-card"><p>本月總支出</p><h3 id="rep-total-expense" style="color: var(--expense-red);">$0</h3></div>
         </div>
-
         <div class="card-box">
-            <div class="card-title">
-                <span>財務分析與排行</span>
-                <span id="report-month-label" style="font-size: 13px; color: var(--text-muted);"></span>
-            </div>
-            <div class="stat-row" style="margin-bottom: 20px;">
-                <span style="font-weight: bold;">本月營運淨利:</span>
-                <span id="rep-net-profit" style="font-size: 18px; font-weight: bold;">$0</span>
-            </div>
-            <div>
-                <p style="font-size: 14px; font-weight: 600; margin-bottom: 10px;">施作項目熱門排行 (收入)</p>
-                <div id="income-ranking-container"></div>
-            </div>
+            <div class="card-title"><span>財務分析與排行</span><span id="report-month-label" style="font-size:13px; color:var(--text-muted);"></span></div>
+            <div class="stat-row" style="margin-bottom: 20px;"><span style="font-weight: bold;">本月營運淨利:</span><span id="rep-net-profit" style="font-size: 18px; font-weight: bold;">$0</span></div>
+            <div><p style="font-size: 14px; font-weight: 600; margin-bottom: 10px;">施作項目熱門排行 (收入)</p><div id="income-ranking-container"></div></div>
         </div>
     </main>
 
+    <!-- ==================== 頁面 4: 客戶資料 (含壽星專區與資料編輯) ==================== -->
     <main id="customers-page" class="page">
+        <!-- 頂部當月壽星專區 -->
+        <div class="birthday-banner">
+            <div class="birthday-banner-title">🎂 <span id="current-month-title"></span>月壽星提醒專區</div>
+            <ul id="birthday-list-container" class="birthday-list">
+                <!-- 壽星動態生成 -->
+            </ul>
+        </div>
+
         <div class="card-box">
             <div class="card-title">客戶管理中心</div>
             <div class="search-container">
@@ -493,9 +438,12 @@
         </div>
     </main>
 
+    <!-- --- JavaScript 核心邏輯 --- -->
     <script>
         // --- 初始化資料與狀態 ---
-        let records = JSON.parse(localStorage.getItem('mumu_records_v2')) || [];
+        let records = JSON.parse(localStorage.getItem('mumu_records_v3')) || [];
+        // 客戶擴充數據結構（用名字當 Key 存生日與電話）
+        let customerCRM = JSON.parse(localStorage.getItem('mumu_crm_v3')) || {};
         
         let currentDate = new Date();
         const todayStr = formatDateString(new Date());
@@ -507,28 +455,22 @@
         };
 
         function formatDateString(dateObj) {
-            const y = dateObj.getFullYear();
-            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
-            const d = String(dateObj.getDate()).padStart(2, '0');
-            return `${y}-${m}-${d}`;
+            return `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
         }
 
-        // 儲存資料
         function saveData() {
-            localStorage.setItem('mumu_records_v2', JSON.stringify(records));
+            localStorage.setItem('mumu_records_v3', JSON.stringify(records));
+            localStorage.setItem('mumu_crm_v3', JSON.stringify(customerCRM));
         }
 
-        // HTML 安全過濾
         function escapeHtml(text) {
             if(!text) return '';
             return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
-        // 導覽頁面切換
         function switchPage(pageId, btnElement) {
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             btnElement.classList.add('active');
-
             document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
 
@@ -561,7 +503,6 @@
                 const currentCellDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 
                 dayCell.innerHTML = `<div class="day-number">${day}</div>`;
-
                 if (records.some(r => r.date === currentCellDateStr)) {
                     const dot = document.createElement('div');
                     dot.classList.add('day-dot');
@@ -651,9 +592,14 @@
             };
 
             records.push(newRecord);
+
+            // 若有輸入客戶名，初始化該客人的基本 CRM 容器
+            if (custName && !customerCRM[custName]) {
+                customerCRM[custName] = { phone: '', birthday: '' };
+            }
+
             saveData();
 
-            // 清空輸入欄位
             document.getElementById('add-cust-name').value = '';
             document.getElementById('add-project').value = '';
             document.getElementById('add-amount').value = '';
@@ -674,7 +620,7 @@
             }
         }
 
-        // ==================== 頁面 2: 總紀錄邏輯 ====================
+        // ==================== 頁面 2: 總紀錄 ====================
         function renderAllRecords() {
             const container = document.getElementById('all-records-container');
             const searchKey = document.getElementById('search-input').value.toLowerCase().trim();
@@ -714,26 +660,17 @@
                 
                 item.innerHTML = `
                     <div class="rec-top">
-                        <div>
-                            <span class="type-tag ${typeClass}">${rec.type}</span>
-                            <span style="font-weight:600;">${rec.custName ? escapeHtml(rec.custName) : '無名客/店鋪'}</span>
-                        </div>
-                        <div>
-                            <span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span>
-                            <button class="btn-delete" onclick="deleteRecord('${rec.id}', 'all')">🗑️</button>
-                        </div>
+                        <div><span class="type-tag ${typeClass}">${rec.type}</span><span style="font-weight:600;">${rec.custName ? escapeHtml(rec.custName) : '無名客/店鋪'}</span></div>
+                        <div><span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span><button class="btn-delete" onclick="deleteRecord('${rec.id}', 'all')">🗑️</button></div>
                     </div>
                     <div class="rec-mid">項目: ${escapeHtml(rec.project)}</div>
-                    <div class="rec-bot">
-                        <span>儲值金: ${rec.deposit !== '' ? '$'+rec.deposit : '未記錄'}</span>
-                        ${rec.note ? `<span style="margin-left:10px;">📝 ${escapeHtml(rec.note)}</span>` : ''}
-                    </div>
+                    <div class="rec-bot"><span>儲值金: ${rec.deposit !== '' ? '$'+rec.deposit : '未記錄'}</span>${rec.note ? `<span style="margin-left:10px;">📝 ${escapeHtml(rec.note)}</span>` : ''}</div>
                 `;
                 currentGroupDiv.appendChild(item);
             });
         }
 
-        // ==================== 頁面 3: 報表邏輯 ====================
+        // ==================== 頁面 3: 報表 ====================
         function renderReports() {
             const targetYear = currentDate.getFullYear();
             const targetMonth = currentDate.getMonth();
@@ -745,14 +682,11 @@
             });
 
             let totalIncome = 0; let totalExpense = 0; let projectRanking = {};
-
             monthRecords.forEach(r => {
                 if (r.type === '收入') {
                     totalIncome += r.amount;
                     projectRanking[r.project] = (projectRanking[r.project] || 0) + r.amount;
-                } else {
-                    totalExpense += r.amount;
-                }
+                } else { totalExpense += r.amount; }
             });
 
             const netProfit = totalIncome - totalExpense;
@@ -781,47 +715,46 @@
                 const rankRow = document.createElement('div');
                 rankRow.style.marginBottom = '12px';
                 rankRow.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; font-size:13px;">
-                        <span>${index + 1}. ${escapeHtml(item.project)}</span>
-                        <span style="font-weight:600;">$${item.amount.toLocaleString()}</span>
-                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:13px;"><span>${index + 1}. ${escapeHtml(item.project)}</span><span style="font-weight:600;">$${item.amount.toLocaleString()}</span></div>
                     <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${percentage}%"></div></div>
                 `;
                 rankingContainer.appendChild(rankRow);
             });
         }
 
-        // ==================== 頁面 4: 客戶資料邏輯 (按🔍ICON查詢) ====================
+        // ==================== 頁面 4: 客戶管理與壽星處理 ====================
         function renderCustomerPage() {
+            const thisMonth = new Date().getMonth() + 1; // 獲取目前真實月份
+            document.getElementById('current-month-title').innerText = thisMonth;
+
             const container = document.getElementById('customers-container');
             const searchKey = document.getElementById('cust-search-input').value.trim().toLowerCase();
             container.innerHTML = '';
 
-            // 1. 整理出所有不重複的客戶資料（排除空白）
+            // 1. 統整並清洗記帳本中的客人清單
             let customerMap = {};
-
             records.forEach(r => {
                 if (!r.custName) return;
                 const name = r.custName.trim();
-                
-                // 如果是搜尋狀態，不符合搜尋名字的就跳過
                 if (searchKey && !name.toLowerCase().includes(searchKey)) return;
 
                 if (!customerMap[name]) {
+                    // 同步載入 CRM 中的生日與電話，若無則為空
+                    const crmData = customerCRM[name] || { phone: '', birthday: '' };
                     customerMap[name] = {
                         name: name,
+                        phone: crmData.phone || '',
+                        birthday: crmData.birthday || '',
                         visitCount: 0,
                         latestDeposit: '未記錄',
-                        latestDepositTime: 0, // 用來確保抓到的是最新的一筆儲值金
+                        latestDepositTime: 0,
                         history: []
                     };
                 }
 
-                // 累加消費次數並保存該筆歷史
                 customerMap[name].visitCount++;
                 customerMap[name].history.push(r);
 
-                // 更新儲值金餘額 (以時間最新建立者為主)
                 const recordTime = new Date(r.date).getTime();
                 if (r.deposit !== '' && recordTime >= customerMap[name].latestDepositTime) {
                     customerMap[name].latestDeposit = '$' + r.deposit;
@@ -829,50 +762,123 @@
                 }
             });
 
+            // 如果有些客人在 CRM 中存在但目前沒任何記帳紀錄，也一併納入清單 (保障手動編輯後的獨立性)
+            Object.keys(customerCRM).forEach(name => {
+                if (searchKey && !name.toLowerCase().includes(searchKey)) return;
+                if (!customerMap[name]) {
+                    customerMap[name] = {
+                        name: name,
+                        phone: customerCRM[name].phone || '',
+                        birthday: customerCRM[name].birthday || '',
+                        visitCount: 0,
+                        latestDeposit: '未記錄',
+                        history: []
+                    };
+                }
+            });
+
             const customers = Object.values(customerMap);
+
+            // 2. 篩選與渲染當月壽星至頂部 Banner
+            const birthdayContainer = document.getElementById('birthday-list-container');
+            birthdayContainer.innerHTML = '';
+            
+            let birthdayCount = 0;
+            customers.forEach(cust => {
+                if (cust.birthday) {
+                    // 生日格式可能是 06-15 或 6-15 等，擷取月份比對
+                    const mPart = parseInt(cust.birthday.split('-')[0]);
+                    if (mPart === thisMonth) {
+                        birthdayCount++;
+                        const li = document.createElement('li');
+                        li.innerHTML = `🎉 <strong>${escapeHtml(cust.name)}</strong> (${cust.birthday}) ${cust.phone ? ` 📞 ${escapeHtml(cust.phone)}` : ''}`;
+                        birthdayContainer.appendChild(li);
+                    }
+                }
+            });
+            if (birthdayCount === 0) {
+                birthdayContainer.innerHTML = '<li>本月暫無壽星顧客記錄</li>';
+            }
 
             if (customers.length === 0) {
                 container.innerHTML = '<div class="no-data">暫無符合條件的客戶資料</div>';
                 return;
             }
 
-            // 按字母或消費次數排序（這裡採名字排序）
+            // 按名字排序
             customers.sort((a, b) => a.name.localeCompare(b.name, 'zh-Hans-CN'));
 
-            // 2. 渲染客戶卡片
+            // 3. 渲染主要客戶卡片
             customers.forEach(cust => {
                 const card = document.createElement('div');
                 card.classList.add('customer-card');
 
-                // 排序該客人的歷史紀錄 (由新到舊)
                 cust.history.sort((a, b) => new Date(b.date) - new Date(a.date));
-
                 let historyHtml = cust.history.map(h => `
                     <div style="border-top:1px dashed rgba(227,213,202,0.3); padding-top:4px; margin-top:4px;">
-                        <span style="color:var(--text-muted);">${h.date}</span> | 
-                        <span>${escapeHtml(h.project)}</span> 
-                        <span style="font-weight:600; color:${h.type==='收入'?'var(--income-green)':'var(--expense-red)'};">
-                            (${h.type==='收入'?'+':'-'}$${h.amount})
-                        </span>
-                        ${h.note ? `<span style="font-size:11px; color:var(--text-muted); block"> (📝${escapeHtml(h.note)})</span>` : ''}
+                        <span style="color:var(--text-muted);">${h.date}</span> | <span>${escapeHtml(h.project)}</span> 
+                        <span style="font-weight:600; color:${h.type==='收入'?'var(--income-green)':'var(--expense-red)'};">(${h.type==='收入'?'+':'-'}$${h.amount})</span>
                     </div>
                 `).join('');
 
                 card.innerHTML = `
-                    <div class="customer-card-header">
+                    <div class="customer-card-header" onclick="toggleCard(this.parentNode)">
                         <span class="customer-name">👤 ${escapeHtml(cust.name)}</span>
                         <span class="customer-deposit">儲值餘額: ${cust.latestDeposit}</span>
                     </div>
-                    <div class="customer-detail-row">累積到店次數: <strong>${cust.visitCount}</strong> 次</div>
-                    <div style="margin-top:8px;">
-                        <p style="font-size:11px; font-weight:600; color:var(--text-muted);">歷史消費明細：</p>
-                        <div style="max-height:100px; overflow-y:auto; font-size:12px;">
-                            ${historyHtml}
+                    <div onclick="toggleCard(this.parentNode)">
+                        <div class="customer-detail-row">📞 電話: ${cust.phone ? escapeHtml(cust.phone) : '未填寫'}</div>
+                        <div class="customer-detail-row">🎂 生日: ${cust.birthday ? escapeHtml(cust.birthday) : '未填寫'}</div>
+                        <div class="customer-detail-row">累積消費次數: <strong>${cust.visitCount}</strong> 次</div>
+                    </div>
+                    
+                    <!-- 展開編輯區 -->
+                    <div class="customer-expanded-zone">
+                        <div class="edit-crm-group">
+                            <div class="edit-crm-title">✏️ 編輯客戶基本資料</div>
+                            <div style="display:flex; gap:6px; margin-bottom:6px;">
+                                <input type="tel" id="edit-phone-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; padding:6px;" placeholder="輸入電話" value="${escapeHtml(cust.phone)}">
+                                <input type="text" id="edit-birth-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; padding:6px;" placeholder="生日範例: 06-18" value="${escapeHtml(cust.birthday)}">
+                            </div>
+                            <button class="btn-mini-save" onclick="saveCRMData('${escapeHtml(cust.name)}')">儲存資料</button>
+                            <div style="clear:both;"></div>
+                        </div>
+                        <div style="margin-top:8px;">
+                            <p style="font-size:11px; font-weight:600; color:var(--text-muted);">歷史到店明細：</p>
+                            <div style="max-height:90px; overflow-y:auto; font-size:12px;">
+                                ${historyHtml || '<span style="color:var(--text-muted)">無消費明細</span>'}
+                            </div>
                         </div>
                     </div>
                 `;
                 container.appendChild(card);
             });
+        }
+
+        // 卡片點擊摺疊切換
+        function toggleCard(cardElement) {
+            const isOpen = cardElement.classList.contains('open');
+            // 關閉其它所有打開的客卡
+            document.querySelectorAll('.customer-card').forEach(c => c.classList.remove('open'));
+            if (!isOpen) {
+                cardElement.classList.add('open');
+            }
+        }
+
+        // 儲存客戶電話與生日
+        function saveCRMData(name) {
+            const phoneVal = document.getElementById(`edit-phone-${name}`).value.trim();
+            const birthVal = document.getElementById(`edit-birth-${name}`).value.trim();
+
+            if (!customerCRM[name]) {
+                customerCRM[name] = {};
+            }
+            customerCRM[name].phone = phoneVal;
+            customerCRM[name].birthday = birthVal;
+
+            saveData();
+            alert(`${name} 的資料已成功更新！`);
+            renderCustomerPage(); // 重新整理頁面
         }
     </script>
 </body>
