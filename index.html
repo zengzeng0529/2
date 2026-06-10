@@ -216,6 +216,13 @@
             gap: 8px;
             margin-bottom: 10px;
         }
+        
+        /* 專門用來動態隱藏/顯示的包裝器 */
+        .income-only-field {
+            display: grid;
+            grid-template-columns: 1fr;
+        }
+        
         .input-style {
             width: 100%;
             border: 1px solid var(--accent-latte);
@@ -226,6 +233,30 @@
             background-color: var(--bg-cream);
             outline: none;
         }
+        
+        /* 快選項目標籤樣式 */
+        .quick-tag-wrapper {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 6px;
+            margin-top: -2px;
+            margin-bottom: 2px;
+        }
+        .quick-tag {
+            background-color: var(--main-butter);
+            color: var(--text-dark);
+            font-size: 11px;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 1px solid rgba(227, 213, 202, 0.5);
+            transition: all 0.2s;
+        }
+        .quick-tag:hover {
+            background-color: var(--accent-latte);
+        }
+
         .btn-submit {
             width: 100%;
             background-color: var(--text-dark);
@@ -380,7 +411,6 @@
         <div class="card-box">
             <div class="calendar-header">
                 <button onclick="changeMonth(-1)">❮</button>
-                <!-- 點擊直接選擇年份與月份 -->
                 <div>
                     <select id="select-cal-year" class="calendar-title-select" onchange="selectCalendarDate()"></select>
                     <select id="select-cal-month" class="calendar-title-select" onchange="selectCalendarDate()"></select>
@@ -397,21 +427,44 @@
             <div class="card-title"><span id="selected-date-label">收支紀錄</span></div>
             <!-- 表單欄位 -->
             <div style="margin-bottom: 18px; padding-bottom: 15px; border-bottom: 1px solid rgba(227, 213, 202, 0.4);">
+                
                 <div class="form-group">
-                    <select id="add-type" class="input-style">
+                    <!-- 分類切換：觸發欄位動態隱藏/顯示 -->
+                    <select id="add-type" class="input-style" onchange="handleTypeChange()">
                         <option value="收入">收入 (美睫/儲值)</option>
                         <option value="支出">支出 (店鋪開銷)</option>
                     </select>
-                    <input type="text" id="add-cust-name" class="input-style" placeholder="客戶姓名 (支出可空)">
+                    
+                    <!-- 客戶姓名：僅限收入 -->
+                    <div id="cust-name-wrapper" class="income-only-field">
+                        <input type="text" id="add-cust-name" class="input-style" placeholder="客戶姓名">
+                    </div>
                 </div>
+
                 <div class="form-group">
-                    <input type="text" id="add-project" class="input-style" placeholder="施作項目 (如: 單次美睫)">
+                    <!-- 施作項目（含快選熱鍵區） -->
+                    <div style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                        <div class="quick-tag-wrapper">
+                            <span class="quick-tag" onclick="quickSelectProject('美睫')">＋ 美睫</span>
+                            <span class="quick-tag" onclick="quickSelectProject('睫毛管理')">＋ 睫毛管理</span>
+                        </div>
+                        <input type="text" id="add-project" class="input-style" style="grid-column: 1 / -1;" placeholder="施作項目 或 自行填寫">
+                    </div>
+                </div>
+
+                <div class="form-group">
                     <input type="number" id="add-amount" class="input-style" placeholder="金額" inputmode="numeric">
+                    
+                    <!-- 儲值餘額：僅限收入 -->
+                    <div id="deposit-wrapper" class="income-only-field">
+                        <input type="number" id="add-deposit" class="input-style" placeholder="儲值餘額 (無改動可空)" inputmode="numeric">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <input type="number" id="add-deposit" class="input-style" placeholder="儲值餘額 (無改動可空)" inputmode="numeric">
+
+                <div class="form-group" style="grid-template-columns: 1fr;">
                     <input type="text" id="add-note" class="input-style" placeholder="備註說明 📝">
                 </div>
+
                 <button class="btn-submit" onclick="addRecord()">確認新增紀錄</button>
             </div>
             <ul id="day-record-list" class="record-list"></ul>
@@ -430,9 +483,8 @@
         </div>
     </main>
 
-    <!-- ==================== 頁面 3: 報表（支援多維度切換） ==================== -->
+    <!-- ==================== 頁面 3: 報表 ==================== -->
     <main id="reports-page" class="page">
-        <!-- 報表切換器區塊 -->
         <div class="report-filter-bar">
             <select id="report-year-select" class="select-report" onchange="renderReports()"></select>
             <select id="report-month-select" class="select-report" onchange="renderReports()">
@@ -466,7 +518,6 @@
 
     <!-- ==================== 頁面 4: 客戶資料 ==================== -->
     <main id="customers-page" class="page">
-        <!-- 頂部當月壽星專區 -->
         <div class="birthday-banner">
             <div class="birthday-banner-title">🎂 <span id="current-month-title"></span>月壽星提醒專區</div>
             <ul id="birthday-list-container" class="birthday-list"></ul>
@@ -488,7 +539,7 @@
         let records = JSON.parse(localStorage.getItem('mumu_records_v4')) || [];
         let customerCRM = JSON.parse(localStorage.getItem('mumu_crm_v4')) || {};
         
-        let currentDate = new Date(); // 追蹤目前月曆時間
+        let currentDate = new Date();
         const todayStr = formatDateString(new Date());
         let selectedDateStr = todayStr;
 
@@ -497,6 +548,7 @@
             buildMonthDropdown();
             initCalendar();
             renderDayRecords();
+            handleTypeChange(); // 初始化欄位顯示狀態
         };
 
         function formatDateString(dateObj) {
@@ -513,7 +565,29 @@
             return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
-        // 動態生成年份選項（提供過去3年到未來5年）
+        // 依據「收入/支出」動態隱藏與顯示對應欄位
+        function handleTypeChange() {
+            const type = document.getElementById('add-type').value;
+            const custWrapper = document.getElementById('cust-name-wrapper');
+            const depositWrapper = document.getElementById('deposit-wrapper');
+
+            if (type === '收入') {
+                custWrapper.style.display = 'block';
+                depositWrapper.style.display = 'block';
+            } else {
+                custWrapper.style.display = 'none';
+                depositWrapper.style.display = 'none';
+                // 切換成支出時，清空隱藏欄位的值避免誤塞
+                document.getElementById('add-cust-name').value = '';
+                document.getElementById('add-deposit').value = '';
+            }
+        }
+
+        // 快選項目按鍵點擊事件
+        function quickSelectProject(projectName) {
+            document.getElementById('add-project').value = projectName;
+        }
+
         function buildYearDropdowns() {
             const currentYear = new Date().getFullYear();
             const calYearSelect = document.getElementById('select-cal-year');
@@ -561,7 +635,6 @@
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
 
-            // 同步上方選單狀態
             document.getElementById('select-cal-year').value = year;
             document.getElementById('select-cal-month').value = month;
 
@@ -601,7 +674,6 @@
             }
         }
 
-        // 當點擊下拉選單切換月曆年份、月份時觸發
         function selectCalendarDate() {
             const y = parseInt(document.getElementById('select-cal-year').value);
             const m = parseInt(document.getElementById('select-cal-month').value);
@@ -657,10 +729,12 @@
 
         function addRecord() {
             const type = document.getElementById('add-type').value;
-            const custName = document.getElementById('add-cust-name').value.trim();
+            // 如果是支出，則不記錄客戶與儲值餘額
+            const custName = type === '收入' ? document.getElementById('add-cust-name').value.trim() : '';
+            const depositInput = type === '收入' ? document.getElementById('add-deposit').value.trim() : '';
+            
             const project = document.getElementById('add-project').value.trim() || (type === '收入' ? '美睫服務' : '日常開銷');
             const amount = parseInt(document.getElementById('add-amount').value);
-            const depositInput = document.getElementById('add-deposit').value.trim();
             const note = document.getElementById('add-note').value.trim();
 
             if (isNaN(amount) || amount <= 0) {
@@ -685,6 +759,7 @@
             }
             saveData();
 
+            // 表單重設
             document.getElementById('add-cust-name').value = '';
             document.getElementById('add-project').value = '';
             document.getElementById('add-amount').value = '';
@@ -755,10 +830,10 @@
             });
         }
 
-        // ==================== 頁面 3: 多維度動態報表 ====================
+        // ==================== 頁面 3: 報表 ====================
         function renderReports() {
             const selectedYear = parseInt(document.getElementById('report-year-select').value);
-            const selectedMonthVal = document.getElementById('report-month-select').value; // 'all' 或 0-11 的字串
+            const selectedMonthVal = document.getElementById('report-month-select').value;
             
             const scopeLabel = document.getElementById('report-scope-label');
             if (selectedMonthVal === 'all') {
@@ -767,7 +842,6 @@
                 scopeLabel.innerText = `${selectedYear} 年 ${parseInt(selectedMonthVal) + 1} 月 統計`;
             }
 
-            // 依據選擇的年份與月份動態過濾資料
             const filteredRecords = records.filter(r => {
                 const d = new Date(r.date);
                 if (d.getFullYear() !== selectedYear) return false;
@@ -812,7 +886,6 @@
             sortedRank.forEach((item, index) => {
                 const percentage = maxAmount > 0 ? (item.amount / maxAmount) * 100 : 0;
                 const rankRow = document.createElement('div');
-                rankRow.style.style = 'margin-bottom: 12px;';
                 rankRow.style.marginBottom = '12px';
                 rankRow.innerHTML = `
                     <div style="display:flex; justify-content:space-between; font-size:13px;">
@@ -825,9 +898,9 @@
             });
         }
 
-        // ==================== 頁面 4: 客戶管理與壽星處理 ====================
+        // ==================== 頁面 4: 客戶資料 ====================
         function renderCustomerPage() {
-            const thisMonth = new Date().getMonth() + 1; // 獲取當前實際月份
+            const thisMonth = new Date().getMonth() + 1;
             document.getElementById('current-month-title').innerText = thisMonth;
 
             const container = document.getElementById('customers-container');
@@ -836,7 +909,6 @@
 
             let customerMap = {};
             
-            // 匯總記帳本客人
             records.forEach(r => {
                 if (!r.custName) return;
                 const name = r.custName.trim();
@@ -865,7 +937,6 @@
                 }
             });
 
-            // 匯總獨立於 CRM 中的客人
             Object.keys(customerCRM).forEach(name => {
                 if (searchKey && !name.toLowerCase().includes(searchKey)) return;
                 if (!customerMap[name]) {
@@ -882,7 +953,6 @@
 
             const customers = Object.values(customerMap);
 
-            // 處理與比對當月壽星 (支援 4 碼格式如 0529)
             const birthdayContainer = document.getElementById('birthday-list-container');
             birthdayContainer.innerHTML = '';
             
@@ -910,7 +980,6 @@
 
             customers.sort((a, b) => a.name.localeCompare(b.name, 'zh-Hans-CN'));
 
-            // 渲染客戶資料列表
             customers.forEach(cust => {
                 const card = document.createElement('div');
                 card.classList.add('customer-card');
@@ -923,7 +992,6 @@
                     </div>
                 `).join('');
 
-                // 生日格式顯示處理
                 let birthDisplay = '未填寫';
                 if(cust.birthday && cust.birthday.length === 4) {
                     birthDisplay = `${cust.birthday.substring(0,2)} / ${cust.birthday.substring(2,4)}`;
@@ -940,7 +1008,6 @@
                         <div class="customer-detail-row">累積消費次數: <strong>${cust.visitCount}</strong> 次</div>
                     </div>
                     
-                    <!-- 展開編輯區塊 -->
                     <div class="customer-expanded-zone">
                         <div class="edit-crm-group">
                             <div class="edit-crm-title">✏️ 編輯客戶資料</div>
@@ -969,7 +1036,6 @@
             if (!isOpen) cardElement.classList.add('open');
         }
 
-        // 儲存基本資料並驗證 4 碼生日
         function saveCRMData(name) {
             const phoneVal = document.getElementById(`edit-phone-${name}`).value.trim();
             const birthVal = document.getElementById(`edit-birth-${name}`).value.trim();
