@@ -217,7 +217,6 @@
             margin-bottom: 10px;
         }
         
-        /* 專門用來動態隱藏/顯示的包裝器 */
         .income-only-field {
             display: grid;
             grid-template-columns: 1fr;
@@ -234,7 +233,6 @@
             outline: none;
         }
         
-        /* 快選項目標籤樣式 */
         .quick-tag-wrapper {
             grid-column: 1 / -1;
             display: flex;
@@ -320,7 +318,7 @@
             background-color: var(--main-butter); padding: 2px 8px; border-radius: 6px; display: inline-block;
         }
 
-        /* ==================== 頁面 3: 報表篩選器與卡片 ==================== */
+        /* ==================== 頁面 3: 報表 ==================== */
         .report-filter-bar {
             display: flex;
             gap: 10px;
@@ -348,7 +346,7 @@
         .progress-bar-bg { background-color: var(--main-butter); height: 6px; border-radius: 3px; width: 100%; margin-top: 4px; overflow: hidden; }
         .progress-bar-fill { height: 100%; background-color: var(--text-muted); width: 0%; transition: width 0.5s ease; }
 
-        /* ==================== 頁面 4: 客戶壽星專區與卡片編輯 ==================== */
+        /* ==================== 頁面 4: 客戶資料 ==================== */
         .birthday-banner {
             background-color: #FFF0EB;
             border: 1px dashed var(--birthday-pink);
@@ -372,7 +370,6 @@
         .customer-deposit { font-size: 13px; color: #1A73E8; font-weight: 600; }
         .customer-detail-row { font-size: 12px; color: var(--text-dark); margin-bottom: 3px; }
         
-        /* 展開的編輯與明細區塊 */
         .customer-expanded-zone {
             margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(227, 213, 202, 0.4);
             display: none;
@@ -392,7 +389,6 @@
 </head>
 <body>
 
-    <!-- 頂部快選列 -->
     <nav class="top-toolbar">
         <button class="nav-btn active" onclick="switchPage('calendar-page', this)">1. 月曆</button>
         <button class="nav-btn" onclick="switchPage('all-records-page', this)">2. 總紀錄</button>
@@ -400,13 +396,11 @@
         <button class="nav-btn" onclick="switchPage('customers-page', this)">4. 客戶資料</button>
     </nav>
 
-    <!-- 店名商標 -->
     <header class="shop-header">
         <h1>MUMU STUDIO</h1>
         <p>沐 目 ﹒ 美 睫 記 帳 與 客 戶 管 理</p>
     </header>
 
-    <!-- ==================== 頁面 1: 月曆 ==================== -->
     <main id="calendar-page" class="page active">
         <div class="card-box">
             <div class="calendar-header">
@@ -425,24 +419,20 @@
 
         <div class="card-box">
             <div class="card-title"><span id="selected-date-label">收支紀錄</span></div>
-            <!-- 表單欄位 -->
             <div style="margin-bottom: 18px; padding-bottom: 15px; border-bottom: 1px solid rgba(227, 213, 202, 0.4);">
                 
                 <div class="form-group">
-                    <!-- 分類切換：觸發欄位動態隱藏/顯示 -->
                     <select id="add-type" class="input-style" onchange="handleTypeChange()">
                         <option value="收入">收入 (美睫/儲值)</option>
                         <option value="支出">支出 (店鋪開銷)</option>
                     </select>
                     
-                    <!-- 客戶姓名：僅限收入 -->
                     <div id="cust-name-wrapper" class="income-only-field">
                         <input type="text" id="add-cust-name" class="input-style" placeholder="客戶姓名">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <!-- 施作項目（含快選熱鍵區） -->
                     <div style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                         <div class="quick-tag-wrapper">
                             <span class="quick-tag" onclick="quickSelectProject('美睫')">＋ 美睫</span>
@@ -455,7 +445,6 @@
                 <div class="form-group">
                     <input type="number" id="add-amount" class="input-style" placeholder="金額" inputmode="numeric">
                     
-                    <!-- 儲值餘額：僅限收入 -->
                     <div id="deposit-wrapper" class="income-only-field">
                         <input type="number" id="add-deposit" class="input-style" placeholder="儲值餘額 (無改動可空)" inputmode="numeric">
                     </div>
@@ -471,7 +460,6 @@
         </div>
     </main>
 
-    <!-- ==================== 頁面 2: 總紀錄 ==================== -->
     <main id="all-records-page" class="page">
         <div class="card-box">
             <div class="card-title">歷史所有明細</div>
@@ -483,7 +471,6 @@
         </div>
     </main>
 
-    <!-- ==================== 頁面 3: 報表 ==================== -->
     <main id="reports-page" class="page">
         <div class="report-filter-bar">
             <select id="report-year-select" class="select-report" onchange="renderReports()"></select>
@@ -516,7 +503,6 @@
         </div>
     </main>
 
-    <!-- ==================== 頁面 4: 客戶資料 ==================== -->
     <main id="customers-page" class="page">
         <div class="birthday-banner">
             <div class="birthday-banner-title">🎂 <span id="current-month-title"></span>月壽星提醒專區</div>
@@ -533,7 +519,6 @@
         </div>
     </main>
 
-    <!-- --- JavaScript 核心邏輯 --- -->
     <script>
         // --- 初始化資料與狀態 ---
         let records = JSON.parse(localStorage.getItem('mumu_records_v4')) || [];
@@ -548,7 +533,7 @@
             buildMonthDropdown();
             initCalendar();
             renderDayRecords();
-            handleTypeChange(); // 初始化欄位顯示狀態
+            handleTypeChange();
         };
 
         function formatDateString(dateObj) {
@@ -565,7 +550,6 @@
             return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
-        // 依據「收入/支出」動態隱藏與顯示對應欄位
         function handleTypeChange() {
             const type = document.getElementById('add-type').value;
             const custWrapper = document.getElementById('cust-name-wrapper');
@@ -577,13 +561,11 @@
             } else {
                 custWrapper.style.display = 'none';
                 depositWrapper.style.display = 'none';
-                // 切換成支出時，清空隱藏欄位的值避免誤塞
                 document.getElementById('add-cust-name').value = '';
                 document.getElementById('add-deposit').value = '';
             }
         }
 
-        // 快選項目按鍵點擊事件
         function quickSelectProject(projectName) {
             document.getElementById('add-project').value = projectName;
         }
@@ -706,11 +688,14 @@
                 const isInc = rec.type === '收入';
                 const typeClass = isInc ? 'inc' : 'exp';
 
+                // 修正1：支出一律只顯示「店鋪」
+                const displayName = isInc ? (rec.custName ? rec.custName : '無名客') : '店鋪';
+
                 li.innerHTML = `
                     <div class="rec-top">
                         <div>
                             <span class="type-tag ${typeClass}">${rec.type}</span>
-                            <span style="font-weight:600;">${rec.custName ? escapeHtml(rec.custName) : '無名客/店鋪'}</span>
+                            <span style="font-weight:600;">${escapeHtml(displayName)}</span>
                         </div>
                         <div>
                             <span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span>
@@ -718,10 +703,16 @@
                         </div>
                     </div>
                     <div class="rec-mid">項目: ${escapeHtml(rec.project)}</div>
+                    ${isInc ? `
                     <div class="rec-bot">
                         <span>儲值金餘額: ${rec.deposit !== '' ? '$'+rec.deposit : '未記錄'}</span>
                         ${rec.note ? `<span style="margin-left:10px;">📝 ${escapeHtml(rec.note)}</span>` : ''}
                     </div>
+                    ` : `
+                    <div class="rec-bot">
+                        ${rec.note ? `<span>📝 ${escapeHtml(rec.note)}</span>` : ''}
+                    </div>
+                    `}
                 `;
                 listContainer.appendChild(li);
             });
@@ -729,7 +720,6 @@
 
         function addRecord() {
             const type = document.getElementById('add-type').value;
-            // 如果是支出，則不記錄客戶與儲值餘額
             const custName = type === '收入' ? document.getElementById('add-cust-name').value.trim() : '';
             const depositInput = type === '收入' ? document.getElementById('add-deposit').value.trim() : '';
             
@@ -754,12 +744,11 @@
             };
 
             records.push(newRecord);
-            if (custName && !customerCRM[custName]) {
+            if (type === '收入' && custName && !customerCRM[custName]) {
                 customerCRM[custName] = { phone: '', birthday: '' };
             }
             saveData();
 
-            // 表單重設
             document.getElementById('add-cust-name').value = '';
             document.getElementById('add-project').value = '';
             document.getElementById('add-amount').value = '';
@@ -789,7 +778,8 @@
             let filtered = records.filter(r => 
                 r.project.toLowerCase().includes(searchKey) || 
                 (r.custName && r.custName.toLowerCase().includes(searchKey)) ||
-                (r.note && r.note.toLowerCase().includes(searchKey))
+                (r.note && r.note.toLowerCase().includes(searchKey)) ||
+                (!r.custName && '店鋪'.includes(searchKey) && r.type === '支出')
             );
 
             if (filtered.length === 0) {
@@ -818,13 +808,20 @@
                 const isInc = rec.type === '收入';
                 const typeClass = isInc ? 'inc' : 'exp';
                 
+                // 修正1：支出一律只顯示「店鋪」
+                const displayName = isInc ? (rec.custName ? rec.custName : '無名客') : '店鋪';
+                
                 item.innerHTML = `
                     <div class="rec-top">
-                        <div><span class="type-tag ${typeClass}">${rec.type}</span><span style="font-weight:600;">${rec.custName ? escapeHtml(rec.custName) : '無名客/店鋪'}</span></div>
+                        <div><span class="type-tag ${typeClass}">${rec.type}</span><span style="font-weight:600;">${escapeHtml(displayName)}</span></div>
                         <div><span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span><button class="btn-delete" onclick="deleteRecord('${rec.id}', 'all')">🗑️</button></div>
                     </div>
                     <div class="rec-mid">項目: ${escapeHtml(rec.project)}</div>
+                    ${isInc ? `
                     <div class="rec-bot"><span>儲值金: ${rec.deposit !== '' ? '$'+rec.deposit : '未記錄'}</span>${rec.note ? `<span style="margin-left:10px;">📝 ${escapeHtml(rec.note)}</span>` : ''}</div>
+                    ` : `
+                    <div class="rec-bot">${rec.note ? `<span>📝 ${escapeHtml(rec.note)}</span>` : ''}</div>
+                    `}
                 `;
                 currentGroupDiv.appendChild(item);
             });
@@ -910,7 +907,8 @@
             let customerMap = {};
             
             records.forEach(r => {
-                if (!r.custName) return;
+                // 支出不納入客戶列表統計
+                if (r.type === '支出' || !r.custName) return;
                 const name = r.custName.trim();
                 if (searchKey && !name.toLowerCase().includes(searchKey)) return;
 
@@ -1030,6 +1028,7 @@
             });
         }
 
+        // 其餘輔助函式維持不變
         function toggleCard(cardElement) {
             const isOpen = cardElement.classList.contains('open');
             document.querySelectorAll('.customer-card').forEach(c => c.classList.remove('open'));
