@@ -336,15 +336,34 @@
             font-weight: 600;
         }
         .report-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        
+        /* 報表金額卡片新增點擊手勢與選中樣式 */
         .summary-mini-card {
-            background-color: var(--bg-cream); padding: 15px; border-radius: 16px; text-align: center;
-            border: 1px solid rgba(227, 213, 202, 0.4);
+            background-color: var(--pure-white); padding: 15px; border-radius: 16px; text-align: center;
+            border: 1px solid rgba(227, 213, 202, 0.4); cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 2px 8px var(--shadow-soft);
+        }
+        .summary-mini-card:active { transform: scale(0.97); }
+        .summary-mini-card.active-filter {
+            background-color: var(--main-butter);
+            border-color: var(--text-muted);
         }
         .summary-mini-card p { font-size: 12px; color: var(--text-muted); margin-bottom: 5px; }
         .summary-mini-card h3 { font-size: 18px; font-weight: 700; }
         .stat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 14px; }
         .progress-bar-bg { background-color: var(--main-butter); height: 6px; border-radius: 3px; width: 100%; margin-top: 4px; overflow: hidden; }
         .progress-bar-fill { height: 100%; background-color: var(--text-muted); width: 0%; transition: width 0.5s ease; }
+
+        /* 報表細項列表包裝盒 */
+        .report-detail-box {
+            margin-top: 15px;
+            border-top: 1px dashed var(--accent-latte);
+            padding-top: 15px;
+        }
+        .report-detail-title {
+            font-size: 14px; font-weight: bold; color: var(--text-dark); margin-bottom: 10px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
 
         /* ==================== 頁面 4: 客戶資料 ==================== */
         .birthday-banner {
@@ -484,9 +503,24 @@
         </div>
 
         <div class="report-summary">
-            <div class="summary-mini-card"><p>區間總收入</p><h3 id="rep-total-income" style="color: var(--income-green);">$0</h3></div>
-            <div class="summary-mini-card"><p>區間總支出</p><h3 id="rep-total-expense" style="color: var(--expense-red);">$0</h3></div>
+            <div id="card-inc-trigger" class="summary-mini-card" onclick="toggleReportDetailFilter('收入')">
+                <p>區間總收入 (點擊看細項)</p>
+                <h3 id="rep-total-income" style="color: var(--income-green);">$0</h3>
+            </div>
+            <div id="card-exp-trigger" class="summary-mini-card" onclick="toggleReportDetailFilter('支出')">
+                <p>區間總支出 (點擊看細項)</p>
+                <h3 id="rep-total-expense" style="color: var(--expense-red);">$0</h3>
+            </div>
         </div>
+        
+        <div class="card-box" id="report-detail-box-container" style="display:none; margin-bottom:18px;">
+            <div class="report-detail-title">
+                <span id="report-detail-type-label">明細細項摘要</span>
+                <span style="font-size:11px; color:var(--text-muted); font-weight:normal; cursor:pointer;" onclick="closeReportDetail()">關閉 ✕</span>
+            </div>
+            <div id="report-detail-list-wrapper" class="scroll-container" style="max-height:250px;"></div>
+        </div>
+
         <div class="card-box">
             <div class="card-title">
                 <span>財務效益分析</span>
@@ -527,6 +561,9 @@
         let currentDate = new Date();
         const todayStr = formatDateString(new Date());
         let selectedDateStr = todayStr;
+        
+        // 記錄目前報表正在選看哪種細項 ('', '收入', '支出')
+        let currentReportDetailFilter = ''; 
 
         window.onload = function() {
             buildYearDropdowns();
@@ -607,7 +644,7 @@
             document.getElementById(pageId).classList.add('active');
 
             if (pageId === 'all-records-page') renderAllRecords();
-            if (pageId === 'reports-page') renderReports();
+            if (pageId === 'reports-page') { closeReportDetail(); renderReports(); }
             if (pageId === 'calendar-page') { initCalendar(); renderDayRecords(); }
             if (pageId === 'customers-page') renderCustomerPage();
         }
@@ -688,7 +725,6 @@
                 const isInc = rec.type === '收入';
                 const typeClass = isInc ? 'inc' : 'exp';
 
-                // 修正1：支出一律只顯示「店鋪」
                 const displayName = isInc ? (rec.custName ? rec.custName : '無名客') : '店鋪';
 
                 li.innerHTML = `
@@ -766,6 +802,7 @@
                 if (pageSource === 'day') { initCalendar(); renderDayRecords(); }
                 if (pageSource === 'all') renderAllRecords();
                 if (pageSource === 'cust') renderCustomerPage();
+                if (pageSource === 'report') { renderReports(); }
             }
         }
 
@@ -808,7 +845,6 @@
                 const isInc = rec.type === '收入';
                 const typeClass = isInc ? 'inc' : 'exp';
                 
-                // 修正1：支出一律只顯示「店鋪」
                 const displayName = isInc ? (rec.custName ? rec.custName : '無名客') : '店鋪';
                 
                 item.innerHTML = `
@@ -827,7 +863,7 @@
             });
         }
 
-        // ==================== 頁面 3: 報表 ====================
+        // ==================== 頁面 3: 報表核心邏輯 ====================
         function renderReports() {
             const selectedYear = parseInt(document.getElementById('report-year-select').value);
             const selectedMonthVal = document.getElementById('report-month-select').value;
@@ -839,6 +875,7 @@
                 scopeLabel.innerText = `${selectedYear} 年 ${parseInt(selectedMonthVal) + 1} 月 統計`;
             }
 
+            // 篩選時間區間
             const filteredRecords = records.filter(r => {
                 const d = new Date(r.date);
                 if (d.getFullYear() !== selectedYear) return false;
@@ -867,6 +904,7 @@
             netProfitEl.innerText = `${netProfit >= 0 ? '' : '-'}$${Math.abs(netProfit).toLocaleString()}`;
             netProfitEl.style.color = netProfit >= 0 ? 'var(--income-green)' : 'var(--expense-red)';
 
+            // 排行榜渲染
             const rankingContainer = document.getElementById('income-ranking-container');
             rankingContainer.innerHTML = '';
 
@@ -876,22 +914,111 @@
 
             if(sortedRank.length === 0) {
                 rankingContainer.innerHTML = '<p class="no-data">此區間尚無收入項目明細</p>';
+            } else {
+                const maxAmount = sortedRank[0].amount;
+                sortedRank.forEach((item, index) => {
+                    const percentage = maxAmount > 0 ? (item.amount / maxAmount) * 100 : 0;
+                    const rankRow = document.createElement('div');
+                    rankRow.style.marginBottom = '12px';
+                    rankRow.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; font-size:13px;">
+                            <span>${index + 1}. ${escapeHtml(item.project)}</span>
+                            <span style="font-weight:600;">$${item.amount.toLocaleString()}</span>
+                        </div>
+                        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${percentage}%"></div></div>
+                    `;
+                    rankingContainer.appendChild(rankRow);
+                });
+            }
+
+            // 同步刷新當前打開的細項列表
+            if (currentReportDetailFilter) {
+                renderReportDetailList(filteredRecords, currentReportDetailFilter);
+            }
+        }
+
+        // 切換展開細項列表
+        function toggleReportDetailFilter(type) {
+            const incCard = document.getElementById('card-inc-trigger');
+            const expCard = document.getElementById('card-exp-trigger');
+
+            if (currentReportDetailFilter === type) {
+                // 如果重複點同一張，則關閉
+                closeReportDetail();
                 return;
             }
 
-            const maxAmount = sortedRank[0].amount;
-            sortedRank.forEach((item, index) => {
-                const percentage = maxAmount > 0 ? (item.amount / maxAmount) * 100 : 0;
-                const rankRow = document.createElement('div');
-                rankRow.style.marginBottom = '12px';
-                rankRow.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; font-size:13px;">
-                        <span>${index + 1}. ${escapeHtml(item.project)}</span>
-                        <span style="font-weight:600;">$${item.amount.toLocaleString()}</span>
+            currentReportDetailFilter = type;
+            document.getElementById('report-detail-box-container').style.display = 'block';
+            document.getElementById('report-detail-type-label').innerText = `📊 區間【${type}】明細細項`;
+
+            if (type === '收入') {
+                incCard.classList.add('active-filter');
+                expCard.classList.remove('active-filter');
+            } else {
+                expCard.classList.add('active-filter');
+                incCard.classList.remove('active-filter');
+            }
+
+            // 重新計算目前的區間紀錄並渲染細項
+            const selectedYear = parseInt(document.getElementById('report-year-select').value);
+            const selectedMonthVal = document.getElementById('report-month-select').value;
+            const filteredRecords = records.filter(r => {
+                const d = new Date(r.date);
+                if (d.getFullYear() !== selectedYear) return false;
+                if (selectedMonthVal !== 'all' && d.getMonth() !== parseInt(selectedMonthVal)) return false;
+                return true;
+            });
+
+            renderReportDetailList(filteredRecords, type);
+        }
+
+        function closeReportDetail() {
+            currentReportDetailFilter = '';
+            document.getElementById('report-detail-box-container').style.display = 'none';
+            document.getElementById('card-inc-trigger').classList.remove('active-filter');
+            document.getElementById('card-exp-trigger').classList.remove('active-filter');
+        }
+
+        // 渲染報表頁面下的細項清單
+        function renderReportDetailList(scopedRecords, type) {
+            const listWrapper = document.getElementById('report-detail-list-wrapper');
+            listWrapper.innerHTML = '';
+
+            const targetRecords = scopedRecords.filter(r => r.type === type);
+            if (targetRecords.length === 0) {
+                listWrapper.innerHTML = `<div class="no-data">該區間內尚無${type}明細項目</div>`;
+                return;
+            }
+
+            targetRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            targetRecords.forEach(rec => {
+                const item = document.createElement('div');
+                item.classList.add('record-item');
+                const isInc = rec.type === '收入';
+                const typeClass = isInc ? 'inc' : 'exp';
+                const displayName = isInc ? (rec.custName ? rec.custName : '無名客') : '店鋪';
+
+                item.innerHTML = `
+                    <div class="rec-top">
+                        <div>
+                            <span style="font-size:11px; color:var(--text-muted); margin-right:6px;">${rec.date}</span>
+                            <span style="font-weight:600;">${escapeHtml(displayName)}</span>
+                        </div>
+                        <div>
+                            <span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span>
+                            <button class="btn-delete" onclick="deleteRecord('${rec.id}', 'report')">🗑️</button>
+                        </div>
                     </div>
-                    <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${percentage}%"></div></div>
+                    <div class="rec-mid" style="font-size:12px;">項目: ${escapeHtml(rec.project)}</div>
+                    ${isInc ? `
+                    <div class="rec-bot" style="font-size:11px;"><span>儲值餘額: ${rec.deposit !== '' ? '$'+rec.deposit : '未記錄'}</span>${rec.note ? `<span style="margin-left:8px;">📝 ${escapeHtml(rec.note)}</span>` : ''}</div>
+                    ` : `
+                    <div class="rec-bot" style="font-size:11px;">${rec.note ? `<span>📝 ${escapeHtml(rec.note)}</span>` : ''}</div>
+                    `}
                 `;
-                rankingContainer.appendChild(rankRow);
+                listWrapper.appendChild(item);
             });
         }
 
@@ -907,7 +1034,6 @@
             let customerMap = {};
             
             records.forEach(r => {
-                // 支出不納入客戶列表統計
                 if (r.type === '支出' || !r.custName) return;
                 const name = r.custName.trim();
                 if (searchKey && !name.toLowerCase().includes(searchKey)) return;
@@ -1028,7 +1154,6 @@
             });
         }
 
-        // 其餘輔助函式維持不變
         function toggleCard(cardElement) {
             const isOpen = cardElement.classList.contains('open');
             document.querySelectorAll('.customer-card').forEach(c => c.classList.remove('open'));
