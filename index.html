@@ -268,13 +268,17 @@
             margin-top: 5px;
         }
 
-        /* 條列式明細樣式 */
+        /* 條列式明細樣式（點擊整條可觸發編輯） */
         .record-list { list-style: none; }
         .record-item {
             border-bottom: 1px solid rgba(227, 213, 202, 0.2);
             padding: 12px 0;
+            cursor: pointer;
+            transition: background-color 0.2s;
         }
-        .record-item:last-child { border-bottom: none; }
+        .record-item:hover {
+            background-color: rgba(245, 235, 224, 0.2);
+        }
         
         .rec-top {
             display: flex;
@@ -299,7 +303,7 @@
         .record-amount.inc { color: var(--income-green); }
         .record-amount.exp { color: var(--expense-red); }
 
-        .btn-delete { background: none; border: none; cursor: pointer; font-size: 16px; padding-left: 10px; }
+        .btn-delete { background: none; border: none; cursor: pointer; font-size: 16px; padding: 0 5px 0 10px; z-index: 10; position: relative; }
 
         /* ==================== 通用搜尋列與滾動框 ==================== */
         .search-container { display: flex; gap: 8px; margin-bottom: 15px; }
@@ -337,7 +341,6 @@
         }
         .report-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
         
-        /* 報表金額卡片新增點擊手勢與選中樣式 */
         .summary-mini-card {
             background-color: var(--pure-white); padding: 15px; border-radius: 16px; text-align: center;
             border: 1px solid rgba(227, 213, 202, 0.4); cursor: pointer; transition: all 0.2s;
@@ -354,7 +357,6 @@
         .progress-bar-bg { background-color: var(--main-butter); height: 6px; border-radius: 3px; width: 100%; margin-top: 4px; overflow: hidden; }
         .progress-bar-fill { height: 100%; background-color: var(--text-muted); width: 0%; transition: width 0.5s ease; }
 
-        /* 報表細項列表包裝盒 */
         .report-detail-box {
             margin-top: 15px;
             border-top: 1px dashed var(--accent-latte);
@@ -363,6 +365,62 @@
         .report-detail-title {
             font-size: 14px; font-weight: bold; color: var(--text-dark); margin-bottom: 10px;
             display: flex; justify-content: space-between; align-items: center;
+        }
+
+        /* ==================== 彈出式編輯視窗 (Modal) ==================== */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.4);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            padding: 14px;
+        }
+        .modal-box {
+            background-color: var(--pure-white);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            animation: fadeIn 0.2s ease-out;
+        }
+        @keyframes fadeIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .modal-header {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: var(--text-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .btn-modal {
+            flex: 1;
+            padding: 10px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-modal.cancel {
+            background-color: var(--main-butter);
+            color: var(--text-dark);
+        }
+        .btn-modal.save {
+            background-color: var(--text-dark);
+            color: var(--pure-white);
         }
 
         /* ==================== 頁面 4: 客戶資料 ==================== */
@@ -553,6 +611,51 @@
         </div>
     </main>
 
+    <div id="edit-modal" class="modal-overlay" onclick="closeEditModal(event)">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span>✏️ 修改紀錄資料</span>
+                <span style="cursor:pointer; font-weight:normal; font-size:14px;" onclick="closeEditModal()">✕</span>
+            </div>
+            <input type="hidden" id="edit-id">
+            
+            <div style="margin-bottom: 12px;">
+                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">日期</label>
+                <input type="date" id="modal-edit-date" class="input-style" style="background:#fff;">
+            </div>
+
+            <div style="margin-bottom: 12px;" id="modal-cust-wrapper">
+                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">客戶姓名</label>
+                <input type="text" id="modal-edit-name" class="input-style" style="background:#fff;">
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">項目</label>
+                <input type="text" id="modal-edit-project" class="input-style" style="background:#fff;">
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">金額</label>
+                <input type="number" id="modal-edit-amount" class="input-style" style="background:#fff;" inputmode="numeric">
+            </div>
+
+            <div style="margin-bottom: 12px;" id="modal-deposit-wrapper">
+                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">儲值金餘額</label>
+                <input type="number" id="modal-edit-deposit" class="input-style" style="background:#fff;" placeholder="無改動可留空" inputmode="numeric">
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">備註說明</label>
+                <input type="text" id="modal-edit-note" class="input-style" style="background:#fff;">
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-modal cancel" onclick="closeEditModal()">取消</button>
+                <button class="btn-modal save" onclick="updateRecordData()">儲存修改</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // --- 初始化資料與狀態 ---
         let records = JSON.parse(localStorage.getItem('mumu_records_v4')) || [];
@@ -562,7 +665,6 @@
         const todayStr = formatDateString(new Date());
         let selectedDateStr = todayStr;
         
-        // 記錄目前報表正在選看哪種細項 ('', '收入', '支出')
         let currentReportDetailFilter = ''; 
 
         window.onload = function() {
@@ -649,6 +751,79 @@
             if (pageId === 'customers-page') renderCustomerPage();
         }
 
+        // ==================== 彈出式修改視窗主邏輯 ====================
+        function openEditModal(id, event) {
+            if(event) event.stopPropagation(); // 防止觸發外層其他點擊事件
+            
+            const rec = records.find(r => r.id === id);
+            if (!rec) return;
+
+            document.getElementById('edit-id').value = rec.id;
+            document.getElementById('modal-edit-date').value = rec.date;
+            document.getElementById('modal-edit-project').value = rec.project;
+            document.getElementById('modal-edit-amount').value = rec.amount;
+            document.getElementById('modal-edit-note').value = rec.note || '';
+
+            const nameWrapper = document.getElementById('modal-cust-wrapper');
+            const depositWrapper = document.getElementById('modal-deposit-wrapper');
+
+            if(rec.type === '收入') {
+                nameWrapper.style.display = 'block';
+                depositWrapper.style.display = 'block';
+                document.getElementById('modal-edit-name').value = rec.custName || '';
+                document.getElementById('modal-edit-deposit').value = rec.deposit !== '' ? rec.deposit : '';
+            } else {
+                nameWrapper.style.display = 'none';
+                depositWrapper.style.display = 'none';
+            }
+
+            document.getElementById('edit-modal').style.display = 'flex';
+        }
+
+        function closeEditModal(event) {
+            document.getElementById('edit-modal').style.display = 'none';
+        }
+
+        function updateRecordData() {
+            const id = document.getElementById('edit-id').value;
+            const recIndex = records.findIndex(r => r.id === id);
+            if(recIndex === -1) return;
+
+            const date = document.getElementById('modal-edit-date').value;
+            const project = document.getElementById('modal-edit-project').value.trim();
+            const amount = parseInt(document.getElementById('modal-edit-amount').value);
+            const note = document.getElementById('modal-edit-note').value.trim();
+
+            if (!date) { alert('請選擇有效的日期'); return; }
+            if (isNaN(amount) || amount <= 0) { alert('請輸入有效的金額'); return; }
+
+            records[recIndex].date = date;
+            records[recIndex].project = project || (records[recIndex].type === '收入' ? '美睫服務' : '日常開銷');
+            records[recIndex].amount = amount;
+            records[recIndex].note = note;
+
+            if (records[recIndex].type === '收入') {
+                const custName = document.getElementById('modal-edit-name').value.trim();
+                const depositInput = document.getElementById('modal-edit-deposit').value.trim();
+                
+                records[recIndex].custName = custName;
+                records[recIndex].deposit = depositInput !== '' ? parseInt(depositInput) : '';
+
+                if (custName && !customerCRM[custName]) {
+                    customerCRM[custName] = { phone: '', birthday: '' };
+                }
+            }
+
+            saveData();
+            closeEditModal();
+
+            // 自動刷新當前可見的頁面視圖
+            initCalendar();
+            renderDayRecords();
+            if(document.getElementById('all-records-page').classList.contains('active')) renderAllRecords();
+            if(document.getElementById('reports-page').classList.contains('active')) renderReports();
+        }
+
         // ==================== 月曆核心邏輯 ====================
         function initCalendar() {
             const year = currentDate.getFullYear();
@@ -708,7 +883,7 @@
 
         function renderDayRecords() {
             const dateParts = selectedDateStr.split('-');
-            document.getElementById('selected-date-label').innerText = `${parseInt(dateParts[1])}月${parseInt(dateParts[2])}日 收支紀錄`;
+            document.getElementById('selected-date-label').innerText = `${parseInt(dateParts[1])}月${parseInt(dateParts[2])}日 收支紀錄 (點擊可修改)`;
 
             const dayRecords = records.filter(r => r.date === selectedDateStr);
             const listContainer = document.getElementById('day-record-list');
@@ -722,6 +897,7 @@
             dayRecords.forEach(rec => {
                 const li = document.createElement('li');
                 li.classList.add('record-item');
+                li.setAttribute('onclick', `openEditModal('${rec.id}', event)`);
                 const isInc = rec.type === '收入';
                 const typeClass = isInc ? 'inc' : 'exp';
 
@@ -735,7 +911,7 @@
                         </div>
                         <div>
                             <span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span>
-                            <button class="btn-delete" onclick="deleteRecord('${rec.id}', 'day')">🗑️</button>
+                            <button class="btn-delete" onclick="deleteRecord('${rec.id}', 'day', event)">🗑️</button>
                         </div>
                     </div>
                     <div class="rec-mid">項目: ${escapeHtml(rec.project)}</div>
@@ -795,7 +971,8 @@
             renderDayRecords();
         }
 
-        function deleteRecord(id, pageSource) {
+        function deleteRecord(id, pageSource, event) {
+            if(event) event.stopPropagation(); // 阻止點擊垃圾桶時同時觸發彈出修改視窗
             if(confirm('確定要刪除此筆紀錄嗎？')) {
                 records = records.filter(r => r.id !== id);
                 saveData();
@@ -842,6 +1019,7 @@
 
                 const item = document.createElement('div');
                 item.classList.add('record-item');
+                item.setAttribute('onclick', `openEditModal('${rec.id}', event)`);
                 const isInc = rec.type === '收入';
                 const typeClass = isInc ? 'inc' : 'exp';
                 
@@ -850,7 +1028,7 @@
                 item.innerHTML = `
                     <div class="rec-top">
                         <div><span class="type-tag ${typeClass}">${rec.type}</span><span style="font-weight:600;">${escapeHtml(displayName)}</span></div>
-                        <div><span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span><button class="btn-delete" onclick="deleteRecord('${rec.id}', 'all')">🗑️</button></div>
+                        <div><span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span><button class="btn-delete" onclick="deleteRecord('${rec.id}', 'all', event)">🗑️</button></div>
                     </div>
                     <div class="rec-mid">項目: ${escapeHtml(rec.project)}</div>
                     ${isInc ? `
@@ -875,7 +1053,6 @@
                 scopeLabel.innerText = `${selectedYear} 年 ${parseInt(selectedMonthVal) + 1} 月 統計`;
             }
 
-            // 篩選時間區間
             const filteredRecords = records.filter(r => {
                 const d = new Date(r.date);
                 if (d.getFullYear() !== selectedYear) return false;
@@ -904,7 +1081,6 @@
             netProfitEl.innerText = `${netProfit >= 0 ? '' : '-'}$${Math.abs(netProfit).toLocaleString()}`;
             netProfitEl.style.color = netProfit >= 0 ? 'var(--income-green)' : 'var(--expense-red)';
 
-            // 排行榜渲染
             const rankingContainer = document.getElementById('income-ranking-container');
             rankingContainer.innerHTML = '';
 
@@ -931,26 +1107,23 @@
                 });
             }
 
-            // 同步刷新當前打開的細項列表
             if (currentReportDetailFilter) {
                 renderReportDetailList(filteredRecords, currentReportDetailFilter);
             }
         }
 
-        // 切換展開細項列表
         function toggleReportDetailFilter(type) {
             const incCard = document.getElementById('card-inc-trigger');
             const expCard = document.getElementById('card-exp-trigger');
 
             if (currentReportDetailFilter === type) {
-                // 如果重複點同一張，則關閉
                 closeReportDetail();
                 return;
             }
 
             currentReportDetailFilter = type;
             document.getElementById('report-detail-box-container').style.display = 'block';
-            document.getElementById('report-detail-type-label').innerText = `📊 區間【${type}】明細細項`;
+            document.getElementById('report-detail-type-label').innerText = `📊 區間【${type}】明細細項 (點擊可修改)`;
 
             if (type === '收入') {
                 incCard.classList.add('active-filter');
@@ -960,7 +1133,6 @@
                 incCard.classList.remove('active-filter');
             }
 
-            // 重新計算目前的區間紀錄並渲染細項
             const selectedYear = parseInt(document.getElementById('report-year-select').value);
             const selectedMonthVal = document.getElementById('report-month-select').value;
             const filteredRecords = records.filter(r => {
@@ -980,7 +1152,6 @@
             document.getElementById('card-exp-trigger').classList.remove('active-filter');
         }
 
-        // 渲染報表頁面下的細項清單
         function renderReportDetailList(scopedRecords, type) {
             const listWrapper = document.getElementById('report-detail-list-wrapper');
             listWrapper.innerHTML = '';
@@ -996,6 +1167,7 @@
             targetRecords.forEach(rec => {
                 const item = document.createElement('div');
                 item.classList.add('record-item');
+                item.setAttribute('onclick', `openEditModal('${rec.id}', event)`);
                 const isInc = rec.type === '收入';
                 const typeClass = isInc ? 'inc' : 'exp';
                 const displayName = isInc ? (rec.custName ? rec.custName : '無名客') : '店鋪';
@@ -1008,7 +1180,7 @@
                         </div>
                         <div>
                             <span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span>
-                            <button class="btn-delete" onclick="deleteRecord('${rec.id}', 'report')">🗑️</button>
+                            <button class="btn-delete" onclick="deleteRecord('${rec.id}', 'report', event)">🗑️</button>
                         </div>
                     </div>
                     <div class="rec-mid" style="font-size:12px;">項目: ${escapeHtml(rec.project)}</div>
