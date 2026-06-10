@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MUMU STUDIO | 沐目 美睫記帳與客戶CRM系統</title>
+    <title>MUMU STUDIO | 沐目 美睫記帳與進階報表CRM系統</title>
     <style>
         /* --- 韓系奶油風 變數設定 --- */
         :root {
@@ -124,7 +124,6 @@
         /* ==================== 頁面 1: 月曆 ==================== */
         .calendar-header {
             display: flex;
-            justify-open: space-between;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
@@ -137,9 +136,15 @@
             cursor: pointer;
             padding: 5px 10px;
         }
-        .calendar-header span {
+        .calendar-title-select {
             font-weight: 600;
             font-size: 16px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 8px;
+            background-color: var(--bg-cream);
+            border: 1px solid var(--accent-latte);
+            color: var(--text-dark);
         }
 
         .weekdays {
@@ -284,7 +289,23 @@
             background-color: var(--main-butter); padding: 2px 8px; border-radius: 6px; display: inline-block;
         }
 
-        /* ==================== 頁面 3: 報表 ==================== */
+        /* ==================== 頁面 3: 報表篩選器與卡片 ==================== */
+        .report-filter-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .select-report {
+            flex: 1;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid var(--accent-latte);
+            background-color: var(--pure-white);
+            color: var(--text-dark);
+            font-size: 14px;
+            outline: none;
+            font-weight: 600;
+        }
         .report-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
         .summary-mini-card {
             background-color: var(--bg-cream); padding: 15px; border-radius: 16px; text-align: center;
@@ -323,7 +344,7 @@
         /* 展開的編輯與明細區塊 */
         .customer-expanded-zone {
             margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(227, 213, 202, 0.4);
-            display: none; /* 預設隱藏，點擊才打開 */
+            display: none;
         }
         .customer-card.open .customer-expanded-zone { display: block; }
         .edit-crm-group {
@@ -359,7 +380,11 @@
         <div class="card-box">
             <div class="calendar-header">
                 <button onclick="changeMonth(-1)">❮</button>
-                <span id="calendar-month-year">2026 年 6 月</span>
+                <!-- 點擊直接選擇年份與月份 -->
+                <div>
+                    <select id="select-cal-year" class="calendar-title-select" onchange="selectCalendarDate()"></select>
+                    <select id="select-cal-month" class="calendar-title-select" onchange="selectCalendarDate()"></select>
+                </div>
                 <button onclick="changeMonth(1)">❯</button>
             </div>
             <div class="weekdays">
@@ -369,7 +394,7 @@
         </div>
 
         <div class="card-box">
-            <div class="card-title"><span id="selected-date-label">6月10日 收支紀錄</span></div>
+            <div class="card-title"><span id="selected-date-label">收支紀錄</span></div>
             <!-- 表單欄位 -->
             <div style="margin-bottom: 18px; padding-bottom: 15px; border-bottom: 1px solid rgba(227, 213, 202, 0.4);">
                 <div class="form-group">
@@ -405,27 +430,46 @@
         </div>
     </main>
 
-    <!-- ==================== 頁面 3: 報表 ==================== -->
+    <!-- ==================== 頁面 3: 報表（支援多維度切換） ==================== -->
     <main id="reports-page" class="page">
+        <!-- 報表切換器區塊 -->
+        <div class="report-filter-bar">
+            <select id="report-year-select" class="select-report" onchange="renderReports()"></select>
+            <select id="report-month-select" class="select-report" onchange="renderReports()">
+                <option value="all">全年總覽</option>
+                <option value="0">1 月</option><option value="1">2 月</option><option value="2">3 月</option>
+                <option value="3">4 月</option><option value="4">5 月</option><option value="5">6 月</option>
+                <option value="6">7 月</option><option value="7">8 月</option><option value="8">9 月</option>
+                <option value="9">10 月</option><option value="10">11 月</option><option value="11">12 月</option>
+            </select>
+        </div>
+
         <div class="report-summary">
-            <div class="summary-mini-card"><p>本月總收入</p><h3 id="rep-total-income" style="color: var(--income-green);">$0</h3></div>
-            <div class="summary-mini-card"><p>本月總支出</p><h3 id="rep-total-expense" style="color: var(--expense-red);">$0</h3></div>
+            <div class="summary-mini-card"><p>區間總收入</p><h3 id="rep-total-income" style="color: var(--income-green);">$0</h3></div>
+            <div class="summary-mini-card"><p>區間總支出</p><h3 id="rep-total-expense" style="color: var(--expense-red);">$0</h3></div>
         </div>
         <div class="card-box">
-            <div class="card-title"><span>財務分析與排行</span><span id="report-month-label" style="font-size:13px; color:var(--text-muted);"></span></div>
-            <div class="stat-row" style="margin-bottom: 20px;"><span style="font-weight: bold;">本月營運淨利:</span><span id="rep-net-profit" style="font-size: 18px; font-weight: bold;">$0</span></div>
-            <div><p style="font-size: 14px; font-weight: 600; margin-bottom: 10px;">施作項目熱門排行 (收入)</p><div id="income-ranking-container"></div></div>
+            <div class="card-title">
+                <span>財務效益分析</span>
+                <span id="report-scope-label" style="font-size:13px; color:var(--text-muted);"></span>
+            </div>
+            <div class="stat-row" style="margin-bottom: 20px;">
+                <span style="font-weight: bold;">營運淨利:</span>
+                <span id="rep-net-profit" style="font-size: 18px; font-weight: bold;">$0</span>
+            </div>
+            <div>
+                <p style="font-size: 14px; font-weight: 600; margin-bottom: 10px;">施作項目排行 (收入分析)</p>
+                <div id="income-ranking-container"></div>
+            </div>
         </div>
     </main>
 
-    <!-- ==================== 頁面 4: 客戶資料 (含壽星專區與資料編輯) ==================== -->
+    <!-- ==================== 頁面 4: 客戶資料 ==================== -->
     <main id="customers-page" class="page">
         <!-- 頂部當月壽星專區 -->
         <div class="birthday-banner">
             <div class="birthday-banner-title">🎂 <span id="current-month-title"></span>月壽星提醒專區</div>
-            <ul id="birthday-list-container" class="birthday-list">
-                <!-- 壽星動態生成 -->
-            </ul>
+            <ul id="birthday-list-container" class="birthday-list"></ul>
         </div>
 
         <div class="card-box">
@@ -441,15 +485,16 @@
     <!-- --- JavaScript 核心邏輯 --- -->
     <script>
         // --- 初始化資料與狀態 ---
-        let records = JSON.parse(localStorage.getItem('mumu_records_v3')) || [];
-        // 客戶擴充數據結構（用名字當 Key 存生日與電話）
-        let customerCRM = JSON.parse(localStorage.getItem('mumu_crm_v3')) || {};
+        let records = JSON.parse(localStorage.getItem('mumu_records_v4')) || [];
+        let customerCRM = JSON.parse(localStorage.getItem('mumu_crm_v4')) || {};
         
-        let currentDate = new Date();
+        let currentDate = new Date(); // 追蹤目前月曆時間
         const todayStr = formatDateString(new Date());
         let selectedDateStr = todayStr;
 
         window.onload = function() {
+            buildYearDropdowns();
+            buildMonthDropdown();
             initCalendar();
             renderDayRecords();
         };
@@ -459,13 +504,44 @@
         }
 
         function saveData() {
-            localStorage.setItem('mumu_records_v3', JSON.stringify(records));
-            localStorage.setItem('mumu_crm_v3', JSON.stringify(customerCRM));
+            localStorage.setItem('mumu_records_v4', JSON.stringify(records));
+            localStorage.setItem('mumu_crm_v4', JSON.stringify(customerCRM));
         }
 
         function escapeHtml(text) {
             if(!text) return '';
             return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        // 動態生成年份選項（提供過去3年到未來5年）
+        function buildYearDropdowns() {
+            const currentYear = new Date().getFullYear();
+            const calYearSelect = document.getElementById('select-cal-year');
+            const repYearSelect = document.getElementById('report-year-select');
+            
+            calYearSelect.innerHTML = '';
+            repYearSelect.innerHTML = '';
+
+            for (let y = currentYear - 3; y <= currentYear + 5; y++) {
+                let opt1 = document.createElement('option');
+                opt1.value = y; opt1.innerText = `${y} 年`;
+                calYearSelect.appendChild(opt1);
+
+                let opt2 = document.createElement('option');
+                opt2.value = y; opt2.innerText = `${y} 年度`;
+                repYearSelect.appendChild(opt2);
+            }
+            repYearSelect.value = currentYear;
+        }
+
+        function buildMonthDropdown() {
+            const calMonthSelect = document.getElementById('select-cal-month');
+            calMonthSelect.innerHTML = '';
+            for (let m = 0; m < 12; m++) {
+                let opt = document.createElement('option');
+                opt.value = m; opt.innerText = `${m + 1} 月`;
+                calMonthSelect.appendChild(opt);
+            }
         }
 
         function switchPage(pageId, btnElement) {
@@ -480,11 +556,14 @@
             if (pageId === 'customers-page') renderCustomerPage();
         }
 
-        // ==================== 月曆與單日紀錄邏輯 ====================
+        // ==================== 月曆核心邏輯 ====================
         function initCalendar() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
-            document.getElementById('calendar-month-year').innerText = `${year} 年 ${month + 1} 月`;
+
+            // 同步上方選單狀態
+            document.getElementById('select-cal-year').value = year;
+            document.getElementById('select-cal-month').value = month;
 
             const firstDayIndex = new Date(year, month, 1).getDay();
             const totalDays = new Date(year, month + 1, 0).getDate();
@@ -520,6 +599,15 @@
                 };
                 daysContainer.appendChild(dayCell);
             }
+        }
+
+        // 當點擊下拉選單切換月曆年份、月份時觸發
+        function selectCalendarDate() {
+            const y = parseInt(document.getElementById('select-cal-year').value);
+            const m = parseInt(document.getElementById('select-cal-month').value);
+            currentDate.setFullYear(y);
+            currentDate.setMonth(m);
+            initCalendar();
         }
 
         function changeMonth(direction) {
@@ -592,12 +680,9 @@
             };
 
             records.push(newRecord);
-
-            // 若有輸入客戶名，初始化該客人的基本 CRM 容器
             if (custName && !customerCRM[custName]) {
                 customerCRM[custName] = { phone: '', birthday: '' };
             }
-
             saveData();
 
             document.getElementById('add-cust-name').value = '';
@@ -670,23 +755,37 @@
             });
         }
 
-        // ==================== 頁面 3: 報表 ====================
+        // ==================== 頁面 3: 多維度動態報表 ====================
         function renderReports() {
-            const targetYear = currentDate.getFullYear();
-            const targetMonth = currentDate.getMonth();
-            document.getElementById('report-month-label').innerText = `${targetYear}年${targetMonth+1}月 統計`;
+            const selectedYear = parseInt(document.getElementById('report-year-select').value);
+            const selectedMonthVal = document.getElementById('report-month-select').value; // 'all' 或 0-11 的字串
+            
+            const scopeLabel = document.getElementById('report-scope-label');
+            if (selectedMonthVal === 'all') {
+                scopeLabel.innerText = `${selectedYear} 全年度總覽`;
+            } else {
+                scopeLabel.innerText = `${selectedYear} 年 ${parseInt(selectedMonthVal) + 1} 月 統計`;
+            }
 
-            const monthRecords = records.filter(r => {
+            // 依據選擇的年份與月份動態過濾資料
+            const filteredRecords = records.filter(r => {
                 const d = new Date(r.date);
-                return d.getFullYear() === targetYear && d.getMonth() === targetMonth;
+                if (d.getFullYear() !== selectedYear) return false;
+                if (selectedMonthVal !== 'all' && d.getMonth() !== parseInt(selectedMonthVal)) return false;
+                return true;
             });
 
-            let totalIncome = 0; let totalExpense = 0; let projectRanking = {};
-            monthRecords.forEach(r => {
+            let totalIncome = 0; 
+            let totalExpense = 0; 
+            let projectRanking = {};
+
+            filteredRecords.forEach(r => {
                 if (r.type === '收入') {
                     totalIncome += r.amount;
                     projectRanking[r.project] = (projectRanking[r.project] || 0) + r.amount;
-                } else { totalExpense += r.amount; }
+                } else { 
+                    totalExpense += r.amount; 
+                }
             });
 
             const netProfit = totalIncome - totalExpense;
@@ -705,7 +804,7 @@
             }).sort((a, b) => b.amount - a.amount);
 
             if(sortedRank.length === 0) {
-                rankingContainer.innerHTML = '<p class="no-data">本月無收入項目資料</p>';
+                rankingContainer.innerHTML = '<p class="no-data">此區間尚無收入項目明細</p>';
                 return;
             }
 
@@ -713,9 +812,13 @@
             sortedRank.forEach((item, index) => {
                 const percentage = maxAmount > 0 ? (item.amount / maxAmount) * 100 : 0;
                 const rankRow = document.createElement('div');
+                rankRow.style.style = 'margin-bottom: 12px;';
                 rankRow.style.marginBottom = '12px';
                 rankRow.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; font-size:13px;"><span>${index + 1}. ${escapeHtml(item.project)}</span><span style="font-weight:600;">$${item.amount.toLocaleString()}</span></div>
+                    <div style="display:flex; justify-content:space-between; font-size:13px;">
+                        <span>${index + 1}. ${escapeHtml(item.project)}</span>
+                        <span style="font-weight:600;">$${item.amount.toLocaleString()}</span>
+                    </div>
                     <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${percentage}%"></div></div>
                 `;
                 rankingContainer.appendChild(rankRow);
@@ -724,22 +827,22 @@
 
         // ==================== 頁面 4: 客戶管理與壽星處理 ====================
         function renderCustomerPage() {
-            const thisMonth = new Date().getMonth() + 1; // 獲取目前真實月份
+            const thisMonth = new Date().getMonth() + 1; // 獲取當前實際月份
             document.getElementById('current-month-title').innerText = thisMonth;
 
             const container = document.getElementById('customers-container');
             const searchKey = document.getElementById('cust-search-input').value.trim().toLowerCase();
             container.innerHTML = '';
 
-            // 1. 統整並清洗記帳本中的客人清單
             let customerMap = {};
+            
+            // 匯總記帳本客人
             records.forEach(r => {
                 if (!r.custName) return;
                 const name = r.custName.trim();
                 if (searchKey && !name.toLowerCase().includes(searchKey)) return;
 
                 if (!customerMap[name]) {
-                    // 同步載入 CRM 中的生日與電話，若無則為空
                     const crmData = customerCRM[name] || { phone: '', birthday: '' };
                     customerMap[name] = {
                         name: name,
@@ -762,7 +865,7 @@
                 }
             });
 
-            // 如果有些客人在 CRM 中存在但目前沒任何記帳紀錄，也一併納入清單 (保障手動編輯後的獨立性)
+            // 匯總獨立於 CRM 中的客人
             Object.keys(customerCRM).forEach(name => {
                 if (searchKey && !name.toLowerCase().includes(searchKey)) return;
                 if (!customerMap[name]) {
@@ -779,19 +882,19 @@
 
             const customers = Object.values(customerMap);
 
-            // 2. 篩選與渲染當月壽星至頂部 Banner
+            // 處理與比對當月壽星 (支援 4 碼格式如 0529)
             const birthdayContainer = document.getElementById('birthday-list-container');
             birthdayContainer.innerHTML = '';
             
             let birthdayCount = 0;
             customers.forEach(cust => {
-                if (cust.birthday) {
-                    // 生日格式可能是 06-15 或 6-15 等，擷取月份比對
-                    const mPart = parseInt(cust.birthday.split('-')[0]);
+                if (cust.birthday && cust.birthday.length === 4) {
+                    const mPart = parseInt(cust.birthday.substring(0, 2), 10);
                     if (mPart === thisMonth) {
                         birthdayCount++;
+                        const formattedBirthDisplay = `${cust.birthday.substring(0,2)}月${cust.birthday.substring(2,4)}日`;
                         const li = document.createElement('li');
-                        li.innerHTML = `🎉 <strong>${escapeHtml(cust.name)}</strong> (${cust.birthday}) ${cust.phone ? ` 📞 ${escapeHtml(cust.phone)}` : ''}`;
+                        li.innerHTML = `🎉 <strong>${escapeHtml(cust.name)}</strong> (${formattedBirthDisplay}) ${cust.phone ? ` 📞 ${escapeHtml(cust.phone)}` : ''}`;
                         birthdayContainer.appendChild(li);
                     }
                 }
@@ -805,10 +908,9 @@
                 return;
             }
 
-            // 按名字排序
             customers.sort((a, b) => a.name.localeCompare(b.name, 'zh-Hans-CN'));
 
-            // 3. 渲染主要客戶卡片
+            // 渲染客戶資料列表
             customers.forEach(cust => {
                 const card = document.createElement('div');
                 card.classList.add('customer-card');
@@ -821,6 +923,12 @@
                     </div>
                 `).join('');
 
+                // 生日格式顯示處理
+                let birthDisplay = '未填寫';
+                if(cust.birthday && cust.birthday.length === 4) {
+                    birthDisplay = `${cust.birthday.substring(0,2)} / ${cust.birthday.substring(2,4)}`;
+                }
+
                 card.innerHTML = `
                     <div class="customer-card-header" onclick="toggleCard(this.parentNode)">
                         <span class="customer-name">👤 ${escapeHtml(cust.name)}</span>
@@ -828,17 +936,17 @@
                     </div>
                     <div onclick="toggleCard(this.parentNode)">
                         <div class="customer-detail-row">📞 電話: ${cust.phone ? escapeHtml(cust.phone) : '未填寫'}</div>
-                        <div class="customer-detail-row">🎂 生日: ${cust.birthday ? escapeHtml(cust.birthday) : '未填寫'}</div>
+                        <div class="customer-detail-row">🎂 生日: ${birthDisplay}</div>
                         <div class="customer-detail-row">累積消費次數: <strong>${cust.visitCount}</strong> 次</div>
                     </div>
                     
-                    <!-- 展開編輯區 -->
+                    <!-- 展開編輯區塊 -->
                     <div class="customer-expanded-zone">
                         <div class="edit-crm-group">
-                            <div class="edit-crm-title">✏️ 編輯客戶基本資料</div>
+                            <div class="edit-crm-title">✏️ 編輯客戶資料</div>
                             <div style="display:flex; gap:6px; margin-bottom:6px;">
-                                <input type="tel" id="edit-phone-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; padding:6px;" placeholder="輸入電話" value="${escapeHtml(cust.phone)}">
-                                <input type="text" id="edit-birth-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; padding:6px;" placeholder="生日範例: 06-18" value="${escapeHtml(cust.birthday)}">
+                                <input type="tel" id="edit-phone-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; padding:6px; font-size:12px;" placeholder="手機號碼" value="${escapeHtml(cust.phone)}">
+                                <input type="number" id="edit-birth-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; padding:6px; font-size:12px;" placeholder="生日4碼 (如0529)" inputmode="numeric" value="${escapeHtml(cust.birthday)}">
                             </div>
                             <button class="btn-mini-save" onclick="saveCRMData('${escapeHtml(cust.name)}')">儲存資料</button>
                             <div style="clear:both;"></div>
@@ -855,20 +963,21 @@
             });
         }
 
-        // 卡片點擊摺疊切換
         function toggleCard(cardElement) {
             const isOpen = cardElement.classList.contains('open');
-            // 關閉其它所有打開的客卡
             document.querySelectorAll('.customer-card').forEach(c => c.classList.remove('open'));
-            if (!isOpen) {
-                cardElement.classList.add('open');
-            }
+            if (!isOpen) cardElement.classList.add('open');
         }
 
-        // 儲存客戶電話與生日
+        // 儲存基本資料並驗證 4 碼生日
         function saveCRMData(name) {
             const phoneVal = document.getElementById(`edit-phone-${name}`).value.trim();
             const birthVal = document.getElementById(`edit-birth-${name}`).value.trim();
+
+            if (birthVal && birthVal.length !== 4) {
+                alert('生日格式錯誤！請輸入 4 碼數字，例如 0529。');
+                return;
+            }
 
             if (!customerCRM[name]) {
                 customerCRM[name] = {};
@@ -877,8 +986,8 @@
             customerCRM[name].birthday = birthVal;
 
             saveData();
-            alert(`${name} 的資料已成功更新！`);
-            renderCustomerPage(); // 重新整理頁面
+            alert(`${name} 的資料已成功同步更新！`);
+            renderCustomerPage();
         }
     </script>
 </body>
