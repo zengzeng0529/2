@@ -353,6 +353,7 @@
         }
         .summary-mini-card p { font-size: 12px; color: var(--text-muted); margin-bottom: 5px; }
         .summary-mini-card h3 { font-size: 18px; font-weight: 700; }
+        
         .stat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 14px; }
         .progress-bar-bg { background-color: var(--main-butter); height: 6px; border-radius: 3px; width: 100%; margin-top: 4px; overflow: hidden; }
         .progress-bar-fill { height: 100%; background-color: var(--text-muted); width: 0%; transition: width 0.5s ease; }
@@ -363,8 +364,21 @@
             padding-top: 15px;
         }
         .report-detail-title {
-            font-size: 14px; font-weight: bold; color: var(--text-dark); margin-bottom: 10px;
+            font-size: 14px; font-weight: bold; color: var(--text-dark); margin-bottom: 12px;
             display: flex; justify-content: space-between; align-items: center;
+        }
+        
+        /* 報表項目統計行樣式 */
+        .report-summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 4px;
+            border-bottom: 1px dashed rgba(227, 213, 202, 0.3);
+            font-size: 14px;
+        }
+        .report-summary-item:last-child {
+            border-bottom: none;
         }
 
         /* ==================== 彈出式編輯視窗 (Modal) ==================== */
@@ -562,21 +576,21 @@
 
         <div class="report-summary">
             <div id="card-inc-trigger" class="summary-mini-card" onclick="toggleReportDetailFilter('收入')">
-                <p>區間總收入 (點擊看細項)</p>
+                <p>區間總收入 (點擊看項目統計)</p>
                 <h3 id="rep-total-income" style="color: var(--income-green);">$0</h3>
             </div>
             <div id="card-exp-trigger" class="summary-mini-card" onclick="toggleReportDetailFilter('支出')">
-                <p>區間總支出 (點擊看細項)</p>
+                <p>區間總支出 (點擊看項目統計)</p>
                 <h3 id="rep-total-expense" style="color: var(--expense-red);">$0</h3>
             </div>
         </div>
         
         <div class="card-box" id="report-detail-box-container" style="display:none; margin-bottom:18px;">
             <div class="report-detail-title">
-                <span id="report-detail-type-label">明細細項摘要</span>
+                <span id="report-detail-type-label">項目統計統整</span>
                 <span style="font-size:11px; color:var(--text-muted); font-weight:normal; cursor:pointer;" onclick="closeReportDetail()">關閉 ✕</span>
             </div>
-            <div id="report-detail-list-wrapper" class="scroll-container" style="max-height:250px;"></div>
+            <div id="report-detail-list-wrapper" class="scroll-container" style="max-height:280px;"></div>
         </div>
 
         <div class="card-box">
@@ -667,7 +681,6 @@
         
         let currentReportDetailFilter = ''; 
 
-        // 核心修正：網頁一開機，就把報表、客戶資料的資料同步載入渲染
         window.onload = function() {
             buildYearDropdowns();
             buildMonthDropdown();
@@ -675,7 +688,6 @@
             renderDayRecords();
             handleTypeChange();
             
-            // 新增：確保第一次開網頁時，切換分頁前資料已在背景完成初次渲染
             renderReports();
             renderCustomerPage();
         };
@@ -760,7 +772,6 @@
             if (pageId === 'customers-page') renderCustomerPage();
         }
 
-        // ==================== 彈出式修改視窗主邏輯 ====================
         function openEditModal(id, event) {
             if(event) event.stopPropagation();
             
@@ -1151,7 +1162,7 @@
 
             currentReportDetailFilter = type;
             document.getElementById('report-detail-box-container').style.display = 'block';
-            document.getElementById('report-detail-type-label').innerText = `📊 區間【${type}】明細細項 (點擊可修改)`;
+            document.getElementById('report-detail-type-label').innerText = `📊 區間【${type}】項目合計統整`;
 
             if (type === '收入') {
                 if(incCard) incCard.classList.add('active-filter');
@@ -1184,6 +1195,7 @@
             if(expCard) expCard.classList.remove('active-filter');
         }
 
+        // 修正重點功能：將流水帳明細列表，改為相同「項目(project)」自動加總合計的統整清單
         function renderReportDetailList(scopedRecords, type) {
             const listWrapper = document.getElementById('report-detail-list-wrapper');
             if(!listWrapper) return;
@@ -1191,39 +1203,36 @@
 
             const targetRecords = scopedRecords.filter(r => r.type === type);
             if (targetRecords.length === 0) {
-                listWrapper.innerHTML = `<div class="no-data">該區間內尚無${type}明細項目</div>`;
+                listWrapper.innerHTML = `<div class="no-data">該區間內尚無${type}項目數據</div>`;
                 return;
             }
 
-            targetRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
-
+            // 1. 使用物件依項目名稱（project）進行金額自動加總
+            let projectSummary = {};
             targetRecords.forEach(rec => {
-                const item = document.createElement('div');
-                item.classList.add('record-item');
-                item.setAttribute('onclick', `openEditModal('${rec.id}', event)`);
-                const isInc = rec.type === '收入';
-                const typeClass = isInc ? 'inc' : 'exp';
-                const displayName = isInc ? (rec.custName ? rec.custName : '無名客') : '店鋪';
+                let pName = rec.project.trim() || (type === '收入' ? '未命名收入' : '未命名支出');
+                projectSummary[pName] = (projectSummary[pName] || 0) + rec.amount;
+            });
 
-                item.innerHTML = `
-                    <div class="rec-top">
-                        <div>
-                            <span style="font-size:11px; color:var(--text-muted); margin-right:6px;">${rec.date}</span>
-                            <span style="font-weight:600;">${escapeHtml(displayName)}</span>
-                        </div>
-                        <div>
-                            <span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span>
-                            <button class="btn-delete" onclick="deleteRecord('${rec.id}', 'report', event)">🗑️</button>
-                        </div>
-                    </div>
-                    <div class="rec-mid" style="font-size:12px;">項目: ${escapeHtml(rec.project)}</div>
-                    ${isInc ? `
-                    <div class="rec-bot" style="font-size:11px;"><span>儲值餘額: ${rec.deposit !== '' ? '$'+rec.deposit : '未記錄'}</span>${rec.note ? `<span style="margin-left:8px;">📝 ${escapeHtml(rec.note)}</span>` : ''}</div>
-                    ` : `
-                    <div class="rec-bot" style="font-size:11px;">${rec.note ? `<span>📝 ${escapeHtml(rec.note)}</span>` : ''}</div>
-                    `}
+            // 2. 轉換為陣列並依金額由大到小排序
+            let sortedSummary = Object.keys(projectSummary).map(key => {
+                return { project: key, totalAmount: projectSummary[key] };
+            }).sort((a, b) => b.totalAmount - a.totalAmount);
+
+            // 3. 渲染統整後的結果
+            sortedSummary.forEach(item => {
+                const row = document.createElement('div');
+                row.classList.add('report-summary-item');
+                
+                const isInc = type === '收入';
+                const sign = isInc ? '+' : '-';
+                const colorStyle = isInc ? 'color: var(--income-green);' : 'color: var(--expense-red);';
+
+                row.innerHTML = `
+                    <span style="font-weight: 500; color: var(--text-dark);">${escapeHtml(item.project)}</span>
+                    <span style="font-weight: 600; ${colorStyle}">${sign}$${item.totalAmount.toLocaleString()}</span>
                 `;
-                listWrapper.appendChild(item);
+                listWrapper.appendChild(row);
             });
         }
 
