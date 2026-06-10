@@ -18,6 +18,7 @@
             --income-green: #95B46A;
             --expense-red: #E07A5F;
             --birthday-pink: #E6B8A2;
+            --highlight-orange: #D87A60; /* 備註專用顯眼色 */
         }
 
         /* --- 全局樣式 --- */
@@ -368,7 +369,6 @@
             display: flex; justify-content: space-between; align-items: center;
         }
         
-        /* 報表項目統計行樣式 */
         .report-summary-item {
             display: flex;
             justify-content: space-between;
@@ -459,6 +459,21 @@
         .customer-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--accent-latte); padding-bottom: 6px; margin-bottom: 8px; }
         .customer-name { font-weight: bold; font-size: 15px; }
         .customer-deposit { font-size: 13px; color: #1A73E8; font-weight: 600; }
+        
+        /* 備註突顯樣式區塊碼 */
+        .customer-note-highlight {
+            font-size: 13px;
+            color: var(--highlight-orange) !important;
+            font-weight: bold !important;
+            background-color: #FFF5F2;
+            padding: 4px 8px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-top: 4px;
+            margin-bottom: 4px;
+            border: 1px dashed rgba(216, 122, 96, 0.3);
+        }
+        
         .customer-detail-row { font-size: 12px; color: var(--text-dark); margin-bottom: 3px; }
         
         .customer-expanded-zone {
@@ -471,9 +486,21 @@
             border: 1px solid var(--accent-latte); margin-bottom: 8px;
         }
         .edit-crm-title { font-size: 11px; font-weight: bold; color: var(--text-muted); margin-bottom: 6px; }
+        
+        /* 底部按鈕群組 */
+        .crm-action-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+        }
         .btn-mini-save {
             background-color: var(--text-dark); color: var(--pure-white); border: none;
-            border-radius: 8px; padding: 6px 12px; font-size: 11px; cursor: pointer; float: right; margin-top: 4px;
+            border-radius: 8px; padding: 6px 14px; font-size: 11px; font-weight: 600; cursor: pointer;
+        }
+        .btn-mini-delete {
+            background-color: #FCE8E6; color: var(--delete-red); border: 1px solid rgba(224, 122, 95, 0.4);
+            border-radius: 8px; padding: 5px 10px; font-size: 11px; font-weight: 500; cursor: pointer;
         }
         .no-data { text-align: center; color: var(--text-muted); font-size: 14px; padding: 20px 0; }
     </style>
@@ -481,10 +508,10 @@
 <body>
 
     <nav class="top-toolbar">
-        <button class="nav-btn active" onclick="switchPage('calendar-page', this)">1. 月曆</button>
+        <button class="nav-btn" onclick="switchPage('calendar-page', this)">1. 月曆</button>
         <button class="nav-btn" onclick="switchPage('all-records-page', this)">2. 總紀錄</button>
         <button class="nav-btn" onclick="switchPage('reports-page', this)">3. 報表</button>
-        <button class="nav-btn" onclick="switchPage('customers-page', this)">4. 客戶資料</button>
+        <button class="nav-btn active" onclick="switchPage('customers-page', this)">4. 客戶資料</button>
     </nav>
 
     <header class="shop-header">
@@ -492,7 +519,7 @@
         <p>沐 目 ﹒ 美 睫 記 帳 與 客 戶 管 理</p>
     </header>
 
-    <main id="calendar-page" class="page active">
+    <main id="calendar-page" class="page">
         <div class="card-box">
             <div class="calendar-header">
                 <button onclick="changeMonth(-1)">❮</button>
@@ -576,11 +603,11 @@
 
         <div class="report-summary">
             <div id="card-inc-trigger" class="summary-mini-card" onclick="toggleReportDetailFilter('收入')">
-                <p>區間總收入 </p>
+                <p>區間總收入 (點擊看項目統計)</p>
                 <h3 id="rep-total-income" style="color: var(--income-green);">$0</h3>
             </div>
             <div id="card-exp-trigger" class="summary-mini-card" onclick="toggleReportDetailFilter('支出')">
-                <p>區間總支出 </p>
+                <p>區間總支出 (點擊看項目統計)</p>
                 <h3 id="rep-total-expense" style="color: var(--expense-red);">$0</h3>
             </div>
         </div>
@@ -609,7 +636,7 @@
         </div>
     </main>
 
-    <main id="customers-page" class="page">
+    <main id="customers-page" class="page active">
         <div class="birthday-banner">
             <div class="birthday-banner-title">🎂 <span id="current-month-title"></span>月壽星提醒專區</div>
             <ul id="birthday-list-container" class="birthday-list"></ul>
@@ -908,7 +935,7 @@
             const labelEl = document.getElementById('selected-date-label');
             if(!labelEl) return;
             const dateParts = selectedDateStr.split('-');
-            labelEl.innerText = `${parseInt(dateParts[1])}月${parseInt(dateParts[2])}日 收支紀錄 (點擊可修改)`;
+            labelEl.innerText = `${dateParts[1]}月${dateParts[2]}日 收支紀錄 (點擊可修改)`;
 
             const dayRecords = records.filter(r => r.date === selectedDateStr);
             const listContainer = document.getElementById('day-record-list');
@@ -1162,7 +1189,7 @@
 
             currentReportDetailFilter = type;
             document.getElementById('report-detail-box-container').style.display = 'block';
-            document.getElementById('report-detail-type-label').innerText = `📊 區間【${type}】項目合計統整`;
+            document.getElementById('report-detail-type-label').innerText = `📊 區間【${type}】項目項目合計統整`;
 
             if (type === '收入') {
                 if(incCard) incCard.classList.add('active-filter');
@@ -1195,7 +1222,6 @@
             if(expCard) expCard.classList.remove('active-filter');
         }
 
-        // 修正重點功能：將流水帳明細列表，改為相同「項目(project)」自動加總合計的統整清單
         function renderReportDetailList(scopedRecords, type) {
             const listWrapper = document.getElementById('report-detail-list-wrapper');
             if(!listWrapper) return;
@@ -1207,19 +1233,16 @@
                 return;
             }
 
-            // 1. 使用物件依項目名稱（project）進行金額自動加總
             let projectSummary = {};
             targetRecords.forEach(rec => {
                 let pName = rec.project.trim() || (type === '收入' ? '未命名收入' : '未命名支出');
                 projectSummary[pName] = (projectSummary[pName] || 0) + rec.amount;
             });
 
-            // 2. 轉換為陣列並依金額由大到小排序
             let sortedSummary = Object.keys(projectSummary).map(key => {
                 return { project: key, totalAmount: projectSummary[key] };
             }).sort((a, b) => b.totalAmount - a.totalAmount);
 
-            // 3. 渲染統整後的結果
             sortedSummary.forEach(item => {
                 const row = document.createElement('div');
                 row.classList.add('report-summary-item');
@@ -1236,7 +1259,7 @@
             });
         }
 
-        // ==================== 頁面 4: 客戶資料 ====================
+        // ==================== 頁面 4: 客戶資料核心修改邏輯 ====================
         function renderCustomerPage() {
             const thisMonth = new Date().getMonth() + 1;
             const mTitleEl = document.getElementById('current-month-title');
@@ -1342,6 +1365,7 @@
                     birthDisplay = `${cust.birthday.substring(0,2)} / ${cust.birthday.substring(2,4)}`;
                 }
 
+                // 修正重點：優化備註顯示樣式 + 注入編輯欄位與刪除按鈕
                 card.innerHTML = `
                     <div class="customer-card-header" onclick="toggleCard(this.parentNode)">
                         <span class="customer-name">👤 ${escapeHtml(cust.name)}</span>
@@ -1350,8 +1374,8 @@
                     <div onclick="toggleCard(this.parentNode)">
                         <div class="customer-detail-row">📞 電話: ${cust.phone ? escapeHtml(cust.phone) : '未填寫'}</div>
                         <div class="customer-detail-row">🎂 生日: ${birthDisplay}</div>
-                        <div class="customer-detail-row">📝 備註: <span style="color:var(--text-muted);">${cust.note ? escapeHtml(cust.note) : '無備註紀錄'}</span></div>
-                        <div class="customer-detail-row">累積消費次數: <strong>${cust.visitCount}</strong> 次</div>
+                        <div class="customer-note-highlight">📝 備註：${cust.note ? escapeHtml(cust.note) : '無備註紀錄'}</div>
+                        <div class="customer-detail-row" style="margin-top: 2px;">累積消費次數: <strong>${cust.visitCount}</strong> 次</div>
                     </div>
                     
                     <div class="customer-expanded-zone">
@@ -1364,7 +1388,11 @@
                             <div style="margin-bottom:6px;">
                                 <input type="text" id="edit-note-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; padding:6px; font-size:12px;" placeholder="輸入客戶專屬備註（如喜好、捲度等）" value="${escapeHtml(cust.note)}">
                             </div>
-                            <button class="btn-mini-save" onclick="saveCRMData('${escapeHtml(cust.name)}')">儲存資料</button>
+                            
+                            <div class="crm-action-row">
+                                <button class="btn-mini-delete" onclick="deleteCustomerData('${escapeHtml(cust.name)}')">🗑️ 刪除客戶</button>
+                                <button class="btn-mini-save" onclick="saveCRMData('${escapeHtml(cust.name)}')">💾 儲存修改</button>
+                            </div>
                             <div style="clear:both;"></div>
                         </div>
                         <div style="margin-top:8px;">
@@ -1385,6 +1413,7 @@
             if (!isOpen) cardElement.classList.add('open');
         }
 
+        // 修改客戶資料
         function saveCRMData(name) {
             const phoneVal = document.getElementById(`edit-phone-${name}`).value.trim();
             const birthVal = document.getElementById(`edit-birth-${name}`).value.trim();
@@ -1405,6 +1434,20 @@
             saveData();
             alert(`${name} 的資料已成功同步更新！`);
             renderCustomerPage();
+        }
+
+        // 刪除客戶資料功能
+        function deleteCustomerData(name) {
+            if (confirm(`確定要刪除客戶「${name}」的基礎資料嗎？\n(注意：此動作不會刪除月曆或總紀錄中的歷史帳目資料)`)) {
+                if (customerCRM[name]) {
+                    delete customerCRM[name];
+                }
+                
+                // 同步將流水帳紀錄中的姓名清空或變更（可選，此處維持帳目但解綁CRM）
+                saveData();
+                alert(`客戶「${name}」的基礎資料已刪除！`);
+                renderCustomerPage();
+            }
         }
     </script>
 </body>
