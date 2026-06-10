@@ -556,7 +556,7 @@
                 <option value="0">1 月</option><option value="1">2 月</option><option value="2">3 月</option>
                 <option value="3">4 月</option><option value="4">5 月</option><option value="5">6 月</option>
                 <option value="6">7 月</option><option value="7">8 月</option><option value="8">9 月</option>
-                <option value="9">10 月</option><option value="10">11 月</option><option value="12 月</option>
+                <option value="9">10 月</option><option value="10">11 月</option><option value="11">12 月</option>
             </select>
         </div>
 
@@ -667,12 +667,17 @@
         
         let currentReportDetailFilter = ''; 
 
+        // 核心修正：網頁一開機，就把報表、客戶資料的資料同步載入渲染
         window.onload = function() {
             buildYearDropdowns();
             buildMonthDropdown();
             initCalendar();
             renderDayRecords();
             handleTypeChange();
+            
+            // 新增：確保第一次開網頁時，切換分頁前資料已在背景完成初次渲染
+            renderReports();
+            renderCustomerPage();
         };
 
         function formatDateString(dateObj) {
@@ -714,28 +719,32 @@
             const calYearSelect = document.getElementById('select-cal-year');
             const repYearSelect = document.getElementById('report-year-select');
             
-            calYearSelect.innerHTML = '';
-            repYearSelect.innerHTML = '';
+            if(calYearSelect && repYearSelect) {
+                calYearSelect.innerHTML = '';
+                repYearSelect.innerHTML = '';
 
-            for (let y = currentYear - 3; y <= currentYear + 5; y++) {
-                let opt1 = document.createElement('option');
-                opt1.value = y; opt1.innerText = `${y} 年`;
-                calYearSelect.appendChild(opt1);
+                for (let y = currentYear - 3; y <= currentYear + 5; y++) {
+                    let opt1 = document.createElement('option');
+                    opt1.value = y; opt1.innerText = `${y} 年`;
+                    calYearSelect.appendChild(opt1);
 
-                let opt2 = document.createElement('option');
-                opt2.value = y; opt2.innerText = `${y} 年度`;
-                repYearSelect.appendChild(opt2);
+                    let opt2 = document.createElement('option');
+                    opt2.value = y; opt2.innerText = `${y} 年度`;
+                    repYearSelect.appendChild(opt2);
+                }
+                repYearSelect.value = currentYear;
             }
-            repYearSelect.value = currentYear;
         }
 
         function buildMonthDropdown() {
             const calMonthSelect = document.getElementById('select-cal-month');
-            calMonthSelect.innerHTML = '';
-            for (let m = 0; m < 12; m++) {
-                let opt = document.createElement('option');
-                opt.value = m; opt.innerText = `${m + 1} 月`;
-                calMonthSelect.appendChild(opt);
+            if(calMonthSelect) {
+                calMonthSelect.innerHTML = '';
+                for (let m = 0; m < 12; m++) {
+                    let opt = document.createElement('option');
+                    opt.value = m; opt.innerText = `${m + 1} 月`;
+                    calMonthSelect.appendChild(opt);
+                }
             }
         }
 
@@ -819,8 +828,9 @@
 
             initCalendar();
             renderDayRecords();
+            renderReports();
+            renderCustomerPage();
             if(document.getElementById('all-records-page').classList.contains('active')) renderAllRecords();
-            if(document.getElementById('reports-page').classList.contains('active')) renderReports();
         }
 
         // ==================== 月曆核心邏輯 ====================
@@ -828,12 +838,15 @@
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
 
-            document.getElementById('select-cal-year').value = year;
-            document.getElementById('select-cal-month').value = month;
+            const calYearSel = document.getElementById('select-cal-year');
+            const calMonthSel = document.getElementById('select-cal-month');
+            if(calYearSel) calYearSel.value = year;
+            if(calMonthSel) calMonthSel.value = month;
 
             const firstDayIndex = new Date(year, month, 1).getDay();
             const totalDays = new Date(year, month + 1, 0).getDate();
             const daysContainer = document.getElementById('calendar-days');
+            if(!daysContainer) return;
             daysContainer.innerHTML = '';
 
             for (let i = 0; i < firstDayIndex; i++) {
@@ -881,11 +894,14 @@
         }
 
         function renderDayRecords() {
+            const labelEl = document.getElementById('selected-date-label');
+            if(!labelEl) return;
             const dateParts = selectedDateStr.split('-');
-            document.getElementById('selected-date-label').innerText = `${parseInt(dateParts[1])}月${parseInt(dateParts[2])}日 收支紀錄 (點擊可修改)`;
+            labelEl.innerText = `${parseInt(dateParts[1])}月${parseInt(dateParts[2])}日 收支紀錄 (點擊可修改)`;
 
             const dayRecords = records.filter(r => r.date === selectedDateStr);
             const listContainer = document.getElementById('day-record-list');
+            if(!listContainer) return;
             listContainer.innerHTML = '';
 
             if (dayRecords.length === 0) {
@@ -968,6 +984,8 @@
 
             initCalendar();
             renderDayRecords();
+            renderReports();
+            renderCustomerPage();
         }
 
         function deleteRecord(id, pageSource, event) {
@@ -975,16 +993,18 @@
             if(confirm('確定要刪除此筆紀錄嗎？')) {
                 records = records.filter(r => r.id !== id);
                 saveData();
-                if (pageSource === 'day') { initCalendar(); renderDayRecords(); }
+                initCalendar();
+                renderDayRecords();
+                renderReports();
+                renderCustomerPage();
                 if (pageSource === 'all') renderAllRecords();
-                if (pageSource === 'cust') renderCustomerPage();
-                if (pageSource === 'report') { renderReports(); }
             }
         }
 
         // ==================== 頁面 2: 總紀錄 ====================
         function renderAllRecords() {
             const container = document.getElementById('all-records-container');
+            if(!container) return;
             const searchKey = document.getElementById('search-input').value.toLowerCase().trim();
             container.innerHTML = '';
 
@@ -1042,14 +1062,20 @@
 
         // ==================== 頁面 3: 報表核心邏輯 ====================
         function renderReports() {
-            const selectedYear = parseInt(document.getElementById('report-year-select').value);
-            const selectedMonthVal = document.getElementById('report-month-select').value;
+            const yearSel = document.getElementById('report-year-select');
+            const monthSel = document.getElementById('report-month-select');
+            if(!yearSel || !monthSel) return;
+
+            const selectedYear = parseInt(yearSel.value);
+            const selectedMonthVal = monthSel.value;
             
             const scopeLabel = document.getElementById('report-scope-label');
-            if (selectedMonthVal === 'all') {
-                scopeLabel.innerText = `${selectedYear} 全年度總覽`;
-            } else {
-                scopeLabel.innerText = `${selectedYear} 年 ${parseInt(selectedMonthVal) + 1} 月 統計`;
+            if(scopeLabel) {
+                if (selectedMonthVal === 'all') {
+                    scopeLabel.innerText = `${selectedYear} 全年度總覽`;
+                } else {
+                    scopeLabel.innerText = `${selectedYear} 年 ${parseInt(selectedMonthVal) + 1} 月 統計`;
+                }
             }
 
             const filteredRecords = records.filter(r => {
@@ -1072,38 +1098,41 @@
                 }
             });
 
-            const netProfit = totalIncome - totalExpense;
             document.getElementById('rep-total-income').innerText = `$${totalIncome.toLocaleString()}`;
             document.getElementById('rep-total-expense').innerText = `$${totalExpense.toLocaleString()}`;
             
+            const netProfit = totalIncome - totalExpense;
             const netProfitEl = document.getElementById('rep-net-profit');
-            netProfitEl.innerText = `${netProfit >= 0 ? '' : '-'}$${Math.abs(netProfit).toLocaleString()}`;
-            netProfitEl.style.color = netProfit >= 0 ? 'var(--income-green)' : 'var(--expense-red)';
+            if(netProfitEl) {
+                netProfitEl.innerText = `${netProfit >= 0 ? '' : '-'}$${Math.abs(netProfit).toLocaleString()}`;
+                netProfitEl.style.color = netProfit >= 0 ? 'var(--income-green)' : 'var(--expense-red)';
+            }
 
             const rankingContainer = document.getElementById('income-ranking-container');
-            rankingContainer.innerHTML = '';
+            if(rankingContainer) {
+                rankingContainer.innerHTML = '';
+                const sortedRank = Object.keys(projectRanking).map(key => {
+                    return { project: key, amount: projectRanking[key] };
+                }).sort((a, b) => b.amount - a.amount);
 
-            const sortedRank = Object.keys(projectRanking).map(key => {
-                return { project: key, amount: projectRanking[key] };
-            }).sort((a, b) => b.amount - a.amount);
-
-            if(sortedRank.length === 0) {
-                rankingContainer.innerHTML = '<p class="no-data">此區間尚無收入項目明細</p>';
-            } else {
-                const maxAmount = sortedRank[0].amount;
-                sortedRank.forEach((item, index) => {
-                    const percentage = maxAmount > 0 ? (item.amount / maxAmount) * 100 : 0;
-                    const rankRow = document.createElement('div');
-                    rankRow.style.marginBottom = '12px';
-                    rankRow.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; font-size:13px;">
-                            <span>${index + 1}. ${escapeHtml(item.project)}</span>
-                            <span style="font-weight:600;">$${item.amount.toLocaleString()}</span>
-                        </div>
-                        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${percentage}%"></div></div>
-                    `;
-                    rankingContainer.appendChild(rankRow);
-                });
+                if(sortedRank.length === 0) {
+                    rankingContainer.innerHTML = '<p class="no-data">此區間尚無收入項目明細</p>';
+                } else {
+                    const maxAmount = sortedRank[0].amount;
+                    sortedRank.forEach((item, index) => {
+                        const percentage = maxAmount > 0 ? (item.amount / maxAmount) * 100 : 0;
+                        const rankRow = document.createElement('div');
+                        rankRow.style.marginBottom = '12px';
+                        rankRow.innerHTML = `
+                            <div style="display:flex; justify-content:space-between; font-size:13px;">
+                                <span>${index + 1}. ${escapeHtml(item.project)}</span>
+                                <span style="font-weight:600;">$${item.amount.toLocaleString()}</span>
+                            </div>
+                            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${percentage}%"></div></div>
+                        `;
+                        rankingContainer.appendChild(rankRow);
+                    });
+                }
             }
 
             if (currentReportDetailFilter) {
@@ -1125,11 +1154,11 @@
             document.getElementById('report-detail-type-label').innerText = `📊 區間【${type}】明細細項 (點擊可修改)`;
 
             if (type === '收入') {
-                incCard.classList.add('active-filter');
-                expCard.classList.remove('active-filter');
+                if(incCard) incCard.classList.add('active-filter');
+                if(expCard) expCard.classList.remove('active-filter');
             } else {
-                expCard.classList.add('active-filter');
-                incCard.classList.remove('active-filter');
+                if(expCard) expCard.classList.add('active-filter');
+                if(incCard) incCard.classList.remove('active-filter');
             }
 
             const selectedYear = parseInt(document.getElementById('report-year-select').value);
@@ -1146,14 +1175,18 @@
 
         function closeReportDetail() {
             currentReportDetailFilter = '';
-            document.getElementById('report-detail-box-container').style.display = 'none';
-            document.getElementById('card-inc-trigger').classList.remove('active-filter');
-            document.getElementById('card-exp-trigger').classList.remove('active-filter');
+            const detailBox = document.getElementById('report-detail-box-container');
+            if(detailBox) detailBox.style.display = 'none';
+            
+            const incCard = document.getElementById('card-inc-trigger');
+            const expCard = document.getElementById('card-exp-trigger');
+            if(incCard) incCard.classList.remove('active-filter');
+            if(expCard) expCard.classList.remove('active-filter');
         }
 
-        // 修正：這裡過濾後直接顯示該類別細項，完全隔離收入與支出
         function renderReportDetailList(scopedRecords, type) {
             const listWrapper = document.getElementById('report-detail-list-wrapper');
+            if(!listWrapper) return;
             listWrapper.innerHTML = '';
 
             const targetRecords = scopedRecords.filter(r => r.type === type);
@@ -1197,10 +1230,14 @@
         // ==================== 頁面 4: 客戶資料 ====================
         function renderCustomerPage() {
             const thisMonth = new Date().getMonth() + 1;
-            document.getElementById('current-month-title').innerText = thisMonth;
+            const mTitleEl = document.getElementById('current-month-title');
+            if(mTitleEl) mTitleEl.innerText = thisMonth;
 
             const container = document.getElementById('customers-container');
-            const searchKey = document.getElementById('cust-search-input').value.trim().toLowerCase();
+            if(!container) return;
+            
+            const searchInputEl = document.getElementById('cust-search-input');
+            const searchKey = searchInputEl ? searchInputEl.value.trim().toLowerCase() : '';
             container.innerHTML = '';
 
             let customerMap = {};
@@ -1216,7 +1253,7 @@
                         name: name,
                         phone: crmData.phone || '',
                         birthday: crmData.birthday || '',
-                        note: crmData.note || '', // 載入客人的備註資料
+                        note: crmData.note || '', 
                         visitCount: 0,
                         latestDeposit: '未記錄',
                         latestDepositTime: 0,
@@ -1252,23 +1289,24 @@
             const customers = Object.values(customerMap);
 
             const birthdayContainer = document.getElementById('birthday-list-container');
-            birthdayContainer.innerHTML = '';
-            
-            let birthdayCount = 0;
-            customers.forEach(cust => {
-                if (cust.birthday && cust.birthday.length === 4) {
-                    const mPart = parseInt(cust.birthday.substring(0, 2), 10);
-                    if (mPart === thisMonth) {
-                        birthdayCount++;
-                        const formattedBirthDisplay = `${cust.birthday.substring(0,2)}月${cust.birthday.substring(2,4)}日`;
-                        const li = document.createElement('li');
-                        li.innerHTML = `🎉 <strong>${escapeHtml(cust.name)}</strong> (${formattedBirthDisplay}) ${cust.phone ? ` 📞 ${escapeHtml(cust.phone)}` : ''}`;
-                        birthdayContainer.appendChild(li);
+            if(birthdayContainer) {
+                birthdayContainer.innerHTML = '';
+                let birthdayCount = 0;
+                customers.forEach(cust => {
+                    if (cust.birthday && cust.birthday.length === 4) {
+                        const mPart = parseInt(cust.birthday.substring(0, 2), 10);
+                        if (mPart === thisMonth) {
+                            birthdayCount++;
+                            const formattedBirthDisplay = `${cust.birthday.substring(0,2)}月${cust.birthday.substring(2,4)}日`;
+                            const li = document.createElement('li');
+                            li.innerHTML = `🎉 <strong>${escapeHtml(cust.name)}</strong> (${formattedBirthDisplay}) ${cust.phone ? ` 📞 ${escapeHtml(cust.phone)}` : ''}`;
+                            birthdayContainer.appendChild(li);
+                        }
                     }
+                });
+                if (birthdayCount === 0) {
+                    birthdayContainer.innerHTML = '<li>本月暫無壽星顧客記錄</li>';
                 }
-            });
-            if (birthdayCount === 0) {
-                birthdayContainer.innerHTML = '<li>本月暫無壽星顧客記錄</li>';
             }
 
             if (customers.length === 0) {
@@ -1308,7 +1346,7 @@
                     </div>
                     
                     <div class="customer-expanded-zone">
-                        <div class="edit-crm-group">
+                        <div class="edit-crm-group" onclick="event.stopPropagation()">
                             <div class="edit-crm-title">✏️ 編輯客戶資料</div>
                             <div style="display:flex; gap:6px; margin-bottom:6px;">
                                 <input type="tel" id="edit-phone-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; padding:6px; font-size:12px;" placeholder="手機號碼" value="${escapeHtml(cust.phone)}">
@@ -1341,7 +1379,7 @@
         function saveCRMData(name) {
             const phoneVal = document.getElementById(`edit-phone-${name}`).value.trim();
             const birthVal = document.getElementById(`edit-birth-${name}`).value.trim();
-            const noteVal = document.getElementById(`edit-note-${name}`).value.trim(); // 取得新備註欄位的值
+            const noteVal = document.getElementById(`edit-note-${name}`).value.trim();
 
             if (birthVal && birthVal.length !== 4) {
                 alert('生日格式錯誤！請輸入 4 碼數字，例如 0529。');
@@ -1353,7 +1391,7 @@
             }
             customerCRM[name].phone = phoneVal;
             customerCRM[name].birthday = birthVal;
-            customerCRM[name].note = noteVal; // 同步寫入儲存資料庫
+            customerCRM[name].note = noteVal;
 
             saveData();
             alert(`${name} 的資料已成功同步更新！`);
