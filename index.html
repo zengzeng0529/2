@@ -508,10 +508,10 @@
 <body>
 
     <nav class="top-toolbar">
-        <button class="nav-btn" onclick="switchPage('calendar-page', this)">1. 月曆</button>
+        <button class="nav-btn active" onclick="switchPage('calendar-page', this)">1. 月曆</button>
         <button class="nav-btn" onclick="switchPage('all-records-page', this)">2. 總紀錄</button>
         <button class="nav-btn" onclick="switchPage('reports-page', this)">3. 報表</button>
-        <button class="nav-btn active" onclick="switchPage('customers-page', this)">4. 客戶資料</button>
+        <button class="nav-btn" onclick="switchPage('customers-page', this)">4. 客戶資料</button>
     </nav>
 
     <header class="shop-header">
@@ -519,7 +519,7 @@
         <p>沐 目 ﹒ 美 睫 記 帳 與 客 戶 管 理</p>
     </header>
 
-    <main id="calendar-page" class="page">
+    <main id="calendar-page" class="page active">
         <div class="card-box">
             <div class="calendar-header">
                 <button onclick="changeMonth(-1)">❮</button>
@@ -636,7 +636,7 @@
         </div>
     </main>
 
-    <main id="customers-page" class="page active">
+    <main id="customers-page" class="page">
         <div class="birthday-banner">
             <div class="birthday-banner-title">🎂 <span id="current-month-title"></span>月壽星提醒專區</div>
             <ul id="birthday-list-container" class="birthday-list"></ul>
@@ -842,7 +842,8 @@
             const note = document.getElementById('modal-edit-note').value.trim();
 
             if (!date) { alert('請選擇有效的日期'); return; }
-            if (isNaN(amount) || amount <= 0) { alert('請輸入有效的金額'); return; }
+            // 修正重點：放寬限制，允許金額為 0 
+            if (isNaN(amount) || amount < 0) { alert('請輸入有效的金額數字 (可為 0)'); return; }
 
             records[recIndex].date = date;
             records[recIndex].project = project || (records[recIndex].type === '收入' ? '美睫服務' : '日常開銷');
@@ -989,11 +990,13 @@
             const depositInput = type === '收入' ? document.getElementById('add-deposit').value.trim() : '';
             
             const project = document.getElementById('add-project').value.trim() || (type === '收入' ? '美睫服務' : '日常開銷');
-            const amount = parseInt(document.getElementById('add-amount').value);
+            const amountInput = document.getElementById('add-amount').value.trim();
+            const amount = parseInt(amountInput);
             const note = document.getElementById('add-note').value.trim();
 
-            if (isNaN(amount) || amount <= 0) {
-                alert('請輸入有效的金額數字');
+            // 修正重點：防錯判定放寬，如果是空字串或負數才擋下，允許 0 正常過關
+            if (amountInput === '' || isNaN(amount) || amount < 0) {
+                alert('請輸入有效的金額數字 (可為 0)');
                 return;
             }
 
@@ -1365,7 +1368,6 @@
                     birthDisplay = `${cust.birthday.substring(0,2)} / ${cust.birthday.substring(2,4)}`;
                 }
 
-                // 修正重點：優化備註顯示樣式 + 注入編輯欄位與刪除按鈕
                 card.innerHTML = `
                     <div class="customer-card-header" onclick="toggleCard(this.parentNode)">
                         <span class="customer-name">👤 ${escapeHtml(cust.name)}</span>
@@ -1413,7 +1415,6 @@
             if (!isOpen) cardElement.classList.add('open');
         }
 
-        // 修改客戶資料
         function saveCRMData(name) {
             const phoneVal = document.getElementById(`edit-phone-${name}`).value.trim();
             const birthVal = document.getElementById(`edit-birth-${name}`).value.trim();
@@ -1436,14 +1437,11 @@
             renderCustomerPage();
         }
 
-        // 刪除客戶資料功能
         function deleteCustomerData(name) {
             if (confirm(`確定要刪除客戶「${name}」的基礎資料嗎？\n(注意：此動作不會刪除月曆或總紀錄中的歷史帳目資料)`)) {
                 if (customerCRM[name]) {
                     delete customerCRM[name];
                 }
-                
-                // 同步將流水帳紀錄中的姓名清空或變更（可選，此處維持帳目但解綁CRM）
                 saveData();
                 alert(`客戶「${name}」的基礎資料已刪除！`);
                 renderCustomerPage();
