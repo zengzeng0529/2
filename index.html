@@ -561,14 +561,16 @@
                 </div>
 
                 <div class="form-group">
-                    <input type="number" id="add-amount" class="input-style" placeholder="金額" inputmode="numeric">
-                    
-                    <div id="deposit-wrapper" class="income-only-field" style="display: grid; grid-template-columns: 100px 1fr; gap: 4px;">
-                        <select id="add-deposit-type" class="input-style" style="padding: 9px 4px; font-size: 13px;">
+                    <input type="number" id="add-amount" class="input-style" style="grid-column: 1 / -1;" placeholder="本次收支金額" inputmode="numeric">
+                </div>
+
+                <div class="form-group" id="deposit-wrapper-row">
+                    <div id="deposit-wrapper" style="grid-column: 1 / -1; display: grid; grid-template-columns: 110px 1fr; gap: 8px;">
+                        <select id="add-deposit-type" class="input-style" style="padding: 9px 8px; font-size: 14px;">
                             <option value="儲值金">儲值金</option>
                             <option value="課堂數">課堂數</option>
                         </select>
-                        <input type="number" id="add-deposit" class="input-style" placeholder="剩餘數量 (空則不改)" inputmode="numeric">
+                        <input type="number" id="add-deposit" class="input-style" placeholder="輸入剩餘數量 (無改動可留空)" inputmode="numeric">
                     </div>
                 </div>
 
@@ -600,7 +602,7 @@
                 <option value="all">全年總覽</option>
                 <option value="0">1 月</option><option value="1">2 月</option><option value="2">3 月</option>
                 <option value="3">4 月</option><option value="4">5 月</option><option value="5">6 月</option>
-                <option value="6">7 月</option><option value="7">8 月</option><option value="8">9 月</option>
+                <option value="6">7 月</option><option value="7">8 月</option><option value="9">9 月</option>
                 <option value="9">10 月</option><option value="10">11 月</option><option value="11">12 月</option>
             </select>
         </div>
@@ -686,8 +688,8 @@
 
             <div style="margin-bottom: 12px;" id="modal-deposit-wrapper">
                 <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">剩餘資產紀錄</label>
-                <div style="display: grid; grid-template-columns: 100px 1fr; gap: 4px;">
-                    <select id="modal-edit-deposit-type" class="input-style" style="background:#fff; padding: 9px 4px; font-size: 13px;">
+                <div style="display: grid; grid-template-columns: 110px 1fr; gap: 8px;">
+                    <select id="modal-edit-deposit-type" class="input-style" style="background:#fff; padding: 9px 8px; font-size: 14px;">
                         <option value="儲值金">儲值金</option>
                         <option value="課堂數">課堂數</option>
                     </select>
@@ -743,24 +745,23 @@
             return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
-        // 輔助函式：用來將儲值餘額格式化帶有單位的字串
         function formatDepositDisplay(val, type) {
             if (val === undefined || val === null || val === '') return '未記錄';
-            const actualType = type || '儲值金'; // 舊資料預設相容為儲值金
+            const actualType = type || '儲值金';
             return actualType === '課堂數' ? `${val} 堂` : `$${val}`;
         }
 
         function handleTypeChange() {
             const type = document.getElementById('add-type').value;
             const custWrapper = document.getElementById('cust-name-wrapper');
-            const depositWrapper = document.getElementById('deposit-wrapper');
+            const depositRow = document.getElementById('deposit-wrapper-row');
 
             if (type === '收入') {
                 custWrapper.style.display = 'block';
-                depositWrapper.style.display = 'grid'; // 配合雙欄位排版改為 grid
+                depositRow.style.display = 'grid'; 
             } else {
                 custWrapper.style.display = 'none';
-                depositWrapper.style.display = 'none';
+                depositRow.style.display = 'none';
                 document.getElementById('add-cust-name').value = '';
                 document.getElementById('add-deposit').value = '';
             }
@@ -1026,7 +1027,7 @@
                 custName: custName,
                 project: project,
                 amount: amount,
-                depositType: depositType, // 新增紀錄資產型態
+                depositType: depositType,
                 deposit: depositInput !== '' ? parseInt(depositInput) : '',
                 note: note
             };
