@@ -563,8 +563,12 @@
                 <div class="form-group">
                     <input type="number" id="add-amount" class="input-style" placeholder="金額" inputmode="numeric">
                     
-                    <div id="deposit-wrapper" class="income-only-field">
-                        <input type="number" id="add-deposit" class="input-style" placeholder="儲值餘額 (無改動可空)" inputmode="numeric">
+                    <div id="deposit-wrapper" class="income-only-field" style="display: grid; grid-template-columns: 100px 1fr; gap: 4px;">
+                        <select id="add-deposit-type" class="input-style" style="padding: 9px 4px; font-size: 13px;">
+                            <option value="儲值金">儲值金</option>
+                            <option value="課堂數">課堂數</option>
+                        </select>
+                        <input type="number" id="add-deposit" class="input-style" placeholder="剩餘數量 (空則不改)" inputmode="numeric">
                     </div>
                 </div>
 
@@ -681,8 +685,14 @@
             </div>
 
             <div style="margin-bottom: 12px;" id="modal-deposit-wrapper">
-                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">儲值金餘額</label>
-                <input type="number" id="modal-edit-deposit" class="input-style" style="background:#fff;" placeholder="無改動可留空" inputmode="numeric">
+                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">剩餘資產紀錄</label>
+                <div style="display: grid; grid-template-columns: 100px 1fr; gap: 4px;">
+                    <select id="modal-edit-deposit-type" class="input-style" style="background:#fff; padding: 9px 4px; font-size: 13px;">
+                        <option value="儲值金">儲值金</option>
+                        <option value="課堂數">課堂數</option>
+                    </select>
+                    <input type="number" id="modal-edit-deposit" class="input-style" style="background:#fff;" placeholder="無改動可留空" inputmode="numeric">
+                </div>
             </div>
 
             <div style="margin-bottom: 12px;">
@@ -733,6 +743,13 @@
             return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
+        // 輔助函式：用來將儲值餘額格式化帶有單位的字串
+        function formatDepositDisplay(val, type) {
+            if (val === undefined || val === null || val === '') return '未記錄';
+            const actualType = type || '儲值金'; // 舊資料預設相容為儲值金
+            return actualType === '課堂數' ? `${val} 堂` : `$${val}`;
+        }
+
         function handleTypeChange() {
             const type = document.getElementById('add-type').value;
             const custWrapper = document.getElementById('cust-name-wrapper');
@@ -740,7 +757,7 @@
 
             if (type === '收入') {
                 custWrapper.style.display = 'block';
-                depositWrapper.style.display = 'block';
+                depositWrapper.style.display = 'grid'; // 配合雙欄位排版改為 grid
             } else {
                 custWrapper.style.display = 'none';
                 depositWrapper.style.display = 'none';
@@ -818,6 +835,7 @@
                 nameWrapper.style.display = 'block';
                 depositWrapper.style.display = 'block';
                 document.getElementById('modal-edit-name').value = rec.custName || '';
+                document.getElementById('modal-edit-deposit-type').value = rec.depositType || '儲值金';
                 document.getElementById('modal-edit-deposit').value = rec.deposit !== '' ? rec.deposit : '';
             } else {
                 nameWrapper.style.display = 'none';
@@ -842,7 +860,6 @@
             const note = document.getElementById('modal-edit-note').value.trim();
 
             if (!date) { alert('請選擇有效的日期'); return; }
-            // 修正重點：放寬限制，允許金額為 0 
             if (isNaN(amount) || amount < 0) { alert('請輸入有效的金額數字 (可為 0)'); return; }
 
             records[recIndex].date = date;
@@ -852,9 +869,11 @@
 
             if (records[recIndex].type === '收入') {
                 const custName = document.getElementById('modal-edit-name').value.trim();
+                const depositType = document.getElementById('modal-edit-deposit-type').value;
                 const depositInput = document.getElementById('modal-edit-deposit').value.trim();
                 
                 records[recIndex].custName = custName;
+                records[recIndex].depositType = depositType;
                 records[recIndex].deposit = depositInput !== '' ? parseInt(depositInput) : '';
 
                 if (custName && !customerCRM[custName]) {
@@ -971,7 +990,7 @@
                     <div class="rec-mid">項目: ${escapeHtml(rec.project)}</div>
                     ${isInc ? `
                     <div class="rec-bot">
-                        <span>儲值金餘額: ${rec.deposit !== '' ? '$'+rec.deposit : '未記錄'}</span>
+                        <span>${rec.depositType || '儲值金'}餘額: ${formatDepositDisplay(rec.deposit, rec.depositType)}</span>
                         ${rec.note ? `<span style="margin-left:10px;">📝 ${escapeHtml(rec.note)}</span>` : ''}
                     </div>
                     ` : `
@@ -987,6 +1006,7 @@
         function addRecord() {
             const type = document.getElementById('add-type').value;
             const custName = type === '收入' ? document.getElementById('add-cust-name').value.trim() : '';
+            const depositType = type === '收入' ? document.getElementById('add-deposit-type').value : '儲值金';
             const depositInput = type === '收入' ? document.getElementById('add-deposit').value.trim() : '';
             
             const project = document.getElementById('add-project').value.trim() || (type === '收入' ? '美睫服務' : '日常開銷');
@@ -994,7 +1014,6 @@
             const amount = parseInt(amountInput);
             const note = document.getElementById('add-note').value.trim();
 
-            // 修正重點：防錯判定放寬，如果是空字串或負數才擋下，允許 0 正常過關
             if (amountInput === '' || isNaN(amount) || amount < 0) {
                 alert('請輸入有效的金額數字 (可為 0)');
                 return;
@@ -1007,6 +1026,7 @@
                 custName: custName,
                 project: project,
                 amount: amount,
+                depositType: depositType, // 新增紀錄資產型態
                 deposit: depositInput !== '' ? parseInt(depositInput) : '',
                 note: note
             };
@@ -1092,7 +1112,7 @@
                     </div>
                     <div class="rec-mid">項目: ${escapeHtml(rec.project)}</div>
                     ${isInc ? `
-                    <div class="rec-bot"><span>儲值金: ${rec.deposit !== '' ? '$'+rec.deposit : '未記錄'}</span>${rec.note ? `<span style="margin-left:10px;">📝 ${escapeHtml(rec.note)}</span>` : ''}</div>
+                    <div class="rec-bot"><span>${rec.depositType || '儲值金'}: ${formatDepositDisplay(rec.deposit, rec.depositType)}</span>${rec.note ? `<span style="margin-left:10px;">📝 ${escapeHtml(rec.note)}</span>` : ''}</div>
                     ` : `
                     <div class="rec-bot">${rec.note ? `<span>📝 ${escapeHtml(rec.note)}</span>` : ''}</div>
                     `}
@@ -1290,7 +1310,8 @@
                         birthday: crmData.birthday || '',
                         note: crmData.note || '', 
                         visitCount: 0,
-                        latestDeposit: '未記錄',
+                        latestDepositLabel: '剩餘資產',
+                        latestDepositValue: '未記錄',
                         latestDepositTime: 0,
                         history: []
                     };
@@ -1301,7 +1322,8 @@
 
                 const recordTime = new Date(r.date).getTime();
                 if (r.deposit !== '' && recordTime >= customerMap[name].latestDepositTime) {
-                    customerMap[name].latestDeposit = '$' + r.deposit;
+                    customerMap[name].latestDepositLabel = r.depositType || '儲值金';
+                    customerMap[name].latestDepositValue = formatDepositDisplay(r.deposit, r.depositType);
                     customerMap[name].latestDepositTime = recordTime;
                 }
             });
@@ -1315,7 +1337,8 @@
                         birthday: customerCRM[name].birthday || '',
                         note: customerCRM[name].note || '',
                         visitCount: 0,
-                        latestDeposit: '未記錄',
+                        latestDepositLabel: '儲值餘額',
+                        latestDepositValue: '未記錄',
                         history: []
                     };
                 }
@@ -1371,7 +1394,7 @@
                 card.innerHTML = `
                     <div class="customer-card-header" onclick="toggleCard(this.parentNode)">
                         <span class="customer-name">👤 ${escapeHtml(cust.name)}</span>
-                        <span class="customer-deposit">儲值餘額: ${cust.latestDeposit}</span>
+                        <span class="customer-deposit">${cust.latestDepositLabel}: ${cust.latestDepositValue}</span>
                     </div>
                     <div onclick="toggleCard(this.parentNode)">
                         <div class="customer-detail-row">📞 電話: ${cust.phone ? escapeHtml(cust.phone) : '未填寫'}</div>
