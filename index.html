@@ -710,7 +710,6 @@
     </div>
 
     <script>
-        // --- 初始化資料與狀態 ---
         let records = JSON.parse(localStorage.getItem('mumu_records_v4')) || [];
         let customerCRM = JSON.parse(localStorage.getItem('mumu_crm_v4')) || {};
         
@@ -1050,9 +1049,10 @@
             renderCustomerPage();
         }
 
+        // 修正重點：修改彈出式視窗的提示文字
         function deleteRecord(id, pageSource, event) {
             if(event) event.stopPropagation();
-            if(confirm('確定要刪除此筆紀錄嗎？')) {
+            if(confirm('❌確定要刪除客人資料嗎💾？')) {
                 records = records.filter(r => r.id !== id);
                 saveData();
                 initCalendar();
@@ -1180,7 +1180,7 @@
                 if(sortedRank.length === 0) {
                     rankingContainer.innerHTML = '<p class="no-data">此區間尚無收入項目明細</p>';
                 } else {
-                    const maxAmount = sortedRank[0].amount;
+                    const maxAmount = sortedRank[0].amount;maxAmount;
                     sortedRank.forEach((item, index) => {
                         const percentage = maxAmount > 0 ? (item.amount / maxAmount) * 100 : 0;
                         const rankRow = document.createElement('div');
