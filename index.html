@@ -725,14 +725,14 @@
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // ==================== 【FIREBASE 設定區】 ====================
-        // 已自動將你在 image_2.png 的設定填入！
+        // ⚠️ 請在此處填入你在專案後台獲取的完整金鑰
         const firebaseConfig = {
-            apiKey: "AIzaSyCq9ZFswVWFw4z_nfUM49zmQ...", // 請在此處補上完整的 apiKey
+            apiKey: "AIzaSyCq9ZFswVWFw4z_nfUM49zmQ...", 
             authDomain: "mumu-studio.firebaseapp.com",
             projectId: "mumu-studio",
             storageBucket: "mumu-studio.firebasestorage.app",
             messagingSenderId: "390419965754",
-            appId: "1:390419965754:web:b0fa9636b0fa9636b0...", // 請確認此處與主控台一致
+            appId: "1:390419965754:web:b0fa9636b0fa9636b0...", 
             measurementId: "G-CWD113M12R"
         };
 
@@ -849,6 +849,7 @@
                     repYearSelect.appendChild(opt2);
                 }
                 repYearSelect.value = currentYear;
+                calYearSelect.value = currentDate.getFullYear();
             }
         }
 
@@ -861,6 +862,7 @@
                     opt.value = m; opt.innerText = `${m + 1} 月`;
                     calMonthSelect.appendChild(opt);
                 }
+                calMonthSelect.value = currentDate.getMonth();
             }
         }
 
@@ -896,7 +898,7 @@
                 if(depositWrapper) depositWrapper.style.display = 'block';
                 document.getElementById('modal-edit-name').value = rec.custName || '';
                 document.getElementById('modal-edit-deposit-type').value = rec.depositType || '儲值金';
-                document.getElementById('modal-edit-deposit').value = rec.deposit !== '' ? rec.deposit : '';
+                document.getElementById('modal-edit-deposit').value = (rec.deposit !== undefined && rec.deposit !== null) ? rec.deposit : '';
             } else {
                 if(nameWrapper) nameWrapper.style.display = 'none';
                 if(depositWrapper) depositWrapper.style.display = 'none';
@@ -1010,7 +1012,7 @@
             const labelEl = document.getElementById('selected-date-label');
             if(!labelEl) return;
             const dateParts = selectedDateStr.split('-');
-            labelEl.innerText = `${dateParts[1]}月${dateParts[2]}日 收支紀錄 (點擊可修改)`;
+            labelEl.innerText = `${parseInt(dateParts[1])}月${parseInt(dateParts[2])}日 收支紀錄 (點擊可修改)`;
 
             const dayRecords = records.filter(r => r.date === selectedDateStr);
             const listContainer = document.getElementById('day-record-list');
@@ -1103,7 +1105,7 @@
 
         window.deleteRecord = async function(id, pageSource, event) {
             if(event) event.stopPropagation();
-            if(confirm('❌確定要刪除這筆紀錄嗎？')) {
+            if(confirm('❌ 確定要刪除這筆紀錄嗎？')) {
                 await deleteDoc(doc(db, "mumu_records", id));
             }
         }
@@ -1186,6 +1188,7 @@
             }
 
             const filteredRecords = records.filter(r => {
+                if (!r.date) return false;
                 const d = new Date(r.date);
                 if (d.getFullYear() !== selectedYear) return false;
                 if (selectedMonthVal !== 'all' && d.getMonth() !== parseInt(selectedMonthVal)) return false;
@@ -1258,7 +1261,7 @@
 
             currentReportDetailFilter = type;
             document.getElementById('report-detail-box-container').style.display = 'block';
-            document.getElementById('report-detail-type-label').innerText = `📊 區間【${type}】項目項目合計統整`;
+            document.getElementById('report-detail-type-label').innerText = `📊 區間【${type}】項目合計統整`;
 
             if (type === '收入') {
                 if(incCard) incCard.classList.add('active-filter');
@@ -1271,6 +1274,7 @@
             const selectedYear = parseInt(document.getElementById('report-year-select').value);
             const selectedMonthVal = document.getElementById('report-month-select').value;
             const filteredRecords = records.filter(r => {
+                if (!r.date) return false;
                 const d = new Date(r.date);
                 if (d.getFullYear() !== selectedYear) return false;
                 if (selectedMonthVal !== 'all' && d.getMonth() !== parseInt(selectedMonthVal)) return false;
@@ -1368,11 +1372,13 @@
                 customerMap[name].totalSpent += r.amount; 
                 customerMap[name].history.push(r);
 
-                const recordTime = new Date(r.date).getTime();
-                if (r.deposit !== '' && recordTime >= customerMap[name].latestDepositTime) {
-                    customerMap[name].latestDepositLabel = r.depositType || '儲值金';
-                    customerMap[name].latestDepositValue = formatDepositDisplay(r.deposit, r.depositType);
-                    customerMap[name].latestDepositTime = recordTime;
+                if (r.date) {
+                    const recordTime = new Date(r.date).getTime();
+                    if (r.deposit !== '' && r.deposit !== undefined && r.deposit !== null && recordTime >= customerMap[name].latestDepositTime) {
+                        customerMap[name].latestDepositLabel = r.depositType || '儲值金';
+                        customerMap[name].latestDepositValue = formatDepositDisplay(r.deposit, r.depositType);
+                        customerMap[name].latestDepositTime = recordTime;
+                    }
                 }
             });
 
