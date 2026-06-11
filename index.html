@@ -611,7 +611,7 @@
                 <option value="all">全年總覽</option>
                 <option value="0">1 月</option><option value="1">2 月</option><option value="2">3 月</option>
                 <option value="3">4 月</option><option value="4">5 月</option><option value="5">6 月</option>
-                <option value="6">7 月</option><option value="7">8 月</option><option value="9">9 月</option>
+                <option value="6">7 月</option><option value="7">8 月</option><option value="8">9 月</option>
                 <option value="9">10 月</option><option value="10">11 月</option><option value="11">12 月</option>
             </select>
         </div>
@@ -718,86 +718,90 @@
         </div>
     </div>
 
-    <script>
-        // ==================== 【自動資料救援與向下相容機制】 ====================
-        function loadSavedData() {
-            // 定義所有可能在舊版本中用過的 LocalStorage 鍵值順序（從新排到舊）
-            const recordKeys = ['mumu_records_v4', 'mumu_records_v3', 'mumu_records_v2', 'mumu_records'];
-            const crmKeys = ['mumu_crm_v4', 'mumu_crm_v3', 'mumu_crm_v2', 'mumu_crm'];
-            
-            let loadedRecords = null;
-            let loadedCRM = null;
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { 
+            getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, query 
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-            // 尋找記帳紀錄資料
-            for (let key of recordKeys) {
-                let data = localStorage.getItem(key);
-                if (data) {
-                    try {
-                        loadedRecords = JSON.parse(data);
-                        console.log(`成功救援/讀取記帳資料，來源 Key: ${key}`);
-                        break; 
-                    } catch(e) { console.error(e); }
-                }
-            }
+        // ==================== 【FIREBASE 設定區】 ====================
+        // 已自動將你在 image_2.png 的設定填入！
+        const firebaseConfig = {
+            apiKey: "AIzaSyCq9ZFswVWFw4z_nfUM49zmQ...", // 請在此處補上完整的 apiKey
+            authDomain: "mumu-studio.firebaseapp.com",
+            projectId: "mumu-studio",
+            storageBucket: "mumu-studio.firebasestorage.app",
+            messagingSenderId: "390419965754",
+            appId: "1:390419965754:web:b0fa9636b0fa9636b0...", // 請確認此處與主控台一致
+            measurementId: "G-CWD113M12R"
+        };
 
-            // 尋找 CRM 客戶基礎資料
-            for (let key of crmKeys) {
-                let data = localStorage.getItem(key);
-                if (data) {
-                    try {
-                        loadedCRM = JSON.parse(data);
-                        console.log(`成功救援/讀取 CRM 客戶資料，來源 Key: ${key}`);
-                        break;
-                    } catch(e) { console.error(e); }
-                }
-            }
-
-            // 如果都沒找到舊資料，才初始化為空陣列/空物件
-            return {
-                records: loadedRecords || [],
-                crm: loadedCRM || {}
-            };
-        }
-
-        // 執行救援讀取
-        const rescuedData = loadSavedData();
-        let records = rescuedData.records;
-        let customerCRM = rescuedData.crm;
-
-        // 立即同步存入最新版 v4 的欄位，確保資料未來安全
-        localStorage.setItem('mumu_records_v4', JSON.stringify(records));
-        localStorage.setItem('mumu_crm_v4', JSON.stringify(customerCRM));
-        // ======================================================================
+        // 初始化 Firebase 與 Firestore
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
         
+        // 全局變數
+        let records = [];
+        let customerCRM = {};
         let currentDate = new Date();
         const todayStr = formatDateString(new Date());
         let selectedDateStr = todayStr;
-        
         let currentReportDetailFilter = ''; 
+
+        // ==================== 【FIRESTORE 即時雲端監聽機制】 ====================
+        // 監聽 1：流水帳紀錄集合 (mumu_records)
+        onSnapshot(collection(db, "mumu_records"), (snapshot) => {
+            records = [];
+            snapshot.forEach((doc) => {
+                records.push({ id: doc.id, ...doc.data() });
+            });
+            refreshAllUI();
+        });
+
+        // 監聽 2：客戶 CRM 集合 (mumu_crm)
+        onSnapshot(collection(db, "mumu_crm"), (snapshot) => {
+            customerCRM = {};
+            snapshot.forEach((doc) => {
+                customerCRM[doc.id] = doc.data();
+            });
+            refreshAllUI();
+        });
+
+        // 將個別資料單獨寫入至 Firestore
+        async function saveRecordToCloud(recordObj) {
+            const { id, ...data } = recordObj;
+            await setDoc(doc(db, "mumu_records", id), data);
+        }
+
+        async function saveCRMToCloud(name, crmObj) {
+            await setDoc(doc(db, "mumu_crm", name), crmObj);
+        }
+        // ======================================================================
 
         window.onload = function() {
             buildYearDropdowns();
             buildMonthDropdown();
+            refreshAllUI();
+        };
+
+        function refreshAllUI() {
             initCalendar();
             renderDayRecords();
             handleTypeChange();
-            
             renderReports();
             renderCustomerPage();
-        };
+            if(document.getElementById('all-records-page').classList.contains('active')) {
+                renderAllRecords();
+            }
+        }
 
         function formatDateString(dateObj) {
             return `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
         }
 
-        function saveData() {
-            localStorage.setItem('mumu_records_v4', JSON.stringify(records));
-            localStorage.setItem('mumu_crm_v4', JSON.stringify(customerCRM));
-        }
-
         function escapeHtml(text) {
             if(!text) return '';
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+            return text.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
         function formatDepositDisplay(val, type) {
@@ -806,23 +810,23 @@
             return actualType === '課堂數' ? `${val} 堂` : `$${val}`;
         }
 
-        function handleTypeChange() {
+        window.handleTypeChange = function() {
             const type = document.getElementById('add-type').value;
             const custWrapper = document.getElementById('cust-name-wrapper');
             const depositRow = document.getElementById('deposit-wrapper-row');
 
             if (type === '收入') {
-                custWrapper.style.display = 'block';
-                depositRow.style.display = 'grid'; 
+                if(custWrapper) custWrapper.style.display = 'block';
+                if(depositRow) depositRow.style.display = 'grid'; 
             } else {
-                custWrapper.style.display = 'none';
-                depositRow.style.display = 'none';
+                if(custWrapper) custWrapper.style.display = 'none';
+                if(depositRow) depositRow.style.display = 'none';
                 document.getElementById('add-cust-name').value = '';
                 document.getElementById('add-deposit').value = '';
             }
         }
 
-        function quickSelectProject(projectName) {
+        window.quickSelectProject = function(projectName) {
             document.getElementById('add-project').value = projectName;
         }
 
@@ -860,7 +864,7 @@
             }
         }
 
-        function switchPage(pageId, btnElement) {
+        window.switchPage = function(pageId, btnElement) {
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             btnElement.classList.add('active');
             document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
@@ -872,7 +876,7 @@
             if (pageId === 'customers-page') renderCustomerPage();
         }
 
-        function openEditModal(id, event) {
+        window.openEditModal = function(id, event) {
             if(event) event.stopPropagation();
             
             const rec = records.find(r => r.id === id);
@@ -888,27 +892,27 @@
             const depositWrapper = document.getElementById('modal-deposit-wrapper');
 
             if(rec.type === '收入') {
-                nameWrapper.style.display = 'block';
-                depositWrapper.style.display = 'block';
+                if(nameWrapper) nameWrapper.style.display = 'block';
+                if(depositWrapper) depositWrapper.style.display = 'block';
                 document.getElementById('modal-edit-name').value = rec.custName || '';
                 document.getElementById('modal-edit-deposit-type').value = rec.depositType || '儲值金';
                 document.getElementById('modal-edit-deposit').value = rec.deposit !== '' ? rec.deposit : '';
             } else {
-                nameWrapper.style.display = 'none';
-                depositWrapper.style.display = 'none';
+                if(nameWrapper) nameWrapper.style.display = 'none';
+                if(depositWrapper) depositWrapper.style.display = 'none';
             }
 
             document.getElementById('edit-modal').style.display = 'flex';
         }
 
-        function closeEditModal(event) {
+        window.closeEditModal = function(event) {
             document.getElementById('edit-modal').style.display = 'none';
         }
 
-        function updateRecordData() {
+        window.updateRecordData = async function() {
             const id = document.getElementById('edit-id').value;
-            const recIndex = records.findIndex(r => r.id === id);
-            if(recIndex === -1) return;
+            const rec = records.find(r => r.id === id);
+            if(!rec) return;
 
             const date = document.getElementById('modal-edit-date').value;
             const project = document.getElementById('modal-edit-project').value.trim();
@@ -918,33 +922,28 @@
             if (!date) { alert('請選擇有效的日期'); return; }
             if (isNaN(amount) || amount < 0) { alert('請輸入有效的金額數字 (可為 0)'); return; }
 
-            records[recIndex].date = date;
-            records[recIndex].project = project || (records[recIndex].type === '收入' ? '美睫服務' : '日常開銷');
-            records[recIndex].amount = amount;
-            records[recIndex].note = note;
+            rec.date = date;
+            rec.project = project || (rec.type === '收入' ? '美睫服務' : '日常開銷');
+            rec.amount = amount;
+            rec.note = note;
 
-            if (records[recIndex].type === '收入') {
+            if (rec.type === '收入') {
                 const custName = document.getElementById('modal-edit-name').value.trim();
                 const depositType = document.getElementById('modal-edit-deposit-type').value;
                 const depositInput = document.getElementById('modal-edit-deposit').value.trim();
                 
-                records[recIndex].custName = custName;
-                records[recIndex].depositType = depositType;
-                records[recIndex].deposit = depositInput !== '' ? parseInt(depositInput) : '';
+                rec.custName = custName;
+                rec.depositType = depositType;
+                rec.deposit = depositInput !== '' ? parseInt(depositInput) : '';
 
                 if (custName && !customerCRM[custName]) {
                     customerCRM[custName] = { phone: '', birthday: '', note: '' };
+                    await saveCRMToCloud(custName, customerCRM[custName]);
                 }
             }
 
-            saveData();
+            await saveRecordToCloud(rec);
             closeEditModal();
-
-            initCalendar();
-            renderDayRecords();
-            renderReports();
-            renderCustomerPage();
-            if(document.getElementById('all-records-page').classList.contains('active')) renderAllRecords();
         }
 
         // ==================== 月曆核心邏輯 ====================
@@ -975,7 +974,7 @@
                 const currentCellDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 
                 dayCell.innerHTML = `<div class="day-number">${day}</div>`;
-                if (records.some(r => r.date === currentCellDateStr)) {
+                if (records && records.some(r => r.date === currentCellDateStr)) {
                     const dot = document.createElement('div');
                     dot.classList.add('day-dot');
                     dayCell.appendChild(dot);
@@ -994,7 +993,7 @@
             }
         }
 
-        function selectCalendarDate() {
+        window.selectCalendarDate = function() {
             const y = parseInt(document.getElementById('select-cal-year').value);
             const m = parseInt(document.getElementById('select-cal-month').value);
             currentDate.setFullYear(y);
@@ -1002,7 +1001,7 @@
             initCalendar();
         }
 
-        function changeMonth(direction) {
+        window.changeMonth = function(direction) {
             currentDate.setMonth(currentDate.getMonth() + direction);
             initCalendar();
         }
@@ -1059,7 +1058,7 @@
             });
         }
 
-        function addRecord() {
+        window.addRecord = async function() {
             const type = document.getElementById('add-type').value;
             const custName = type === '收入' ? document.getElementById('add-cust-name').value.trim() : '';
             const depositType = type === '收入' ? document.getElementById('add-deposit-type').value : '儲值金';
@@ -1075,8 +1074,9 @@
                 return;
             }
 
+            const generatedId = 'id_' + Date.now() + Math.random().toString(36).substr(2, 4);
             const newRecord = {
-                id: 'id_' + Date.now() + Math.random().toString(36).substr(2, 4),
+                id: generatedId,
                 date: selectedDateStr,
                 type: type,
                 custName: custName,
@@ -1087,39 +1087,29 @@
                 note: note
             };
 
-            records.push(newRecord);
             if (type === '收入' && custName && !customerCRM[custName]) {
-                customerCRM[custName] = { phone: '', birthday: '', note: '' };
+                const newCRM = { phone: '', birthday: '', note: '' };
+                await saveCRMToCloud(custName, newCRM);
             }
-            saveData();
+            
+            await saveRecordToCloud(newRecord);
 
             document.getElementById('add-cust-name').value = '';
             document.getElementById('add-project').value = '';
             document.getElementById('add-amount').value = '';
             document.getElementById('add-deposit').value = '';
             document.getElementById('add-note').value = '';
-
-            initCalendar();
-            renderDayRecords();
-            renderReports();
-            renderCustomerPage();
         }
 
-        function deleteRecord(id, pageSource, event) {
+        window.deleteRecord = async function(id, pageSource, event) {
             if(event) event.stopPropagation();
             if(confirm('❌確定要刪除這筆紀錄嗎？')) {
-                records = records.filter(r => r.id !== id);
-                saveData();
-                initCalendar();
-                renderDayRecords();
-                renderReports();
-                renderCustomerPage();
-                if (pageSource === 'all') renderAllRecords();
+                await deleteDoc(doc(db, "mumu_records", id));
             }
         }
 
         // ==================== 頁面 2: 總紀錄 ====================
-        function renderAllRecords() {
+        window.renderAllRecords = function() {
             const container = document.getElementById('all-records-container');
             if(!container) return;
             const searchKey = document.getElementById('search-input').value.toLowerCase().trim();
@@ -1173,12 +1163,12 @@
                     <div class="rec-bot">${rec.note ? `<span>📝 ${escapeHtml(rec.note)}</span>` : ''}</div>
                     `}
                 `;
-                currentGroupDiv.appendChild(item);
+                if(currentGroupDiv) currentGroupDiv.appendChild(item);
             });
         }
 
         // ==================== 頁面 3: 報表核心邏輯 ====================
-        function renderReports() {
+        window.renderReports = function() {
             const yearSel = document.getElementById('report-year-select');
             const monthSel = document.getElementById('report-month-select');
             if(!yearSel || !monthSel) return;
@@ -1257,7 +1247,7 @@
             }
         }
 
-        function toggleReportDetailFilter(type) {
+        window.toggleReportDetailFilter = function(type) {
             const incCard = document.getElementById('card-inc-trigger');
             const expCard = document.getElementById('card-exp-trigger');
 
@@ -1290,7 +1280,7 @@
             renderReportDetailList(filteredRecords, type);
         }
 
-        function closeReportDetail() {
+        window.closeReportDetail = function() {
             currentReportDetailFilter = '';
             const detailBox = document.getElementById('report-detail-box-container');
             if(detailBox) detailBox.style.display = 'none';
@@ -1339,7 +1329,7 @@
         }
 
         // ==================== 頁面 4: 客戶資料核心修改邏輯 ====================
-        function renderCustomerPage() {
+        window.renderCustomerPage = function() {
             const thisMonth = new Date().getMonth() + 1;
             const mTitleEl = document.getElementById('current-month-title');
             if(mTitleEl) mTitleEl.innerText = thisMonth;
@@ -1505,13 +1495,13 @@
             });
         }
 
-        function toggleCard(cardElement) {
+        window.toggleCard = function(cardElement) {
             const isOpen = cardElement.classList.contains('open');
             document.querySelectorAll('.customer-card').forEach(c => c.classList.remove('open'));
             if (!isOpen) cardElement.classList.add('open');
         }
 
-        function saveCRMData(oldName) {
+        window.saveCRMData = async function(oldName) {
             const newName = document.getElementById(`edit-name-${oldName}`).value.trim();
             const phoneVal = document.getElementById(`edit-phone-${oldName}`).value.trim();
             const birthVal = document.getElementById(`edit-birth-${oldName}`).value.trim();
@@ -1527,39 +1517,31 @@
                 return;
             }
 
-            if (oldName !== newName) {
-                records.forEach(r => {
-                    if (r.custName && r.custName.trim() === oldName) {
-                        r.custName = newName;
-                    }
-                });
+            const updatedCRM = {
+                phone: phoneVal,
+                birthday: birthVal,
+                note: noteVal
+            };
 
-                customerCRM[newName] = {
-                    phone: phoneVal,
-                    birthday: birthVal,
-                    note: noteVal
-                };
-                delete customerCRM[oldName];
-            } else {
-                if (!customerCRM[oldName]) customerCRM[oldName] = {};
-                customerCRM[oldName].phone = phoneVal;
-                customerCRM[oldName].birthday = birthVal;
-                customerCRM[oldName].note = noteVal;
+            if (oldName !== newName) {
+                // 如果改了名字，同步把該客戶名下的所有帳目更新姓名
+                for (let rec of records) {
+                    if (rec.custName && rec.custName.trim() === oldName) {
+                        rec.custName = newName;
+                        await saveRecordToCloud(rec);
+                    }
+                }
+                await deleteDoc(doc(db, "mumu_crm", oldName));
             }
 
-            saveData();
+            await saveCRMToCloud(newName, updatedCRM);
             alert(`資料已成功同步更新！`);
-            renderCustomerPage();
         }
 
-        function deleteCustomerData(name) {
+        window.deleteCustomerData = async function(name) {
             if (confirm(`確定要刪除客戶「${name}」的基礎資料嗎？\n(注意：此動作不會刪除月曆或總紀錄中的歷史帳目資料)`)) {
-                if (customerCRM[name]) {
-                    delete customerCRM[name];
-                }
-                saveData();
+                await deleteDoc(doc(db, "mumu_crm", name));
                 alert(`客戶「${name}」的基礎資料已刪除！`);
-                renderCustomerPage();
             }
         }
     </script>
