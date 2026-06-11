@@ -724,7 +724,9 @@
             getFirestore, doc, setDoc, getDoc, collection, getDocs 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Firebase 配置資訊 (請更換為你的正確專案金鑰)
+        // ==========================================
+        // ⚠️ 重要：請在此處填入您自己的真實 Firebase 金鑰！
+        // ==========================================
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_AUTH_DOMAIN",
@@ -1104,7 +1106,10 @@
             });
         }
 
-        async function addRecord() {
+        async function addRecord(event) {
+            // [修正] 阻擋手機端可能觸發的預設 submit 重新整理行為
+            if(event) event.preventDefault();
+
             const type = document.getElementById('add-type').value;
             const custName = type === '收入' ? document.getElementById('add-cust-name').value.trim() : '';
             const depositType = type === '收入' ? document.getElementById('add-deposit-type').value : '儲值金';
@@ -1139,19 +1144,24 @@
                 crmChanged = true;
             }
 
+            // 存入雲端與本地
             await saveRecordsToCloud();
             if (crmChanged) await saveCRMToCloud();
 
+            // 清空輸入欄位
             document.getElementById('add-cust-name').value = '';
             document.getElementById('add-project').value = '';
             document.getElementById('add-amount').value = '';
             document.getElementById('add-deposit').value = '';
             document.getElementById('add-note').value = '';
 
+            // 重新整理畫面
             initCalendar();
             renderDayRecords();
             renderReports();
             renderCustomerPage();
+
+            alert('✨ 紀錄已成功儲存並同步至雲端！');
         }
 
         async function deleteRecord(id, pageSource) {
@@ -1656,7 +1666,9 @@
         document.getElementById('add-type').addEventListener('change', handleTypeChange);
         document.getElementById('tag-eyelash').addEventListener('click', () => quickSelectProject('美睫'));
         document.getElementById('tag-lashcare').addEventListener('click', () => quickSelectProject('睫毛管理'));
-        document.getElementById('btn-add-record').addEventListener('click', addRecord);
+        
+        // [修正] 改寫按鈕監聽，將 event 傳入以處理預防機制
+        document.getElementById('btn-add-record').addEventListener('click', (e) => addRecord(e));
 
         // 總紀錄搜尋
         document.getElementById('btn-search-records').addEventListener('click', renderAllRecords);
