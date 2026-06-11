@@ -722,7 +722,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // 你的 Firebase Web 應用程式配置
+        // Firebase Web 應用程式配置
         const firebaseConfig = {
           apiKey: "AIzaSyAID5Sqi0ovkZkZ-xi6BgKKH5iyR3htgbA",
           authDomain: "mumu-studio-2c46b.firebaseapp.com",
@@ -737,7 +737,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // 定義全域變數與容器，與主畫面事件綁定
+        // 定義全域變數與容器
         let records = [];
         let customerCRM = {};
         let currentDate = new Date();
@@ -748,7 +748,6 @@
         // ==================== 【資料同步至 Firebase 雲端】 ====================
         async function uploadDataToCloud() {
             try {
-                // 將資料統一包裝備份儲存至雲端 Firestore 中指定的文件 "studio_data"
                 await setDoc(doc(db, "mumu_studio_crm", "studio_data"), {
                     records: records,
                     customerCRM: customerCRM,
@@ -761,16 +760,13 @@
         }
 
         function saveData() {
-            // 本地快取
             localStorage.setItem('mumu_records_v4', JSON.stringify(records));
             localStorage.setItem('mumu_crm_v4', JSON.stringify(customerCRM));
-            // 雲端同步
             uploadDataToCloud();
         }
 
         // ==================== 【初始資料救援與加載機制】 ====================
         async function loadInitialData() {
-            // 1. 嘗試從雲端資料庫優先載入
             try {
                 const docSnap = await getDoc(doc(db, "mumu_studio_crm", "studio_data"));
                 if (docSnap.exists()) {
@@ -785,7 +781,6 @@
                 console.warn("無法存取雲端，切換至本地快取安全機制：", e);
             }
 
-            // 2. 本地 LocalStorage 降級救援相容處理
             const recordKeys = ['mumu_records_v4', 'mumu_records_v3', 'mumu_records_v2', 'mumu_records'];
             const crmKeys = ['mumu_crm_v4', 'mumu_crm_v3', 'mumu_crm_v2', 'mumu_crm'];
             
@@ -801,7 +796,7 @@
         }
 
         function finalizeInitialization() {
-            // 初始化界面渲染
+            // 確保先建立下拉選單，再進行選取與渲染
             buildYearDropdowns();
             buildMonthDropdown();
             initCalendar();
@@ -809,26 +804,27 @@
             handleTypeChange();
             renderReports();
             renderCustomerPage();
-        }
 
-        // 綁定全域輔助函式至 window 物件，確保網頁 HTML 標籤內建的 onclick 屬性可以正常觸發
-        window.switchPage = switchPage;
-        window.changeMonth = changeMonth;
-        window.selectCalendarDate = selectCalendarDate;
-        window.handleTypeChange = handleTypeChange;
-        window.quickSelectProject = quickSelectProject;
-        window.addRecord = addRecord;
-        window.deleteRecord = deleteRecord;
-        window.openEditModal = openEditModal;
-        window.closeEditModal = closeEditModal;
-        window.updateRecordData = updateRecordData;
-        window.renderAllRecords = renderAllRecords;
-        window.renderReports = renderReports;
-        window.toggleReportDetailFilter = toggleReportDetailFilter;
-        window.closeReportDetail = closeReportDetail;
-        window.renderCustomerPage = renderCustomerPage;
-        window.saveCRMData = saveCRMData;
-        window.deleteCustomerData = deleteCustomerData;
+            // 【重大修正】：資料庫非同步確認加載完成後，才把函式綁定到 window 上，確保 HTML onclick 能完美對接
+            window.switchPage = switchPage;
+            window.changeMonth = changeMonth;
+            window.selectCalendarDate = selectCalendarDate;
+            window.handleTypeChange = handleTypeChange;
+            window.quickSelectProject = quickSelectProject;
+            window.addRecord = addRecord;
+            window.deleteRecord = deleteRecord;
+            window.openEditModal = openEditModal;
+            window.closeEditModal = closeEditModal;
+            window.updateRecordData = updateRecordData;
+            window.renderAllRecords = renderAllRecords;
+            window.renderReports = renderReports;
+            window.toggleReportDetailFilter = toggleReportDetailFilter;
+            window.closeReportDetail = closeReportDetail;
+            window.renderCustomerPage = renderCustomerPage;
+            window.saveCRMData = saveCRMData;
+            window.deleteCustomerData = deleteCustomerData;
+            console.log("系統環境與前端元件綁定成功。");
+        }
 
         // 啟動加載執行
         loadInitialData();
@@ -1546,6 +1542,13 @@
         }
 
         function toggleCard(cardElement) {
+            const isOpen = cardElement.classList.contains('open');
+            document.querySelectorAll('.customer-card').forEach(c => c.classList.remove('open'));
+            if (!isOpen) cardElement.classList.add('open');
+        }
+
+        function toggleCardElement(headerEl) {
+            const cardElement = headerEl.parentNode;
             const isOpen = cardElement.classList.contains('open');
             document.querySelectorAll('.customer-card').forEach(c => c.classList.remove('open'));
             if (!isOpen) cardElement.classList.add('open');
