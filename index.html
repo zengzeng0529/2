@@ -468,27 +468,7 @@
         }
         .customer-deposit { font-size: 12px; color: #1A73E8; font-weight: 600; }
         .customer-total-spent { font-size: 12px; color: var(--income-green); font-weight: 600; }
-        // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyAID5Sqi0ovkZkZ-xi6BgKKH5iyR3htgbA",
-  authDomain: "mumu-studio-2c46b.firebaseapp.com",
-  projectId: "mumu-studio-2c46b",
-  storageBucket: "mumu-studio-2c46b.firebasestorage.app",
-  messagingSenderId: "638760633190",
-  appId: "1:638760633190:web:403cdb9376030ac07a7ea7",
-  measurementId: "G-0WPH3Q4HZY"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+        
         /* 備註突顯樣式區塊碼 */
         .customer-note-highlight {
             font-size: 13px;
@@ -537,10 +517,10 @@ const analytics = getAnalytics(app);
 <body>
 
     <nav class="top-toolbar">
-        <button class="nav-btn active" id="nav-calendar">1. 月曆</button>
-        <button class="nav-btn" id="nav-all-records">2. 總紀錄</button>
-        <button class="nav-btn" id="nav-reports">3. 報表</button>
-        <button class="nav-btn" id="nav-customers">4. 客戶資料</button>
+        <button class="nav-btn active" onclick="switchPage('calendar-page', this)">1. 月曆</button>
+        <button class="nav-btn" onclick="switchPage('all-records-page', this)">2. 總紀錄</button>
+        <button class="nav-btn" onclick="switchPage('reports-page', this)">3. 報表</button>
+        <button class="nav-btn" onclick="switchPage('customers-page', this)">4. 客戶資料</button>
     </nav>
 
     <header class="shop-header">
@@ -551,12 +531,12 @@ const analytics = getAnalytics(app);
     <main id="calendar-page" class="page active">
         <div class="card-box">
             <div class="calendar-header">
-                <button id="btn-prev-month">❮</button>
+                <button onclick="changeMonth(-1)">❮</button>
                 <div>
-                    <select id="select-cal-year" class="calendar-title-select"></select>
-                    <select id="select-cal-month" class="calendar-title-select"></select>
+                    <select id="select-cal-year" class="calendar-title-select" onchange="selectCalendarDate()"></select>
+                    <select id="select-cal-month" class="calendar-title-select" onchange="selectCalendarDate()"></select>
                 </div>
-                <button id="btn-next-month">❯</button>
+                <button onclick="changeMonth(1)">❯</button>
             </div>
             <div class="weekdays">
                 <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
@@ -569,7 +549,7 @@ const analytics = getAnalytics(app);
             <div style="margin-bottom: 18px; padding-bottom: 15px; border-bottom: 1px solid rgba(227, 213, 202, 0.4);">
                 
                 <div class="form-group">
-                    <select id="add-type" class="input-style">
+                    <select id="add-type" class="input-style" onchange="handleTypeChange()">
                         <option value="收入">收入 (美睫/儲值)</option>
                         <option value="支出">支出 (店鋪開銷)</option>
                     </select>
@@ -582,8 +562,8 @@ const analytics = getAnalytics(app);
                 <div class="form-group">
                     <div style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                         <div class="quick-tag-wrapper">
-                            <span class="quick-tag" id="tag-eyelash">＋ 美睫</span>
-                            <span class="quick-tag" id="tag-lashcare">＋ 睫毛管理</span>
+                            <span class="quick-tag" onclick="quickSelectProject('美睫')">＋ 美睫</span>
+                            <span class="quick-tag" onclick="quickSelectProject('睫毛管理')">＋ 睫毛管理</span>
                         </div>
                         <input type="text" id="add-project" class="input-style" style="grid-column: 1 / -1;" placeholder="施作項目 或 自行填寫">
                     </div>
@@ -607,7 +587,7 @@ const analytics = getAnalytics(app);
                     <input type="text" id="add-note" class="input-style" placeholder="備註說明 📝">
                 </div>
 
-                <button class="btn-submit" id="btn-add-record">確認新增紀錄</button>
+                <button class="btn-submit" onclick="addRecord()">確認新增紀錄</button>
             </div>
             <ul id="day-record-list" class="record-list"></ul>
         </div>
@@ -618,7 +598,7 @@ const analytics = getAnalytics(app);
             <div class="card-title">歷史所有明細</div>
             <div class="search-container">
                 <input type="text" id="search-input" class="search-bar" placeholder="輸入關鍵字搜尋（姓名、項目、備註）">
-                <button class="btn-search-icon" id="btn-search-records">🔍</button>
+                <button class="btn-search-icon" onclick="renderAllRecords()">🔍</button>
             </div>
             <div id="all-records-container" class="scroll-container"></div>
         </div>
@@ -626,22 +606,22 @@ const analytics = getAnalytics(app);
 
     <main id="reports-page" class="page">
         <div class="report-filter-bar">
-            <select id="report-year-select" class="select-report"></select>
-            <select id="report-month-select" class="select-report">
+            <select id="report-year-select" class="select-report" onchange="renderReports()"></select>
+            <select id="report-month-select" class="select-report" onchange="renderReports()">
                 <option value="all">全年總覽</option>
                 <option value="0">1 月</option><option value="1">2 月</option><option value="2">3 月</option>
                 <option value="3">4 月</option><option value="4">5 月</option><option value="5">6 月</option>
-                <option value="6">7 月</option><option value="7">8 月</option><option value="9">9 月</option>
+                <option value="6">7 月</option><option value="7">8 月</option><option value="8">9 月</option>
                 <option value="9">10 月</option><option value="10">11 月</option><option value="11">12 月</option>
             </select>
         </div>
 
         <div class="report-summary">
-            <div id="card-inc-trigger" class="summary-mini-card">
+            <div id="card-inc-trigger" class="summary-mini-card" onclick="toggleReportDetailFilter('收入')">
                 <p>區間總收入 (點擊看項目統計)</p>
                 <h3 id="rep-total-income" style="color: var(--income-green);">$0</h3>
             </div>
-            <div id="card-exp-trigger" class="summary-mini-card">
+            <div id="card-exp-trigger" class="summary-mini-card" onclick="toggleReportDetailFilter('支出')">
                 <p>區間總支出 (點擊看項目統計)</p>
                 <h3 id="rep-total-expense" style="color: var(--expense-red);">$0</h3>
             </div>
@@ -650,7 +630,7 @@ const analytics = getAnalytics(app);
         <div class="card-box" id="report-detail-box-container" style="display:none; margin-bottom:18px;">
             <div class="report-detail-title">
                 <span id="report-detail-type-label">項目統計統整</span>
-                <span id="btn-close-report-detail" style="font-size:11px; color:var(--text-muted); font-weight:normal; cursor:pointer;">關閉 ✕</span>
+                <span style="font-size:11px; color:var(--text-muted); font-weight:normal; cursor:pointer;" onclick="closeReportDetail()">關閉 ✕</span>
             </div>
             <div id="report-detail-list-wrapper" class="scroll-container" style="max-height:280px;"></div>
         </div>
@@ -681,17 +661,17 @@ const analytics = getAnalytics(app);
             <div class="card-title">客戶管理中心</div>
             <div class="search-container">
                 <input type="text" id="cust-search-input" class="search-bar" placeholder="輸入客戶姓名搜尋...">
-                <button class="btn-search-icon" id="btn-search-customers">🔍</button>
+                <button class="btn-search-icon" onclick="renderCustomerPage()">🔍</button>
             </div>
             <div id="customers-container" class="scroll-container"></div>
         </div>
     </main>
 
-    <div id="edit-modal" class="modal-overlay">
-        <div class="modal-box" id="modal-box-content">
+    <div id="edit-modal" class="modal-overlay" onclick="closeEditModal(event)">
+        <div class="modal-box" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <span>✏️ 修改紀錄資料</span>
-                <span style="cursor:pointer; font-weight:normal; font-size:14px;" id="btn-close-modal-x">✕</span>
+                <span style="cursor:pointer; font-weight:normal; font-size:14px;" onclick="closeEditModal()">✕</span>
             </div>
             <input type="hidden" id="edit-id">
             
@@ -732,75 +712,96 @@ const analytics = getAnalytics(app);
             </div>
 
             <div class="modal-footer">
-                <button class="btn-modal cancel" id="btn-cancel-modal">取消</button>
-                <button class="btn-modal save" id="btn-save-modal">儲存修改</button>
+                <button class="btn-modal cancel" onclick="closeEditModal()">取消</button>
+                <button class="btn-modal save" onclick="updateRecordData()">儲存修改</button>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { 
-            getFirestore, doc, setDoc, getDoc, collection, getDocs 
-        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // ==========================================
-        // ⚠️ 重要：請在此處填入您自己的真實 Firebase 金鑰！
-        // ==========================================
+        // 你的 Firebase Web 應用程式配置
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+          apiKey: "AIzaSyAID5Sqi0ovkZkZ-xi6BgKKH5iyR3htgbA",
+          authDomain: "mumu-studio-2c46b.firebaseapp.com",
+          projectId: "mumu-studio-2c46b",
+          storageBucket: "mumu-studio-2c46b.firebasestorage.app",
+          messagingSenderId: "638760633190",
+          appId: "1:638760633190:web:403cdb9376030ac07a7ea7",
+          measurementId: "G-0WPH3Q4HZY"
         };
 
-        // 初始化 Firebase 与 Firestore
+        // 初始化 Firebase 與 Firestore
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // 全域變數定義
+        // 定義全域變數與容器，與主畫面事件綁定
         let records = [];
         let customerCRM = {};
         let currentDate = new Date();
         const todayStr = formatDateString(new Date());
         let selectedDateStr = todayStr;
-        let currentReportDetailFilter = ''; 
+        let currentReportDetailFilter = '';
 
-        // ==================== 【資料同步核心機制】 ====================
-        
-        // 從雲端 Firestore 載入所有資料，並內建本地舊資料救援機制
-        async function loadAllDataFromCloud() {
+        // ==================== 【資料同步至 Firebase 雲端】 ====================
+        async function uploadDataToCloud() {
             try {
-                // 1. 讀取雲端記帳紀錄
-                const recordsDoc = await getDoc(doc(db, "mumu_studio", "records_data"));
-                if (recordsDoc.exists()) {
-                    records = recordsDoc.data().list || [];
-                } else {
-                    // 雲端無資料，嘗試從舊 localStorage 救援
-                    records = rescueLocalData(['mumu_records_v4', 'mumu_records_v3', 'mumu_records_v2', 'mumu_records'], []);
-                    if (records.length > 0) await saveRecordsToCloud();
-                }
-
-                // 2. 讀取雲端 CRM 客戶基礎設定
-                const crmDoc = await getDoc(doc(db, "mumu_studio", "crm_data"));
-                if (crmDoc.exists()) {
-                    customerCRM = crmDoc.data().profiles || {};
-                } else {
-                    // 雲端無資料，嘗試從舊 localStorage 救援
-                    customerCRM = rescueLocalData(['mumu_crm_v4', 'mumu_crm_v3', 'mumu_crm_v2', 'mumu_crm'], {});
-                    if (Object.keys(customerCRM).length > 0) await saveCRMToCloud();
-                }
-
-                console.log("雲端資料加載暨同步完成！");
+                // 將資料統一包裝備份儲存至雲端 Firestore 中指定的文件 "studio_data"
+                await setDoc(doc(db, "mumu_studio_crm", "studio_data"), {
+                    records: records,
+                    customerCRM: customerCRM,
+                    lastUpdated: Date.now()
+                });
+                console.log("雲端備份同步成功！");
             } catch (error) {
-                console.error("雲端載入失敗，切換至本地快取安全機制:", error);
-                records = rescueLocalData(['mumu_records_v4'], []);
-                customerCRM = rescueLocalData(['mumu_crm_v4'], {});
+                console.error("雲端同步失敗，請檢查權限設定：", error);
+            }
+        }
+
+        function saveData() {
+            // 本地快取
+            localStorage.setItem('mumu_records_v4', JSON.stringify(records));
+            localStorage.setItem('mumu_crm_v4', JSON.stringify(customerCRM));
+            // 雲端同步
+            uploadDataToCloud();
+        }
+
+        // ==================== 【初始資料救援與加載機制】 ====================
+        async function loadInitialData() {
+            // 1. 嘗試從雲端資料庫優先載入
+            try {
+                const docSnap = await getDoc(doc(db, "mumu_studio_crm", "studio_data"));
+                if (docSnap.exists()) {
+                    const cloudData = docSnap.data();
+                    records = cloudData.records || [];
+                    customerCRM = cloudData.customerCRM || {};
+                    console.log("成功從 Firebase 雲端讀取資料。");
+                    finalizeInitialization();
+                    return;
+                }
+            } catch (e) {
+                console.warn("無法存取雲端，切換至本地快取安全機制：", e);
             }
 
-            // 載入完畢後，初始化渲染畫面
+            // 2. 本地 LocalStorage 降級救援相容處理
+            const recordKeys = ['mumu_records_v4', 'mumu_records_v3', 'mumu_records_v2', 'mumu_records'];
+            const crmKeys = ['mumu_crm_v4', 'mumu_crm_v3', 'mumu_crm_v2', 'mumu_crm'];
+            
+            for (let key of recordKeys) {
+                let data = localStorage.getItem(key);
+                if (data) { try { records = JSON.parse(data); break; } catch(e){} }
+            }
+            for (let key of crmKeys) {
+                let data = localStorage.getItem(key);
+                if (data) { try { customerCRM = JSON.parse(data); break; } catch(e){} }
+            }
+            finalizeInitialization();
+        }
+
+        function finalizeInitialization() {
+            // 初始化界面渲染
             buildYearDropdowns();
             buildMonthDropdown();
             initCalendar();
@@ -810,49 +811,36 @@ const analytics = getAnalytics(app);
             renderCustomerPage();
         }
 
-        // 本地 LocalStorage 舊資料救援輔助函式
-        function rescueLocalData(keys, defaultVal) {
-            for (let key of keys) {
-                let data = localStorage.getItem(key);
-                if (data) {
-                    try {
-                        let parsed = JSON.parse(data);
-                        console.log(`成功救援本地舊資料，來源: ${key}`);
-                        return parsed;
-                    } catch(e) { console.error(e); }
-                }
-            }
-            return defaultVal;
-        }
+        // 綁定全域輔助函式至 window 物件，確保網頁 HTML 標籤內建的 onclick 屬性可以正常觸發
+        window.switchPage = switchPage;
+        window.changeMonth = changeMonth;
+        window.selectCalendarDate = selectCalendarDate;
+        window.handleTypeChange = handleTypeChange;
+        window.quickSelectProject = quickSelectProject;
+        window.addRecord = addRecord;
+        window.deleteRecord = deleteRecord;
+        window.openEditModal = openEditModal;
+        window.closeEditModal = closeEditModal;
+        window.updateRecordData = updateRecordData;
+        window.renderAllRecords = renderAllRecords;
+        window.renderReports = renderReports;
+        window.toggleReportDetailFilter = toggleReportDetailFilter;
+        window.closeReportDetail = closeReportDetail;
+        window.renderCustomerPage = renderCustomerPage;
+        window.saveCRMData = saveCRMData;
+        window.deleteCustomerData = deleteCustomerData;
 
-        // 儲存記帳明細至雲端並更新備份
-        async function saveRecordsToCloud() {
-            try {
-                await setDoc(doc(db, "mumu_studio", "records_data"), { list: records });
-                localStorage.setItem('mumu_records_v4', JSON.stringify(records));
-            } catch (e) { console.error("記帳上傳雲端失敗:", e); }
-        }
+        // 啟動加載執行
+        loadInitialData();
 
-        // 儲存 CRM 客戶資料至雲端並更新備份
-        async function saveCRMToCloud() {
-            try {
-                await setDoc(doc(db, "mumu_studio", "crm_data"), { profiles: customerCRM });
-                localStorage.setItem('mumu_crm_v4', JSON.stringify(customerCRM));
-            } catch (e) { console.error("CRM 上傳雲端失敗:", e); }
-        }
-
-        // 啟動加載
-        window.addEventListener('DOMContentLoaded', loadAllDataFromCloud);
-
-        // ==================== 【功能函式庫】 ====================
-
+        // ==================== 核心邏輯函式區塊 ====================
         function formatDateString(dateObj) {
             return `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
         }
 
         function escapeHtml(text) {
             if(!text) return '';
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+            return text.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
         function formatDepositDisplay(val, type) {
@@ -867,11 +855,11 @@ const analytics = getAnalytics(app);
             const depositRow = document.getElementById('deposit-wrapper-row');
 
             if (type === '收入') {
-                custWrapper.style.display = 'block';
-                depositRow.style.display = 'grid'; 
+                if(custWrapper) custWrapper.style.display = 'block';
+                if(depositRow) depositRow.style.display = 'grid'; 
             } else {
-                custWrapper.style.display = 'none';
-                depositRow.style.display = 'none';
+                if(custWrapper) custWrapper.style.display = 'none';
+                if(depositRow) depositRow.style.display = 'none';
                 document.getElementById('add-cust-name').value = '';
                 document.getElementById('add-deposit').value = '';
             }
@@ -899,6 +887,7 @@ const analytics = getAnalytics(app);
                     opt2.value = y; opt2.innerText = `${y} 年度`;
                     repYearSelect.appendChild(opt2);
                 }
+                calYearSelect.value = currentYear;
                 repYearSelect.value = currentYear;
             }
         }
@@ -912,6 +901,7 @@ const analytics = getAnalytics(app);
                     opt.value = m; opt.innerText = `${m + 1} 月`;
                     calMonthSelect.appendChild(opt);
                 }
+                calMonthSelect.value = currentDate.getMonth();
             }
         }
 
@@ -929,7 +919,6 @@ const analytics = getAnalytics(app);
 
         function openEditModal(id, event) {
             if(event) event.stopPropagation();
-            
             const rec = records.find(r => r.id === id);
             if (!rec) return;
 
@@ -943,16 +932,15 @@ const analytics = getAnalytics(app);
             const depositWrapper = document.getElementById('modal-deposit-wrapper');
 
             if(rec.type === '收入') {
-                nameWrapper.style.display = 'block';
-                depositWrapper.style.display = 'block';
+                if(nameWrapper) nameWrapper.style.display = 'block';
+                if(depositWrapper) depositWrapper.style.display = 'block';
                 document.getElementById('modal-edit-name').value = rec.custName || '';
                 document.getElementById('modal-edit-deposit-type').value = rec.depositType || '儲值金';
-                document.getElementById('modal-edit-deposit').value = rec.deposit !== '' ? rec.deposit : '';
+                document.getElementById('modal-edit-deposit').value = rec.deposit !== undefined ? rec.deposit : '';
             } else {
-                nameWrapper.style.display = 'none';
-                depositWrapper.style.display = 'none';
+                if(nameWrapper) nameWrapper.style.display = 'none';
+                if(depositWrapper) depositWrapper.style.display = 'none';
             }
-
             document.getElementById('edit-modal').style.display = 'flex';
         }
 
@@ -960,7 +948,7 @@ const analytics = getAnalytics(app);
             document.getElementById('edit-modal').style.display = 'none';
         }
 
-        async function updateRecordData() {
+        function updateRecordData() {
             const id = document.getElementById('edit-id').value;
             const recIndex = records.findIndex(r => r.id === id);
             if(recIndex === -1) return;
@@ -971,14 +959,13 @@ const analytics = getAnalytics(app);
             const note = document.getElementById('modal-edit-note').value.trim();
 
             if (!date) { alert('請選擇有效的日期'); return; }
-            if (isNaN(amount) || amount < 0) { alert('請輸入有效的金額數字 (可為 0)'); return; }
+            if (isNaN(amount) || amount < 0) { alert('請輸入有效的金額數字'); return; }
 
             records[recIndex].date = date;
             records[recIndex].project = project || (records[recIndex].type === '收入' ? '美睫服務' : '日常開銷');
             records[recIndex].amount = amount;
             records[recIndex].note = note;
 
-            let crmChanged = false;
             if (records[recIndex].type === '收入') {
                 const custName = document.getElementById('modal-edit-name').value.trim();
                 const depositType = document.getElementById('modal-edit-deposit-type').value;
@@ -990,13 +977,10 @@ const analytics = getAnalytics(app);
 
                 if (custName && !customerCRM[custName]) {
                     customerCRM[custName] = { phone: '', birthday: '', note: '' };
-                    crmChanged = true;
                 }
             }
 
-            await saveRecordsToCloud();
-            if (crmChanged) await saveCRMToCloud();
-
+            saveData();
             closeEditModal();
             initCalendar();
             renderDayRecords();
@@ -1042,12 +1026,12 @@ const analytics = getAnalytics(app);
                 if (currentCellDateStr === todayStr) dayCell.classList.add('today');
                 if (currentCellDateStr === selectedDateStr) dayCell.classList.add('selected');
 
-                dayCell.addEventListener('click', function() {
+                dayCell.onclick = function() {
                     selectedDateStr = currentCellDateStr;
                     document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('selected'));
                     dayCell.classList.add('selected');
                     renderDayRecords();
-                });
+                };
                 daysContainer.appendChild(dayCell);
             }
         }
@@ -1084,10 +1068,7 @@ const analytics = getAnalytics(app);
             dayRecords.forEach(rec => {
                 const li = document.createElement('li');
                 li.classList.add('record-item');
-                
-                // 動態改用監聽器，避免 Module 找不到全域函式
-                li.addEventListener('click', (e) => openEditModal(rec.id, e));
-                
+                li.setAttribute('onclick', `openEditModal('${rec.id}', event)`);
                 const isInc = rec.type === '收入';
                 const typeClass = isInc ? 'inc' : 'exp';
                 const displayName = isInc ? (rec.custName ? rec.custName : '無名客') : '店鋪';
@@ -1100,7 +1081,7 @@ const analytics = getAnalytics(app);
                         </div>
                         <div>
                             <span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span>
-                            <button class="btn-delete" data-id="${rec.id}">🗑️</button>
+                            <button class="btn-delete" onclick="deleteRecord('${rec.id}', 'day', event)">🗑️</button>
                         </div>
                     </div>
                     <div class="rec-mid">項目: ${escapeHtml(rec.project)}</div>
@@ -1115,21 +1096,11 @@ const analytics = getAnalytics(app);
                     </div>
                     `}
                 `;
-
-                // 綁定內層刪除按鈕
-                li.querySelector('.btn-delete').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    deleteRecord(rec.id, 'day');
-                });
-
                 listContainer.appendChild(li);
             });
         }
 
-        async function addRecord(event) {
-            // [修正] 阻擋手機端可能觸發的預設 submit 重新整理行為
-            if(event) event.preventDefault();
-
+        function addRecord() {
             const type = document.getElementById('add-type').value;
             const custName = type === '收入' ? document.getElementById('add-cust-name').value.trim() : '';
             const depositType = type === '收入' ? document.getElementById('add-deposit-type').value : '儲值金';
@@ -1141,7 +1112,7 @@ const analytics = getAnalytics(app);
             const note = document.getElementById('add-note').value.trim();
 
             if (amountInput === '' || isNaN(amount) || amount < 0) {
-                alert('請輸入有效的金額數字 (可為 0)');
+                alert('請輸入有效的金額數字');
                 return;
             }
 
@@ -1158,37 +1129,28 @@ const analytics = getAnalytics(app);
             };
 
             records.push(newRecord);
-            let crmChanged = false;
             if (type === '收入' && custName && !customerCRM[custName]) {
                 customerCRM[custName] = { phone: '', birthday: '', note: '' };
-                crmChanged = true;
             }
+            saveData();
 
-            // 存入雲端與本地
-            await saveRecordsToCloud();
-            if (crmChanged) await saveCRMToCloud();
-
-            // 清空輸入欄位
             document.getElementById('add-cust-name').value = '';
             document.getElementById('add-project').value = '';
             document.getElementById('add-amount').value = '';
             document.getElementById('add-deposit').value = '';
             document.getElementById('add-note').value = '';
 
-            // 重新整理畫面
             initCalendar();
             renderDayRecords();
             renderReports();
             renderCustomerPage();
-
-            alert('✨ 紀錄已成功儲存並同步至雲端！');
         }
 
-        async function deleteRecord(id, pageSource) {
+        function deleteRecord(id, pageSource, event) {
+            if(event) event.stopPropagation();
             if(confirm('❌確定要刪除這筆紀錄嗎？')) {
                 records = records.filter(r => r.id !== id);
-                await saveRecordsToCloud();
-                
+                saveData();
                 initCalendar();
                 renderDayRecords();
                 renderReports();
@@ -1234,8 +1196,7 @@ const analytics = getAnalytics(app);
 
                 const item = document.createElement('div');
                 item.classList.add('record-item');
-                item.addEventListener('click', (e) => openEditModal(rec.id, e));
-                
+                item.setAttribute('onclick', `openEditModal('${rec.id}', event)`);
                 const isInc = rec.type === '收入';
                 const typeClass = isInc ? 'inc' : 'exp';
                 const displayName = isInc ? (rec.custName ? rec.custName : '無名客') : '店鋪';
@@ -1243,7 +1204,7 @@ const analytics = getAnalytics(app);
                 item.innerHTML = `
                     <div class="rec-top">
                         <div><span class="type-tag ${typeClass}">${rec.type}</span><span style="font-weight:600;">${escapeHtml(displayName)}</span></div>
-                        <div><span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span><button class="btn-delete" data-id="${rec.id}">🗑️</button></div>
+                        <div><span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span><button class="btn-delete" onclick="deleteRecord('${rec.id}', 'all', event)">🗑️</button></div>
                     </div>
                     <div class="rec-mid">項目: ${escapeHtml(rec.project)}</div>
                     ${isInc ? `
@@ -1252,12 +1213,6 @@ const analytics = getAnalytics(app);
                     <div class="rec-bot">${rec.note ? `<span>📝 ${escapeHtml(rec.note)}</span>` : ''}</div>
                     `}
                 `;
-
-                item.querySelector('.btn-delete').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    deleteRecord(rec.id, 'all');
-                });
-
                 currentGroupDiv.appendChild(item);
             });
         }
@@ -1423,7 +1378,7 @@ const analytics = getAnalytics(app);
             });
         }
 
-        // ==================== 頁面 4: 客戶資料核心邏輯 ====================
+        // ==================== 頁面 4: 客戶資料核心排版與修改邏照 ====================
         function renderCustomerPage() {
             const thisMonth = new Date().getMonth() + 1;
             const mTitleEl = document.getElementById('current-month-title');
@@ -1464,7 +1419,7 @@ const analytics = getAnalytics(app);
                 customerMap[name].history.push(r);
 
                 const recordTime = new Date(r.date).getTime();
-                if (r.deposit !== '' && recordTime >= customerMap[name].latestDepositTime) {
+                if (r.deposit !== '' && r.deposit !== undefined && recordTime >= customerMap[name].latestDepositTime) {
                     customerMap[name].latestDepositLabel = r.depositType || '儲值金';
                     customerMap[name].latestDepositValue = formatDepositDisplay(r.deposit, r.depositType);
                     customerMap[name].latestDepositTime = recordTime;
@@ -1536,14 +1491,14 @@ const analytics = getAnalytics(app);
                 }
 
                 card.innerHTML = `
-                    <div class="customer-card-header">
+                    <div class="customer-card-header" onclick="toggleCard(this.parentNode)">
                         <span class="customer-name">👤 ${escapeHtml(cust.name)}</span>
                         <div class="customer-header-right">
                             <span class="customer-deposit">${cust.latestDepositLabel}: ${cust.latestDepositValue}</span>
                             <span class="customer-total-spent">累積消費: $${cust.totalSpent.toLocaleString()}</span>
                         </div>
                     </div>
-                    <div>
+                    <div onclick="toggleCard(this.parentNode)">
                         <div class="customer-detail-row">📞 電話: ${cust.phone ? escapeHtml(cust.phone) : '未填寫'}</div>
                         <div class="customer-detail-row">🎂 生日: ${birthDisplay}</div>
                         <div class="customer-note-highlight">📝 備註：${cust.note ? escapeHtml(cust.note) : '無備註紀錄'}</div>
@@ -1551,7 +1506,7 @@ const analytics = getAnalytics(app);
                     </div>
                     
                     <div class="customer-expanded-zone">
-                        <div class="edit-crm-group">
+                        <div class="edit-crm-group" onclick="event.stopPropagation()">
                             <div class="edit-crm-title">✏️ 編輯客戶資料</div>
                             <div style="margin-bottom:6px;">
                                 <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:2px;">修改姓名</label>
@@ -1573,8 +1528,8 @@ const analytics = getAnalytics(app);
                             </div>
                             
                             <div class="crm-action-row">
-                                <button class="btn-mini-delete" data-oldname="${escapeHtml(cust.name)}">🗑️ 刪除客戶</button>
-                                <button class="btn-mini-save" data-oldname="${escapeHtml(cust.name)}">💾 儲存修改</button>
+                                <button class="btn-mini-delete" onclick="deleteCustomerData('${escapeHtml(cust.name)}')">🗑️ 刪除客戶</button>
+                                <button class="btn-mini-save" onclick="saveCRMData('${escapeHtml(cust.name)}')">💾 儲存修改</button>
                             </div>
                             <div style="clear:both;"></div>
                         </div>
@@ -1586,33 +1541,17 @@ const analytics = getAnalytics(app);
                         </div>
                     </div>
                 `;
-
-                // 卡片折疊點擊監聽 (點擊標題或主體部分切換)
-                const headerZone = card.querySelector('.customer-card-header');
-                const infoZone = headerZone.nextElementSibling;
-                const toggleAction = () => {
-                    const isOpen = card.classList.contains('open');
-                    document.querySelectorAll('.customer-card').forEach(c => c.classList.remove('open'));
-                    if (!isOpen) card.classList.add('open');
-                };
-                headerZone.addEventListener('click', toggleAction);
-                infoZone.addEventListener('click', toggleAction);
-
-                // 綁定編輯保存按鈕
-                card.querySelector('.btn-mini-save').addEventListener('click', (e) => {
-                    saveCRMData(e.target.getAttribute('data-oldname'));
-                });
-
-                // 綁定客戶刪除按鈕
-                card.querySelector('.btn-mini-delete').addEventListener('click', (e) => {
-                    deleteCustomerData(e.target.getAttribute('data-oldname'));
-                });
-
                 container.appendChild(card);
             });
         }
 
-        async function saveCRMData(oldName) {
+        function toggleCard(cardElement) {
+            const isOpen = cardElement.classList.contains('open');
+            document.querySelectorAll('.customer-card').forEach(c => c.classList.remove('open'));
+            if (!isOpen) cardElement.classList.add('open');
+        }
+
+        function saveCRMData(oldName) {
             const newName = document.getElementById(`edit-name-${oldName}`).value.trim();
             const phoneVal = document.getElementById(`edit-phone-${oldName}`).value.trim();
             const birthVal = document.getElementById(`edit-birth-${oldName}`).value.trim();
@@ -1628,12 +1567,10 @@ const analytics = getAnalytics(app);
                 return;
             }
 
-            let recordsChanged = false;
             if (oldName !== newName) {
                 records.forEach(r => {
                     if (r.custName && r.custName.trim() === oldName) {
                         r.custName = newName;
-                        recordsChanged = true;
                     }
                 });
 
@@ -1650,65 +1587,21 @@ const analytics = getAnalytics(app);
                 customerCRM[oldName].note = noteVal;
             }
 
-            await saveCRMToCloud();
-            if (recordsChanged) await saveRecordsToCloud();
-
+            saveData();
             alert(`資料已成功同步更新！`);
             renderCustomerPage();
         }
 
-        async function deleteCustomerData(name) {
+        function deleteCustomerData(name) {
             if (confirm(`確定要刪除客戶「${name}」的基礎資料嗎？\n(注意：此動作不會刪除月曆或總紀錄中的歷史帳目資料)`)) {
                 if (customerCRM[name]) {
                     delete customerCRM[name];
                 }
-                await saveCRMToCloud();
+                saveData();
                 alert(`客戶「${name}」的基礎資料已刪除！`);
                 renderCustomerPage();
             }
         }
-
-        // ==================== 【由 MODULE 接管的所有 DOM 監聽器事件】 ====================
-        
-        // 頂部導覽列切換
-        document.getElementById('nav-calendar').addEventListener('click', function(e) { switchPage('calendar-page', e.target); });
-        document.getElementById('nav-all-records').addEventListener('click', function(e) { switchPage('all-records-page', e.target); });
-        document.getElementById('nav-reports').addEventListener('click', function(e) { switchPage('reports-page', e.target); });
-        document.getElementById('nav-customers').addEventListener('click', function(e) { switchPage('customers-page', e.target); });
-
-        // 月曆切換月與下拉選單
-        document.getElementById('btn-prev-month').addEventListener('click', () => changeMonth(-1));
-        document.getElementById('btn-next-month').addEventListener('click', () => changeMonth(1));
-        document.getElementById('select-cal-year').addEventListener('change', selectCalendarDate);
-        document.getElementById('select-cal-month').addEventListener('change', selectCalendarDate);
-
-        // 表單聯動與快捷鍵
-        document.getElementById('add-type').addEventListener('change', handleTypeChange);
-        document.getElementById('tag-eyelash').addEventListener('click', () => quickSelectProject('美睫'));
-        document.getElementById('tag-lashcare').addEventListener('click', () => quickSelectProject('睫毛管理'));
-        
-        // [修正] 改寫按鈕監聽，將 event 傳入以處理預防機制
-        document.getElementById('btn-add-record').addEventListener('click', (e) => addRecord(e));
-
-        // 總紀錄搜尋
-        document.getElementById('btn-search-records').addEventListener('click', renderAllRecords);
-
-        // 報表篩選切換
-        document.getElementById('report-year-select').addEventListener('change', renderReports);
-        document.getElementById('report-month-select').addEventListener('change', renderReports);
-        document.getElementById('card-inc-trigger').addEventListener('click', () => toggleReportDetailFilter('收入'));
-        document.getElementById('card-exp-trigger').addEventListener('click', () => toggleReportDetailFilter('支出'));
-        document.getElementById('btn-close-report-detail').addEventListener('click', closeReportDetail);
-
-        // 客戶搜尋
-        document.getElementById('btn-search-customers').addEventListener('click', renderCustomerPage);
-
-        // Modal 彈出視窗操作
-        document.getElementById('edit-modal').addEventListener('click', closeEditModal);
-        document.getElementById('modal-box-content').addEventListener('click', (e) => e.stopPropagation());
-        document.getElementById('btn-close-modal-x').addEventListener('click', closeEditModal);
-        document.getElementById('btn-cancel-modal').addEventListener('click', closeEditModal);
-        document.getElementById('btn-save-modal').addEventListener('click', updateRecordData);
     </script>
 </body>
 </html>
