@@ -468,7 +468,27 @@
         }
         .customer-deposit { font-size: 12px; color: #1A73E8; font-weight: 600; }
         .customer-total-spent { font-size: 12px; color: var(--income-green); font-weight: 600; }
-        
+        // Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAID5Sqi0ovkZkZ-xi6BgKKH5iyR3htgbA",
+  authDomain: "mumu-studio-2c46b.firebaseapp.com",
+  projectId: "mumu-studio-2c46b",
+  storageBucket: "mumu-studio-2c46b.firebasestorage.app",
+  messagingSenderId: "638760633190",
+  appId: "1:638760633190:web:403cdb9376030ac07a7ea7",
+  measurementId: "G-0WPH3Q4HZY"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
         /* 備註突顯樣式區塊碼 */
         .customer-note-highlight {
             font-size: 13px;
