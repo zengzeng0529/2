@@ -4,10 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MUMU STUDIO | 沐目 美睫記帳與進階報表CRM系統</title>
-    <!-- 載入 Firebase SDK (v9 相容模式 CDN) -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    
     <style>
         /* --- 韓系奶油風 變數設定 --- */
         :root {
@@ -521,26 +517,26 @@
 <body>
 
     <nav class="top-toolbar">
-        <button class="nav-btn active" onclick="switchPage('calendar-page', this)">1. 月曆</button>
-        <button class="nav-btn" onclick="switchPage('all-records-page', this)">2. 總紀錄</button>
-        <button class="nav-btn" onclick="switchPage('reports-page', this)">3. 報表</button>
-        <button class="nav-btn" onclick="switchPage('customers-page', this)">4. 客戶資料</button>
+        <button class="nav-btn active" id="nav-calendar">1. 月曆</button>
+        <button class="nav-btn" id="nav-all-records">2. 總紀錄</button>
+        <button class="nav-btn" id="nav-reports">3. 報表</button>
+        <button class="nav-btn" id="nav-customers">4. 客戶資料</button>
     </nav>
 
     <header class="shop-header">
-        <h1>MUMU STUDIO <span id="sync-status" style="font-size:12px; font-weight:normal; color:var(--text-muted);">☁️ 同步中</span></h1>
+        <h1>MUMU STUDIO</h1>
         <p>沐 目 ﹒ 美 睫 記 帳 與 客 戶 管 理</p>
     </header>
 
     <main id="calendar-page" class="page active">
         <div class="card-box">
             <div class="calendar-header">
-                <button onclick="changeMonth(-1)">❮</button>
+                <button id="btn-prev-month">❮</button>
                 <div>
-                    <select id="select-cal-year" class="calendar-title-select" onchange="selectCalendarDate()"></select>
-                    <select id="select-cal-month" class="calendar-title-select" onchange="selectCalendarDate()"></select>
+                    <select id="select-cal-year" class="calendar-title-select"></select>
+                    <select id="select-cal-month" class="calendar-title-select"></select>
                 </div>
-                <button onclick="changeMonth(1)">❯</button>
+                <button id="btn-next-month">❯</button>
             </div>
             <div class="weekdays">
                 <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
@@ -553,7 +549,7 @@
             <div style="margin-bottom: 18px; padding-bottom: 15px; border-bottom: 1px solid rgba(227, 213, 202, 0.4);">
                 
                 <div class="form-group">
-                    <select id="add-type" class="input-style" onchange="handleTypeChange()">
+                    <select id="add-type" class="input-style">
                         <option value="收入">收入 (美睫/儲值)</option>
                         <option value="支出">支出 (店鋪開銷)</option>
                     </select>
@@ -566,8 +562,8 @@
                 <div class="form-group">
                     <div style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                         <div class="quick-tag-wrapper">
-                            <span class="quick-tag" onclick="quickSelectProject('美睫')">＋ 美睫</span>
-                            <span class="quick-tag" onclick="quickSelectProject('睫毛管理')">＋ 睫毛管理</span>
+                            <span class="quick-tag" id="tag-eyelash">＋ 美睫</span>
+                            <span class="quick-tag" id="tag-lashcare">＋ 睫毛管理</span>
                         </div>
                         <input type="text" id="add-project" class="input-style" style="grid-column: 1 / -1;" placeholder="施作項目 或 自行填寫">
                     </div>
@@ -591,7 +587,7 @@
                     <input type="text" id="add-note" class="input-style" placeholder="備註說明 📝">
                 </div>
 
-                <button class="btn-submit" onclick="addRecord()">確認新增紀錄</button>
+                <button class="btn-submit" id="btn-add-record">確認新增紀錄</button>
             </div>
             <ul id="day-record-list" class="record-list"></ul>
         </div>
@@ -602,7 +598,7 @@
             <div class="card-title">歷史所有明細</div>
             <div class="search-container">
                 <input type="text" id="search-input" class="search-bar" placeholder="輸入關鍵字搜尋（姓名、項目、備註）">
-                <button class="btn-search-icon" onclick="renderAllRecords()">🔍</button>
+                <button class="btn-search-icon" id="btn-search-records">🔍</button>
             </div>
             <div id="all-records-container" class="scroll-container"></div>
         </div>
@@ -610,8 +606,8 @@
 
     <main id="reports-page" class="page">
         <div class="report-filter-bar">
-            <select id="report-year-select" class="select-report" onchange="renderReports()"></select>
-            <select id="report-month-select" class="select-report" onchange="renderReports()">
+            <select id="report-year-select" class="select-report"></select>
+            <select id="report-month-select" class="select-report">
                 <option value="all">全年總覽</option>
                 <option value="0">1 月</option><option value="1">2 月</option><option value="2">3 月</option>
                 <option value="3">4 月</option><option value="4">5 月</option><option value="5">6 月</option>
@@ -621,11 +617,11 @@
         </div>
 
         <div class="report-summary">
-            <div id="card-inc-trigger" class="summary-mini-card" onclick="toggleReportDetailFilter('收入')">
+            <div id="card-inc-trigger" class="summary-mini-card">
                 <p>區間總收入 (點擊看項目統計)</p>
                 <h3 id="rep-total-income" style="color: var(--income-green);">$0</h3>
             </div>
-            <div id="card-exp-trigger" class="summary-mini-card" onclick="toggleReportDetailFilter('支出')">
+            <div id="card-exp-trigger" class="summary-mini-card">
                 <p>區間總支出 (點擊看項目統計)</p>
                 <h3 id="rep-total-expense" style="color: var(--expense-red);">$0</h3>
             </div>
@@ -634,7 +630,7 @@
         <div class="card-box" id="report-detail-box-container" style="display:none; margin-bottom:18px;">
             <div class="report-detail-title">
                 <span id="report-detail-type-label">項目統計統整</span>
-                <span style="font-size:11px; color:var(--text-muted); font-weight:normal; cursor:pointer;" onclick="closeReportDetail()">關閉 ✕</span>
+                <span id="btn-close-report-detail" style="font-size:11px; color:var(--text-muted); font-weight:normal; cursor:pointer;">關閉 ✕</span>
             </div>
             <div id="report-detail-list-wrapper" class="scroll-container" style="max-height:280px;"></div>
         </div>
@@ -665,17 +661,17 @@
             <div class="card-title">客戶管理中心</div>
             <div class="search-container">
                 <input type="text" id="cust-search-input" class="search-bar" placeholder="輸入客戶姓名搜尋...">
-                <button class="btn-search-icon" onclick="renderCustomerPage()">🔍</button>
+                <button class="btn-search-icon" id="btn-search-customers">🔍</button>
             </div>
             <div id="customers-container" class="scroll-container"></div>
         </div>
     </main>
 
-    <div id="edit-modal" class="modal-overlay" onclick="closeEditModal(event)">
-        <div class="modal-box" onclick="event.stopPropagation()">
+    <div id="edit-modal" class="modal-overlay">
+        <div class="modal-box" id="modal-box-content">
             <div class="modal-header">
                 <span>✏️ 修改紀錄資料</span>
-                <span style="cursor:pointer; font-weight:normal; font-size:14px;" onclick="closeEditModal()">✕</span>
+                <span style="cursor:pointer; font-weight:normal; font-size:14px;" id="btn-close-modal-x">✕</span>
             </div>
             <input type="hidden" id="edit-id">
             
@@ -716,138 +712,73 @@
             </div>
 
             <div class="modal-footer">
-                <button class="btn-modal cancel" onclick="closeEditModal()">取消</button>
-                <button class="btn-modal save" onclick="updateRecordData()">儲存修改</button>
+                <button class="btn-modal cancel" id="btn-cancel-modal">取消</button>
+                <button class="btn-modal save" id="btn-save-modal">儲存修改</button>
             </div>
         </div>
     </div>
 
-    <script>
-        // ==================== 【Firebase 專案金鑰初始化】 ====================
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { 
+            getFirestore, doc, setDoc, getDoc, collection, getDocs 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Firebase 配置資訊 (請更換為你的正確專案金鑰)
         const firebaseConfig = {
-            apiKey: "AIzaSyCq9ZFswVWFw4z_nfUM49zmOmcYbo84ikA",
-            authDomain: "mumu-studio.firebaseapp.com",
-            projectId: "mumu-studio",
-            storageBucket: "mumu-studio.firebasestorage.app",
-            messagingSenderId: "390419965754",
-            appId: "1:390419965754:web:1af3851f4a4f63a1979203",
-            measurementId: "G-CH8ZWGK48L"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        
-        const dbRecordsRef = db.collection('mumu_records_v4');
-        const dbCrmRef = db.collection('mumu_crm_v4');
+        // 初始化 Firebase 与 Firestore
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-        // ==================== 【資料救援與雲端優先載入機制】 ====================
-        function loadSavedData() {
-            const recordKeys = ['mumu_records_v4', 'mumu_records_v3', 'mumu_records_v2', 'mumu_records'];
-            const crmKeys = ['mumu_crm_v4', 'mumu_crm_v3', 'mumu_crm_v2', 'mumu_crm'];
-            
-            let loadedRecords = null;
-            let loadedCRM = null;
-
-            for (let key of recordKeys) {
-                let data = localStorage.getItem(key);
-                if (data) {
-                    try {
-                        loadedRecords = JSON.parse(data);
-                        break; 
-                    } catch(e) { console.error(e); }
-                }
-            }
-
-            for (let key of crmKeys) {
-                let data = localStorage.getItem(key);
-                if (data) {
-                    try {
-                        loadedCRM = JSON.parse(data);
-                        break;
-                    } catch(e) { console.error(e); }
-                }
-            }
-
-            return {
-                records: loadedRecords || [],
-                crm: loadedCRM || {}
-            };
-        }
-
-        const rescuedData = loadSavedData();
-        let records = rescuedData.records;
-        let customerCRM = rescuedData.crm;
-
-        // 本地更新與同步到雲端的中央儲存函式
-        function saveData(syncToCloud = true) {
-            localStorage.setItem('mumu_records_v4', JSON.stringify(records));
-            localStorage.setItem('mumu_crm_v4', JSON.stringify(customerCRM));
-            
-            if (syncToCloud) {
-                dbRecordsRef.doc('global_backup').set({ data: JSON.stringify(records) })
-                    .catch(e => console.error("雲端紀錄備份失敗", e));
-                dbCrmRef.doc('global_backup').set({ data: JSON.stringify(customerCRM) })
-                    .catch(e => console.error("雲端CRM備份失敗", e));
-            }
-        }
-        
-        // 【核心修正】：跨設備雲端優先融合與強制雙向同步機制
-        function syncWithCloud() {
-            const syncStatus = document.getElementById('sync-status');
-            
-            // 1. 讀取雲端記帳紀錄
-            dbRecordsRef.doc('global_backup').get().then((doc) => {
-                if (doc.exists && doc.data().data) {
-                    const cloudRecords = JSON.parse(doc.data().data);
-                    
-                    if (records.length === 0) {
-                        // 如果這台新手機完全沒資料，無條件完全採用雲端資料
-                        records = cloudRecords;
-                    } else {
-                        // 如果這台手機已經有舊資料，進行不重複 ID 的嚴格雙向融合
-                        const localIds = new Set(records.map(r => r.id));
-                        cloudRecords.forEach(cr => {
-                            if (!localIds.has(cr.id)) { records.push(cr); }
-                        });
-                    }
-                }
-                return dbCrmRef.doc('global_backup').get();
-            }).then((doc) => {
-                if (doc.exists && doc.data().data) {
-                    const cloudCrm = JSON.parse(doc.data().data);
-                    if (Object.keys(customerCRM).length === 0) {
-                        // 新手機：無條件採用雲端客戶資料
-                        customerCRM = cloudCrm;
-                    } else {
-                        // 舊手機：融合新舊資料
-                        Object.assign(cloudCrm, customerCRM);
-                        customerCRM = cloudCrm;
-                    }
-                }
-                
-                // 2. 融合完成後，不管是新舊手機，都立刻更新本機並回傳覆蓋雲端，確保同步！
-                saveData(true);
-                if(syncStatus) syncStatus.innerHTML = '✨ 雲端同步成功';
-                
-                // 3. 立即重新刷洗渲染所有頁面畫面
-                initCalendar();
-                renderDayRecords();
-                renderReports();
-                renderCustomerPage();
-            }).catch((err) => {
-                console.error("雲端同步發生錯誤", err);
-                if(syncStatus) syncStatus.innerHTML = '⚠️ 僅本機運作中';
-            });
-        }
-        
-        saveData(false);
-        
+        // 全域變數定義
+        let records = [];
+        let customerCRM = {};
         let currentDate = new Date();
         const todayStr = formatDateString(new Date());
         let selectedDateStr = todayStr;
         let currentReportDetailFilter = ''; 
 
-        window.onload = function() {
+        // ==================== 【資料同步核心機制】 ====================
+        
+        // 從雲端 Firestore 載入所有資料，並內建本地舊資料救援機制
+        async function loadAllDataFromCloud() {
+            try {
+                // 1. 讀取雲端記帳紀錄
+                const recordsDoc = await getDoc(doc(db, "mumu_studio", "records_data"));
+                if (recordsDoc.exists()) {
+                    records = recordsDoc.data().list || [];
+                } else {
+                    // 雲端無資料，嘗試從舊 localStorage 救援
+                    records = rescueLocalData(['mumu_records_v4', 'mumu_records_v3', 'mumu_records_v2', 'mumu_records'], []);
+                    if (records.length > 0) await saveRecordsToCloud();
+                }
+
+                // 2. 讀取雲端 CRM 客戶基礎設定
+                const crmDoc = await getDoc(doc(db, "mumu_studio", "crm_data"));
+                if (crmDoc.exists()) {
+                    customerCRM = crmDoc.data().profiles || {};
+                } else {
+                    // 雲端無資料，嘗試從舊 localStorage 救援
+                    customerCRM = rescueLocalData(['mumu_crm_v4', 'mumu_crm_v3', 'mumu_crm_v2', 'mumu_crm'], {});
+                    if (Object.keys(customerCRM).length > 0) await saveCRMToCloud();
+                }
+
+                console.log("雲端資料加載暨同步完成！");
+            } catch (error) {
+                console.error("雲端載入失敗，切換至本地快取安全機制:", error);
+                records = rescueLocalData(['mumu_records_v4'], []);
+                customerCRM = rescueLocalData(['mumu_crm_v4'], {});
+            }
+
+            // 載入完畢後，初始化渲染畫面
             buildYearDropdowns();
             buildMonthDropdown();
             initCalendar();
@@ -855,10 +786,43 @@
             handleTypeChange();
             renderReports();
             renderCustomerPage();
-            
-            // 立即執行高階同步
-            syncWithCloud();
-        };
+        }
+
+        // 本地 LocalStorage 舊資料救援輔助函式
+        function rescueLocalData(keys, defaultVal) {
+            for (let key of keys) {
+                let data = localStorage.getItem(key);
+                if (data) {
+                    try {
+                        let parsed = JSON.parse(data);
+                        console.log(`成功救援本地舊資料，來源: ${key}`);
+                        return parsed;
+                    } catch(e) { console.error(e); }
+                }
+            }
+            return defaultVal;
+        }
+
+        // 儲存記帳明細至雲端並更新備份
+        async function saveRecordsToCloud() {
+            try {
+                await setDoc(doc(db, "mumu_studio", "records_data"), { list: records });
+                localStorage.setItem('mumu_records_v4', JSON.stringify(records));
+            } catch (e) { console.error("記帳上傳雲端失敗:", e); }
+        }
+
+        // 儲存 CRM 客戶資料至雲端並更新備份
+        async function saveCRMToCloud() {
+            try {
+                await setDoc(doc(db, "mumu_studio", "crm_data"), { profiles: customerCRM });
+                localStorage.setItem('mumu_crm_v4', JSON.stringify(customerCRM));
+            } catch (e) { console.error("CRM 上傳雲端失敗:", e); }
+        }
+
+        // 啟動加載
+        window.addEventListener('DOMContentLoaded', loadAllDataFromCloud);
+
+        // ==================== 【功能函式庫】 ====================
 
         function formatDateString(dateObj) {
             return `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
@@ -970,11 +934,11 @@
             document.getElementById('edit-modal').style.display = 'flex';
         }
 
-        function closeEditModal(event) {
+        function closeEditModal() {
             document.getElementById('edit-modal').style.display = 'none';
         }
 
-        function updateRecordData() {
+        async function updateRecordData() {
             const id = document.getElementById('edit-id').value;
             const recIndex = records.findIndex(r => r.id === id);
             if(recIndex === -1) return;
@@ -985,13 +949,14 @@
             const note = document.getElementById('modal-edit-note').value.trim();
 
             if (!date) { alert('請選擇有效的日期'); return; }
-            if (isNaN(amount) || amount < 0) { alert('請輸入有效的金額數字'); return; }
+            if (isNaN(amount) || amount < 0) { alert('請輸入有效的金額數字 (可為 0)'); return; }
 
             records[recIndex].date = date;
             records[recIndex].project = project || (records[recIndex].type === '收入' ? '美睫服務' : '日常開銷');
             records[recIndex].amount = amount;
             records[recIndex].note = note;
 
+            let crmChanged = false;
             if (records[recIndex].type === '收入') {
                 const custName = document.getElementById('modal-edit-name').value.trim();
                 const depositType = document.getElementById('modal-edit-deposit-type').value;
@@ -1003,12 +968,14 @@
 
                 if (custName && !customerCRM[custName]) {
                     customerCRM[custName] = { phone: '', birthday: '', note: '' };
+                    crmChanged = true;
                 }
             }
 
-            saveData();
-            closeEditModal();
+            await saveRecordsToCloud();
+            if (crmChanged) await saveCRMToCloud();
 
+            closeEditModal();
             initCalendar();
             renderDayRecords();
             renderReports();
@@ -1016,6 +983,7 @@
             if(document.getElementById('all-records-page').classList.contains('active')) renderAllRecords();
         }
 
+        // ==================== 月曆核心邏輯 ====================
         function initCalendar() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
@@ -1052,12 +1020,12 @@
                 if (currentCellDateStr === todayStr) dayCell.classList.add('today');
                 if (currentCellDateStr === selectedDateStr) dayCell.classList.add('selected');
 
-                dayCell.onclick = function() {
+                dayCell.addEventListener('click', function() {
                     selectedDateStr = currentCellDateStr;
                     document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('selected'));
                     dayCell.classList.add('selected');
                     renderDayRecords();
-                };
+                });
                 daysContainer.appendChild(dayCell);
             }
         }
@@ -1094,7 +1062,10 @@
             dayRecords.forEach(rec => {
                 const li = document.createElement('li');
                 li.classList.add('record-item');
-                li.setAttribute('onclick', `openEditModal('${rec.id}', event)`);
+                
+                // 動態改用監聽器，避免 Module 找不到全域函式
+                li.addEventListener('click', (e) => openEditModal(rec.id, e));
+                
                 const isInc = rec.type === '收入';
                 const typeClass = isInc ? 'inc' : 'exp';
                 const displayName = isInc ? (rec.custName ? rec.custName : '無名客') : '店鋪';
@@ -1107,7 +1078,7 @@
                         </div>
                         <div>
                             <span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span>
-                            <button class="btn-delete" onclick="deleteRecord('${rec.id}', 'day', event)">🗑️</button>
+                            <button class="btn-delete" data-id="${rec.id}">🗑️</button>
                         </div>
                     </div>
                     <div class="rec-mid">項目: ${escapeHtml(rec.project)}</div>
@@ -1122,11 +1093,18 @@
                     </div>
                     `}
                 `;
+
+                // 綁定內層刪除按鈕
+                li.querySelector('.btn-delete').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteRecord(rec.id, 'day');
+                });
+
                 listContainer.appendChild(li);
             });
         }
 
-        function addRecord() {
+        async function addRecord() {
             const type = document.getElementById('add-type').value;
             const custName = type === '收入' ? document.getElementById('add-cust-name').value.trim() : '';
             const depositType = type === '收入' ? document.getElementById('add-deposit-type').value : '儲值金';
@@ -1138,7 +1116,7 @@
             const note = document.getElementById('add-note').value.trim();
 
             if (amountInput === '' || isNaN(amount) || amount < 0) {
-                alert('請輸入有效的金額數字');
+                alert('請輸入有效的金額數字 (可為 0)');
                 return;
             }
 
@@ -1155,10 +1133,14 @@
             };
 
             records.push(newRecord);
+            let crmChanged = false;
             if (type === '收入' && custName && !customerCRM[custName]) {
                 customerCRM[custName] = { phone: '', birthday: '', note: '' };
+                crmChanged = true;
             }
-            saveData();
+
+            await saveRecordsToCloud();
+            if (crmChanged) await saveCRMToCloud();
 
             document.getElementById('add-cust-name').value = '';
             document.getElementById('add-project').value = '';
@@ -1172,11 +1154,11 @@
             renderCustomerPage();
         }
 
-        function deleteRecord(id, pageSource, event) {
-            if(event) event.stopPropagation();
+        async function deleteRecord(id, pageSource) {
             if(confirm('❌確定要刪除這筆紀錄嗎？')) {
                 records = records.filter(r => r.id !== id);
-                saveData();
+                await saveRecordsToCloud();
+                
                 initCalendar();
                 renderDayRecords();
                 renderReports();
@@ -1185,6 +1167,7 @@
             }
         }
 
+        // ==================== 頁面 2: 總紀錄 ====================
         function renderAllRecords() {
             const container = document.getElementById('all-records-container');
             if(!container) return;
@@ -1221,7 +1204,8 @@
 
                 const item = document.createElement('div');
                 item.classList.add('record-item');
-                item.setAttribute('onclick', `openEditModal('${rec.id}', event)`);
+                item.addEventListener('click', (e) => openEditModal(rec.id, e));
+                
                 const isInc = rec.type === '收入';
                 const typeClass = isInc ? 'inc' : 'exp';
                 const displayName = isInc ? (rec.custName ? rec.custName : '無名客') : '店鋪';
@@ -1229,7 +1213,7 @@
                 item.innerHTML = `
                     <div class="rec-top">
                         <div><span class="type-tag ${typeClass}">${rec.type}</span><span style="font-weight:600;">${escapeHtml(displayName)}</span></div>
-                        <div><span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span><button class="btn-delete" onclick="deleteRecord('${rec.id}', 'all', event)">🗑️</button></div>
+                        <div><span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span><button class="btn-delete" data-id="${rec.id}">🗑️</button></div>
                     </div>
                     <div class="rec-mid">項目: ${escapeHtml(rec.project)}</div>
                     ${isInc ? `
@@ -1238,10 +1222,17 @@
                     <div class="rec-bot">${rec.note ? `<span>📝 ${escapeHtml(rec.note)}</span>` : ''}</div>
                     `}
                 `;
+
+                item.querySelector('.btn-delete').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteRecord(rec.id, 'all');
+                });
+
                 currentGroupDiv.appendChild(item);
             });
         }
 
+        // ==================== 頁面 3: 報表核心邏輯 ====================
         function renderReports() {
             const yearSel = document.getElementById('report-year-select');
             const monthSel = document.getElementById('report-month-select');
@@ -1402,6 +1393,7 @@
             });
         }
 
+        // ==================== 頁面 4: 客戶資料核心邏輯 ====================
         function renderCustomerPage() {
             const thisMonth = new Date().getMonth() + 1;
             const mTitleEl = document.getElementById('current-month-title');
@@ -1514,14 +1506,14 @@
                 }
 
                 card.innerHTML = `
-                    <div class="customer-card-header" onclick="toggleCard(this.parentNode)">
+                    <div class="customer-card-header">
                         <span class="customer-name">👤 ${escapeHtml(cust.name)}</span>
                         <div class="customer-header-right">
                             <span class="customer-deposit">${cust.latestDepositLabel}: ${cust.latestDepositValue}</span>
                             <span class="customer-total-spent">累積消費: $${cust.totalSpent.toLocaleString()}</span>
                         </div>
                     </div>
-                    <div onclick="toggleCard(this.parentNode)">
+                    <div>
                         <div class="customer-detail-row">📞 電話: ${cust.phone ? escapeHtml(cust.phone) : '未填寫'}</div>
                         <div class="customer-detail-row">🎂 生日: ${birthDisplay}</div>
                         <div class="customer-note-highlight">📝 備註：${cust.note ? escapeHtml(cust.note) : '無備註紀錄'}</div>
@@ -1529,7 +1521,7 @@
                     </div>
                     
                     <div class="customer-expanded-zone">
-                        <div class="edit-crm-group" onclick="event.stopPropagation()">
+                        <div class="edit-crm-group">
                             <div class="edit-crm-title">✏️ 編輯客戶資料</div>
                             <div style="margin-bottom:6px;">
                                 <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:2px;">修改姓名</label>
@@ -1547,12 +1539,12 @@
                             </div>
                             <div style="margin-bottom:6px;">
                                 <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:2px;">專屬備註</label>
-                                <input type="text" id="edit-note-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; padding:6px; font-size:12px;" placeholder="輸入客戶專屬備註" value="${escapeHtml(cust.note)}">
+                                <input type="text" id="edit-note-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; padding:6px; font-size:12px;" placeholder="輸入客戶專屬備註（如喜好、捲度等）" value="${escapeHtml(cust.note)}">
                             </div>
                             
                             <div class="crm-action-row">
-                                <button class="btn-mini-delete" onclick="deleteCustomerData('${escapeHtml(cust.name)}')">🗑️ 刪除客戶</button>
-                                <button class="btn-mini-save" onclick="saveCRMData('${escapeHtml(cust.name)}')">💾 儲存修改</button>
+                                <button class="btn-mini-delete" data-oldname="${escapeHtml(cust.name)}">🗑️ 刪除客戶</button>
+                                <button class="btn-mini-save" data-oldname="${escapeHtml(cust.name)}">💾 儲存修改</button>
                             </div>
                             <div style="clear:both;"></div>
                         </div>
@@ -1564,30 +1556,62 @@
                         </div>
                     </div>
                 `;
+
+                // 卡片折疊點擊監聽 (點擊標題或主體部分切換)
+                const headerZone = card.querySelector('.customer-card-header');
+                const infoZone = headerZone.nextElementSibling;
+                const toggleAction = () => {
+                    const isOpen = card.classList.contains('open');
+                    document.querySelectorAll('.customer-card').forEach(c => c.classList.remove('open'));
+                    if (!isOpen) card.classList.add('open');
+                };
+                headerZone.addEventListener('click', toggleAction);
+                infoZone.addEventListener('click', toggleAction);
+
+                // 綁定編輯保存按鈕
+                card.querySelector('.btn-mini-save').addEventListener('click', (e) => {
+                    saveCRMData(e.target.getAttribute('data-oldname'));
+                });
+
+                // 綁定客戶刪除按鈕
+                card.querySelector('.btn-mini-delete').addEventListener('click', (e) => {
+                    deleteCustomerData(e.target.getAttribute('data-oldname'));
+                });
+
                 container.appendChild(card);
             });
         }
 
-        function toggleCard(cardElement) {
-            const isOpen = cardElement.classList.contains('open');
-            document.querySelectorAll('.customer-card').forEach(c => c.classList.remove('open'));
-            if (!isOpen) cardElement.classList.add('open');
-        }
-
-        function saveCRMData(oldName) {
+        async function saveCRMData(oldName) {
             const newName = document.getElementById(`edit-name-${oldName}`).value.trim();
             const phoneVal = document.getElementById(`edit-phone-${oldName}`).value.trim();
             const birthVal = document.getElementById(`edit-birth-${oldName}`).value.trim();
             const noteVal = document.getElementById(`edit-note-${oldName}`).value.trim();
 
-            if (!newName) { alert('客戶姓名不能留空！'); return; }
-            if (birthVal && birthVal.length !== 4) { alert('生日格式錯誤！請輸入 4 碼數字，例如 0529。'); return; }
+            if (!newName) {
+                alert('客戶姓名不能留空！');
+                return;
+            }
 
+            if (birthVal && birthVal.length !== 4) {
+                alert('生日格式錯誤！請輸入 4 碼數字，例如 0529。');
+                return;
+            }
+
+            let recordsChanged = false;
             if (oldName !== newName) {
                 records.forEach(r => {
-                    if (r.custName && r.custName.trim() === oldName) { r.custName = newName; }
+                    if (r.custName && r.custName.trim() === oldName) {
+                        r.custName = newName;
+                        recordsChanged = true;
+                    }
                 });
-                customerCRM[newName] = { phone: phoneVal, birthday: birthVal, note: noteVal };
+
+                customerCRM[newName] = {
+                    phone: phoneVal,
+                    birthday: birthVal,
+                    note: noteVal
+                };
                 delete customerCRM[oldName];
             } else {
                 if (!customerCRM[oldName]) customerCRM[oldName] = {};
@@ -1596,19 +1620,63 @@
                 customerCRM[oldName].note = noteVal;
             }
 
-            saveData();
+            await saveCRMToCloud();
+            if (recordsChanged) await saveRecordsToCloud();
+
             alert(`資料已成功同步更新！`);
             renderCustomerPage();
         }
 
-        function deleteCustomerData(name) {
-            if (confirm(`確定要刪除客戶「${name}」的基礎資料嗎？`)) {
-                if (customerCRM[name]) delete customerCRM[name];
-                saveData();
+        async function deleteCustomerData(name) {
+            if (confirm(`確定要刪除客戶「${name}」的基礎資料嗎？\n(注意：此動作不會刪除月曆或總紀錄中的歷史帳目資料)`)) {
+                if (customerCRM[name]) {
+                    delete customerCRM[name];
+                }
+                await saveCRMToCloud();
                 alert(`客戶「${name}」的基礎資料已刪除！`);
                 renderCustomerPage();
             }
         }
+
+        // ==================== 【由 MODULE 接管的所有 DOM 監聽器事件】 ====================
+        
+        // 頂部導覽列切換
+        document.getElementById('nav-calendar').addEventListener('click', function(e) { switchPage('calendar-page', e.target); });
+        document.getElementById('nav-all-records').addEventListener('click', function(e) { switchPage('all-records-page', e.target); });
+        document.getElementById('nav-reports').addEventListener('click', function(e) { switchPage('reports-page', e.target); });
+        document.getElementById('nav-customers').addEventListener('click', function(e) { switchPage('customers-page', e.target); });
+
+        // 月曆切換月與下拉選單
+        document.getElementById('btn-prev-month').addEventListener('click', () => changeMonth(-1));
+        document.getElementById('btn-next-month').addEventListener('click', () => changeMonth(1));
+        document.getElementById('select-cal-year').addEventListener('change', selectCalendarDate);
+        document.getElementById('select-cal-month').addEventListener('change', selectCalendarDate);
+
+        // 表單聯動與快捷鍵
+        document.getElementById('add-type').addEventListener('change', handleTypeChange);
+        document.getElementById('tag-eyelash').addEventListener('click', () => quickSelectProject('美睫'));
+        document.getElementById('tag-lashcare').addEventListener('click', () => quickSelectProject('睫毛管理'));
+        document.getElementById('btn-add-record').addEventListener('click', addRecord);
+
+        // 總紀錄搜尋
+        document.getElementById('btn-search-records').addEventListener('click', renderAllRecords);
+
+        // 報表篩選切換
+        document.getElementById('report-year-select').addEventListener('change', renderReports);
+        document.getElementById('report-month-select').addEventListener('change', renderReports);
+        document.getElementById('card-inc-trigger').addEventListener('click', () => toggleReportDetailFilter('收入'));
+        document.getElementById('card-exp-trigger').addEventListener('click', () => toggleReportDetailFilter('支出'));
+        document.getElementById('btn-close-report-detail').addEventListener('click', closeReportDetail);
+
+        // 客戶搜尋
+        document.getElementById('btn-search-customers').addEventListener('click', renderCustomerPage);
+
+        // Modal 彈出視窗操作
+        document.getElementById('edit-modal').addEventListener('click', closeEditModal);
+        document.getElementById('modal-box-content').addEventListener('click', (e) => e.stopPropagation());
+        document.getElementById('btn-close-modal-x').addEventListener('click', closeEditModal);
+        document.getElementById('btn-cancel-modal').addEventListener('click', closeEditModal);
+        document.getElementById('btn-save-modal').addEventListener('click', updateRecordData);
     </script>
 </body>
 </html>
