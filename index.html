@@ -1,39 +1,60 @@
-=<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的雲端備忘錄</title>
+    <title>Mumu Studio 美睫記帳系統</title>
+    <!-- 載入 Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     
     <style>
-        body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; padding: 0 10px; }
-        .form-group { margin-bottom: 15px; display: flex; gap: 10px; }
-        input[type="text"] { flex: 1; padding: 8px; }
-        button { padding: 8px 15px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 4px; }
-        button:hover { background-color: #0056b3; }
+        body { font-family: 'PingFang TC', 'Microsoft JhengHei', Arial, sans-serif; max-width: 600px; margin: 20px auto; padding: 0 15px; background-color: #fcf8f7; color: #4a4a4a; }
+        h2 { text-align: center; color: #d4a373; margin-bottom: 20px; font-weight: 600; }
+        .form-group { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .input-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        input, select { flex: 1; padding: 10px; border: 1px solid #e0e0e0; border-radius: 5px; font-size: 14px; }
+        button { width: 100%; padding: 12px; cursor: pointer; background-color: #d4a373; color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; }
+        button:hover { background-color: #c39364; }
         ul { list-style: none; padding: 0; }
-        li { padding: 10px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
-        .delete-btn { background-color: #dc3545; }
-        .delete-btn:hover { background-color: #bd2130; }
+        li { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #faedcd; }
+        .info-col { display: flex; flex-direction: column; gap: 4px; }
+        .customer-name { font-weight: bold; color: #333; font-size: 16px; }
+        .service-type { font-size: 13px; color: #7f8c8d; background: #f1f2f6; padding: 2px 6px; border-radius: 3px; width: fit-content; }
+        .price { font-weight: bold; color: #e74c3c; font-size: 16px; }
+        .delete-btn { background-color: #e74c3c; color: white; width: auto; padding: 5px 10px; font-size: 12px; border-radius: 4px; }
+        .delete-btn:hover { background-color: #c0392b; }
+        #status { text-align: center; color: #a4b0be; font-style: italic; }
     </style>
 </head>
 <body>
 
-    <h2>📝 雲端備忘錄 (mumu-studio)</h2>
+    <h2>👁️ Mumu Studio 美睫記帳</h2>
     
+    <!-- 資料輸入區 -->
     <div class="form-group">
-        <input type="text" id="todoInput" placeholder="請輸入待辦事項或筆記...">
-        <button id="addBtn">新增資料</button>
+        <div class="input-row">
+            <input type="text" id="customer" placeholder="顧客姓名">
+            <select id="service">
+                <option value="單根自然款">單根自然款</option>
+                <option value="濃密多根款">濃密多根款</option>
+                <option value="角蛋白美睫">角蛋白美睫</option>
+                <option value="卸睫毛">卸睫毛</option>
+            </select>
+        </div>
+        <div class="input-row">
+            <input type="number" id="amount" placeholder="消費金額 (元)">
+        </div>
+        <button id="addBtn">記帳一筆</button>
     </div>
 
-    <ul id="dataList">載入中...</ul>
+    <!-- 歷史帳目顯示區 -->
+    <ul id="dataList">
+        <li id="status">正在同步雲端帳本...</li>
+    </ul>
 
     <script>
-        // ==========================================
-        // ✅ 已自動整合你提供的 mumu-studio 專案金鑰
-        // ==========================================
+        // ✅ 整合你 mumu-studio 專案的真實金鑰
         const firebaseConfig = {
             apiKey: "AIzaSyCq9ZFswVWFw4z_nfUM49zmOmcYbo84ikA",
             authDomain: "mumu-studio.firebaseapp.com",
@@ -48,22 +69,23 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         
-        // 指定你的資料庫集合名稱（如果你之前是用別的名字，可以把 'todos' 改掉）
-        const collectionRef = db.collection('todos');
+        // 🎯【請注意這裡】
+        // 如果你在 Firebase 後台建的資料夾不是叫 'records'（例如叫 'accounting' 或 'orders'）
+        // 請把下面引號裡的 'records' 改成你後台那個資料夾的名字！
+        const collectionRef = db.collection('records');
 
-        // 獲取 DOM 元素
-        const todoInput = document.getElementById('todoInput');
+        const customerInput = document.getElementById('customer');
+        const serviceSelect = document.getElementById('service');
+        const amountInput = document.getElementById('amount');
         const addBtn = document.getElementById('addBtn');
         const dataList = document.getElementById('dataList');
 
-        // ==========================================
-        // 1. 即時監聽資料庫（讀取）
-        // ==========================================
+        // 1. 即時同步資料庫資料
         collectionRef.orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
-            dataList.innerHTML = ''; // 清空舊畫面
+            dataList.innerHTML = '';
             
             if (snapshot.empty) {
-                dataList.innerHTML = '<li>目前沒有任何資料（或是集合名稱不對）</li>';
+                dataList.innerHTML = '<li id="status">目前帳本空空如也（或集合名稱不對）</li>';
                 return;
             }
 
@@ -71,53 +93,59 @@
                 const data = doc.data();
                 const li = document.createElement('li');
                 
+                // 如果後台欄位名稱不同，這邊會自動做安全阻退，防止畫面崩潰
+                const name = data.customer || data.name || "未登錄顧客";
+                const service = data.service || "未指定項目";
+                const amount = data.amount || data.price || 0;
+
                 li.innerHTML = `
-                    <span>${data.content || JSON.stringify(data)}</span>
-                    <button class="delete-btn" onclick="deleteData('${doc.id}')">刪除</button>
+                    <div class="info-col">
+                        <span class="customer-name">${name}</span>
+                        <span class="service-type">${service}</span>
+                    </div>
+                    <div>
+                        <span class="price">$${amount}</span>
+                        <button class="delete-btn" onclick="deleteData('${doc.id}')">刪除</button>
+                    </div>
                 `;
                 dataList.appendChild(li);
             });
         }, (error) => {
-            console.error("讀取資料失敗：", error);
-            dataList.innerHTML = `<li style="color:red;">讀取失敗：${error.message}<br>請檢查 Firebase 的 Firestore Rules 權限設定！</li>`;
+            console.error("讀取失敗：", error);
+            dataList.innerHTML = `<li style="color:red;">讀取帳本失敗：${error.message}</li>`;
         });
 
-        // ==========================================
-        // 2. 新增資料到資料庫（寫入）
-        // ==========================================
+        // 2. 新增記帳資料
         addBtn.addEventListener('click', () => {
-            const text = todoInput.value.trim();
-            if (text === '') {
-                alert('請輸入內容！');
+            const customer = customerInput.value.trim();
+            const service = serviceSelect.value;
+            const amount = Number(amountInput.value);
+
+            if (!customer || !amount) {
+                alert('請填寫完整顧客姓名與金額！');
                 return;
             }
 
             collectionRef.add({
-                content: text,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp() // 記錄伺服器時間
+                customer: customer,
+                service: service,
+                amount: amount,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
             })
             .then(() => {
-                todoInput.value = ''; // 新增成功後清空輸入框
+                // 清空輸入框
+                customerInput.value = '';
+                amountInput.value = '';
             })
             .catch((error) => {
-                console.error("新增資料失敗：", error);
-                alert("新增失敗：" + error.message);
+                alert("記帳失敗：" + error.message);
             });
         });
 
-        // 支援按 Enter 鍵新增
-        todoInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') addBtn.click();
-        });
-
-        // ==========================================
-        // 3. 刪除資料
-        // ==========================================
+        // 3. 刪除帳目
         function deleteData(id) {
-            if (confirm('確定要刪除這筆資料嗎？')) {
-                collectionRef.doc(id).delete()
-                .catch((error) => {
-                    console.error("刪除失敗：", error);
+            if (confirm('確定要刪除這筆帳目嗎？')) {
+                collectionRef.doc(id).delete().catch((error) => {
                     alert("刪除失敗：" + error.message);
                 });
             }
