@@ -611,7 +611,7 @@
                 <option value="all">全年總覽</option>
                 <option value="0">1 月</option><option value="1">2 月</option><option value="2">3 月</option>
                 <option value="3">4 月</option><option value="4">5 月</option><option value="5">6 月</option>
-                <option value="6">7 月</option><option value="7">8 月</option><option value="8">9 月</option>
+                <option value="6">7 月</option><option value="7">8 月</option><option value="9">9 月</option>
                 <option value="9">10 月</option><option value="10">11 月</option><option value="11">12 月</option>
             </select>
         </div>
@@ -718,125 +718,86 @@
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        // Firebase Web 應用程式配置
-        const firebaseConfig = {
-          apiKey: "AIzaSyAID5Sqi0ovkZkZ-xi6BgKKH5iyR3htgbA",
-          authDomain: "mumu-studio-2c46b.firebaseapp.com",
-          projectId: "mumu-studio-2c46b",
-          storageBucket: "mumu-studio-2c46b.firebasestorage.app",
-          messagingSenderId: "638760633190",
-          appId: "1:638760633190:web:403cdb9376030ac07a7ea7",
-          measurementId: "G-0WPH3Q4HZY"
-        };
-
-        // 初始化 Firebase 與 Firestore
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        // 定義全域變數與容器
-        let records = [];
-        let customerCRM = {};
-        let currentDate = new Date();
-        const todayStr = formatDateString(new Date());
-        let selectedDateStr = todayStr;
-        let currentReportDetailFilter = '';
-
-        // ==================== 【資料同步至 Firebase 雲端】 ====================
-        async function uploadDataToCloud() {
-            try {
-                await setDoc(doc(db, "mumu_studio_crm", "studio_data"), {
-                    records: records,
-                    customerCRM: customerCRM,
-                    lastUpdated: Date.now()
-                });
-                console.log("雲端備份同步成功！");
-            } catch (error) {
-                console.error("雲端同步失敗，請檢查權限設定：", error);
-            }
-        }
-
-        function saveData() {
-            localStorage.setItem('mumu_records_v4', JSON.stringify(records));
-            localStorage.setItem('mumu_crm_v4', JSON.stringify(customerCRM));
-            uploadDataToCloud();
-        }
-
-        // ==================== 【初始資料救援與加載機制】 ====================
-        async function loadInitialData() {
-            try {
-                const docSnap = await getDoc(doc(db, "mumu_studio_crm", "studio_data"));
-                if (docSnap.exists()) {
-                    const cloudData = docSnap.data();
-                    records = cloudData.records || [];
-                    customerCRM = cloudData.customerCRM || {};
-                    console.log("成功從 Firebase 雲端讀取資料。");
-                    finalizeInitialization();
-                    return;
-                }
-            } catch (e) {
-                console.warn("無法存取雲端，切換至本地快取安全機制：", e);
-            }
-
+    <script>
+        // ==================== 【自動資料救援與向下相容機制】 ====================
+        function loadSavedData() {
+            // 定義所有可能在舊版本中用過的 LocalStorage 鍵值順序（從新排到舊）
             const recordKeys = ['mumu_records_v4', 'mumu_records_v3', 'mumu_records_v2', 'mumu_records'];
             const crmKeys = ['mumu_crm_v4', 'mumu_crm_v3', 'mumu_crm_v2', 'mumu_crm'];
             
+            let loadedRecords = null;
+            let loadedCRM = null;
+
+            // 尋找記帳紀錄資料
             for (let key of recordKeys) {
                 let data = localStorage.getItem(key);
-                if (data) { try { records = JSON.parse(data); break; } catch(e){} }
+                if (data) {
+                    try {
+                        loadedRecords = JSON.parse(data);
+                        console.log(`成功救援/讀取記帳資料，來源 Key: ${key}`);
+                        break; 
+                    } catch(e) { console.error(e); }
+                }
             }
+
+            // 尋找 CRM 客戶基礎資料
             for (let key of crmKeys) {
                 let data = localStorage.getItem(key);
-                if (data) { try { customerCRM = JSON.parse(data); break; } catch(e){} }
+                if (data) {
+                    try {
+                        loadedCRM = JSON.parse(data);
+                        console.log(`成功救援/讀取 CRM 客戶資料，來源 Key: ${key}`);
+                        break;
+                    } catch(e) { console.error(e); }
+                }
             }
-            finalizeInitialization();
+
+            // 如果都沒找到舊資料，才初始化為空陣列/空物件
+            return {
+                records: loadedRecords || [],
+                crm: loadedCRM || {}
+            };
         }
 
-        function finalizeInitialization() {
-            // 確保先建立下拉選單，再進行選取與渲染
+        // 執行救援讀取
+        const rescuedData = loadSavedData();
+        let records = rescuedData.records;
+        let customerCRM = rescuedData.crm;
+
+        // 立即同步存入最新版 v4 的欄位，確保資料未來安全
+        localStorage.setItem('mumu_records_v4', JSON.stringify(records));
+        localStorage.setItem('mumu_crm_v4', JSON.stringify(customerCRM));
+        // ======================================================================
+        
+        let currentDate = new Date();
+        const todayStr = formatDateString(new Date());
+        let selectedDateStr = todayStr;
+        
+        let currentReportDetailFilter = ''; 
+
+        window.onload = function() {
             buildYearDropdowns();
             buildMonthDropdown();
             initCalendar();
             renderDayRecords();
             handleTypeChange();
+            
             renderReports();
             renderCustomerPage();
+        };
 
-            // 【重大修正】：資料庫非同步確認加載完成後，才把函式綁定到 window 上，確保 HTML onclick 能完美對接
-            window.switchPage = switchPage;
-            window.changeMonth = changeMonth;
-            window.selectCalendarDate = selectCalendarDate;
-            window.handleTypeChange = handleTypeChange;
-            window.quickSelectProject = quickSelectProject;
-            window.addRecord = addRecord;
-            window.deleteRecord = deleteRecord;
-            window.openEditModal = openEditModal;
-            window.closeEditModal = closeEditModal;
-            window.updateRecordData = updateRecordData;
-            window.renderAllRecords = renderAllRecords;
-            window.renderReports = renderReports;
-            window.toggleReportDetailFilter = toggleReportDetailFilter;
-            window.closeReportDetail = closeReportDetail;
-            window.renderCustomerPage = renderCustomerPage;
-            window.saveCRMData = saveCRMData;
-            window.deleteCustomerData = deleteCustomerData;
-            console.log("系統環境與前端元件綁定成功。");
-        }
-
-        // 啟動加載執行
-        loadInitialData();
-
-        // ==================== 核心邏輯函式區塊 ====================
         function formatDateString(dateObj) {
             return `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
         }
 
+        function saveData() {
+            localStorage.setItem('mumu_records_v4', JSON.stringify(records));
+            localStorage.setItem('mumu_crm_v4', JSON.stringify(customerCRM));
+        }
+
         function escapeHtml(text) {
             if(!text) return '';
-            return text.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
         function formatDepositDisplay(val, type) {
@@ -851,11 +812,11 @@
             const depositRow = document.getElementById('deposit-wrapper-row');
 
             if (type === '收入') {
-                if(custWrapper) custWrapper.style.display = 'block';
-                if(depositRow) depositRow.style.display = 'grid'; 
+                custWrapper.style.display = 'block';
+                depositRow.style.display = 'grid'; 
             } else {
-                if(custWrapper) custWrapper.style.display = 'none';
-                if(depositRow) depositRow.style.display = 'none';
+                custWrapper.style.display = 'none';
+                depositRow.style.display = 'none';
                 document.getElementById('add-cust-name').value = '';
                 document.getElementById('add-deposit').value = '';
             }
@@ -883,7 +844,6 @@
                     opt2.value = y; opt2.innerText = `${y} 年度`;
                     repYearSelect.appendChild(opt2);
                 }
-                calYearSelect.value = currentYear;
                 repYearSelect.value = currentYear;
             }
         }
@@ -897,7 +857,6 @@
                     opt.value = m; opt.innerText = `${m + 1} 月`;
                     calMonthSelect.appendChild(opt);
                 }
-                calMonthSelect.value = currentDate.getMonth();
             }
         }
 
@@ -915,6 +874,7 @@
 
         function openEditModal(id, event) {
             if(event) event.stopPropagation();
+            
             const rec = records.find(r => r.id === id);
             if (!rec) return;
 
@@ -928,19 +888,20 @@
             const depositWrapper = document.getElementById('modal-deposit-wrapper');
 
             if(rec.type === '收入') {
-                if(nameWrapper) nameWrapper.style.display = 'block';
-                if(depositWrapper) depositWrapper.style.display = 'block';
+                nameWrapper.style.display = 'block';
+                depositWrapper.style.display = 'block';
                 document.getElementById('modal-edit-name').value = rec.custName || '';
                 document.getElementById('modal-edit-deposit-type').value = rec.depositType || '儲值金';
-                document.getElementById('modal-edit-deposit').value = rec.deposit !== undefined ? rec.deposit : '';
+                document.getElementById('modal-edit-deposit').value = rec.deposit !== '' ? rec.deposit : '';
             } else {
-                if(nameWrapper) nameWrapper.style.display = 'none';
-                if(depositWrapper) depositWrapper.style.display = 'none';
+                nameWrapper.style.display = 'none';
+                depositWrapper.style.display = 'none';
             }
+
             document.getElementById('edit-modal').style.display = 'flex';
         }
 
-        function closeEditModal() {
+        function closeEditModal(event) {
             document.getElementById('edit-modal').style.display = 'none';
         }
 
@@ -955,7 +916,7 @@
             const note = document.getElementById('modal-edit-note').value.trim();
 
             if (!date) { alert('請選擇有效的日期'); return; }
-            if (isNaN(amount) || amount < 0) { alert('請輸入有效的金額數字'); return; }
+            if (isNaN(amount) || amount < 0) { alert('請輸入有效的金額數字 (可為 0)'); return; }
 
             records[recIndex].date = date;
             records[recIndex].project = project || (records[recIndex].type === '收入' ? '美睫服務' : '日常開銷');
@@ -978,6 +939,7 @@
 
             saveData();
             closeEditModal();
+
             initCalendar();
             renderDayRecords();
             renderReports();
@@ -1067,6 +1029,7 @@
                 li.setAttribute('onclick', `openEditModal('${rec.id}', event)`);
                 const isInc = rec.type === '收入';
                 const typeClass = isInc ? 'inc' : 'exp';
+
                 const displayName = isInc ? (rec.custName ? rec.custName : '無名客') : '店鋪';
 
                 li.innerHTML = `
@@ -1108,7 +1071,7 @@
             const note = document.getElementById('add-note').value.trim();
 
             if (amountInput === '' || isNaN(amount) || amount < 0) {
-                alert('請輸入有效的金額數字');
+                alert('請輸入有效的金額數字 (可為 0)');
                 return;
             }
 
@@ -1195,6 +1158,7 @@
                 item.setAttribute('onclick', `openEditModal('${rec.id}', event)`);
                 const isInc = rec.type === '收入';
                 const typeClass = isInc ? 'inc' : 'exp';
+                
                 const displayName = isInc ? (rec.custName ? rec.custName : '無名客') : '店鋪';
                 
                 item.innerHTML = `
@@ -1374,7 +1338,7 @@
             });
         }
 
-        // ==================== 頁面 4: 客戶資料核心排版與修改邏照 ====================
+        // ==================== 頁面 4: 客戶資料核心修改邏輯 ====================
         function renderCustomerPage() {
             const thisMonth = new Date().getMonth() + 1;
             const mTitleEl = document.getElementById('current-month-title');
@@ -1415,7 +1379,7 @@
                 customerMap[name].history.push(r);
 
                 const recordTime = new Date(r.date).getTime();
-                if (r.deposit !== '' && r.deposit !== undefined && recordTime >= customerMap[name].latestDepositTime) {
+                if (r.deposit !== '' && recordTime >= customerMap[name].latestDepositTime) {
                     customerMap[name].latestDepositLabel = r.depositType || '儲值金';
                     customerMap[name].latestDepositValue = formatDepositDisplay(r.deposit, r.depositType);
                     customerMap[name].latestDepositTime = recordTime;
@@ -1542,13 +1506,6 @@
         }
 
         function toggleCard(cardElement) {
-            const isOpen = cardElement.classList.contains('open');
-            document.querySelectorAll('.customer-card').forEach(c => c.classList.remove('open'));
-            if (!isOpen) cardElement.classList.add('open');
-        }
-
-        function toggleCardElement(headerEl) {
-            const cardElement = headerEl.parentNode;
             const isOpen = cardElement.classList.contains('open');
             document.querySelectorAll('.customer-card').forEach(c => c.classList.remove('open'));
             if (!isOpen) cardElement.classList.add('open');
