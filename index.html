@@ -458,7 +458,16 @@
         .customer-card:hover { background-color: #F7EFE5; }
         .customer-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--accent-latte); padding-bottom: 6px; margin-bottom: 8px; }
         .customer-name { font-weight: bold; font-size: 15px; }
-        .customer-deposit { font-size: 13px; color: #1A73E8; font-weight: 600; }
+        
+        /* 頂部資產與消費總金額包裝欄 */
+        .customer-header-right {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .customer-deposit { font-size: 12px; color: #1A73E8; font-weight: 600; }
+        .customer-total-spent { font-size: 12px; color: var(--income-green); font-weight: 600; }
         
         /* 備註突顯樣式區塊碼 */
         .customer-note-highlight {
@@ -710,8 +719,55 @@
     </div>
 
     <script>
-        let records = JSON.parse(localStorage.getItem('mumu_records_v4')) || [];
-        let customerCRM = JSON.parse(localStorage.getItem('mumu_crm_v4')) || {};
+        // ==================== 【自動資料救援與向下相容機制】 ====================
+        function loadSavedData() {
+            // 定義所有可能在舊版本中用過的 LocalStorage 鍵值順序（從新排到舊）
+            const recordKeys = ['mumu_records_v4', 'mumu_records_v3', 'mumu_records_v2', 'mumu_records'];
+            const crmKeys = ['mumu_crm_v4', 'mumu_crm_v3', 'mumu_crm_v2', 'mumu_crm'];
+            
+            let loadedRecords = null;
+            let loadedCRM = null;
+
+            // 尋找記帳紀錄資料
+            for (let key of recordKeys) {
+                let data = localStorage.getItem(key);
+                if (data) {
+                    try {
+                        loadedRecords = JSON.parse(data);
+                        console.log(`成功救援/讀取記帳資料，來源 Key: ${key}`);
+                        break; 
+                    } catch(e) { console.error(e); }
+                }
+            }
+
+            // 尋找 CRM 客戶基礎資料
+            for (let key of crmKeys) {
+                let data = localStorage.getItem(key);
+                if (data) {
+                    try {
+                        loadedCRM = JSON.parse(data);
+                        console.log(`成功救援/讀取 CRM 客戶資料，來源 Key: ${key}`);
+                        break;
+                    } catch(e) { console.error(e); }
+                }
+            }
+
+            // 如果都沒找到舊資料，才初始化為空陣列/空物件
+            return {
+                records: loadedRecords || [],
+                crm: loadedCRM || {}
+            };
+        }
+
+        // 執行救援讀取
+        const rescuedData = loadSavedData();
+        let records = rescuedData.records;
+        let customerCRM = rescuedData.crm;
+
+        // 立即同步存入最新版 v4 的欄位，確保資料未來安全
+        localStorage.setItem('mumu_records_v4', JSON.stringify(records));
+        localStorage.setItem('mumu_crm_v4', JSON.stringify(customerCRM));
+        // ======================================================================
         
         let currentDate = new Date();
         const todayStr = formatDateString(new Date());
@@ -1049,10 +1105,9 @@
             renderCustomerPage();
         }
 
-        // 修正重點：修改彈出式視窗的提示文字
         function deleteRecord(id, pageSource, event) {
             if(event) event.stopPropagation();
-            if(confirm('❌確定要刪除客人資料嗎💾？')) {
+            if(confirm('❌確定要刪除這筆紀錄嗎？')) {
                 records = records.filter(r => r.id !== id);
                 saveData();
                 initCalendar();
@@ -1180,7 +1235,7 @@
                 if(sortedRank.length === 0) {
                     rankingContainer.innerHTML = '<p class="no-data">此區間尚無收入項目明細</p>';
                 } else {
-                    const maxAmount = sortedRank[0].amount;maxAmount;
+                    const maxAmount = sortedRank[0].amount;
                     sortedRank.forEach((item, index) => {
                         const percentage = maxAmount > 0 ? (item.amount / maxAmount) * 100 : 0;
                         const rankRow = document.createElement('div');
@@ -1311,6 +1366,7 @@
                         birthday: crmData.birthday || '',
                         note: crmData.note || '', 
                         visitCount: 0,
+                        totalSpent: 0, 
                         latestDepositLabel: '剩餘資產',
                         latestDepositValue: '未記錄',
                         latestDepositTime: 0,
@@ -1319,6 +1375,7 @@
                 }
 
                 customerMap[name].visitCount++;
+                customerMap[name].totalSpent += r.amount; 
                 customerMap[name].history.push(r);
 
                 const recordTime = new Date(r.date).getTime();
@@ -1338,6 +1395,7 @@
                         birthday: customerCRM[name].birthday || '',
                         note: customerCRM[name].note || '',
                         visitCount: 0,
+                        totalSpent: 0, 
                         latestDepositLabel: '儲值餘額',
                         latestDepositValue: '未記錄',
                         history: []
@@ -1395,7 +1453,10 @@
                 card.innerHTML = `
                     <div class="customer-card-header" onclick="toggleCard(this.parentNode)">
                         <span class="customer-name">👤 ${escapeHtml(cust.name)}</span>
-                        <span class="customer-deposit">${cust.latestDepositLabel}: ${cust.latestDepositValue}</span>
+                        <div class="customer-header-right">
+                            <span class="customer-deposit">${cust.latestDepositLabel}: ${cust.latestDepositValue}</span>
+                            <span class="customer-total-spent">累積消費: $${cust.totalSpent.toLocaleString()}</span>
+                        </div>
                     </div>
                     <div onclick="toggleCard(this.parentNode)">
                         <div class="customer-detail-row">📞 電話: ${cust.phone ? escapeHtml(cust.phone) : '未填寫'}</div>
@@ -1407,11 +1468,22 @@
                     <div class="customer-expanded-zone">
                         <div class="edit-crm-group" onclick="event.stopPropagation()">
                             <div class="edit-crm-title">✏️ 編輯客戶資料</div>
+                            <div style="margin-bottom:6px;">
+                                <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:2px;">修改姓名</label>
+                                <input type="text" id="edit-name-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; padding:6px; font-size:12px;" placeholder="姓名" value="${escapeHtml(cust.name)}">
+                            </div>
                             <div style="display:flex; gap:6px; margin-bottom:6px;">
-                                <input type="tel" id="edit-phone-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; padding:6px; font-size:12px;" placeholder="手機號碼" value="${escapeHtml(cust.phone)}">
-                                <input type="number" id="edit-birth-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; padding:6px; font-size:12px;" placeholder="生日4碼 (如0529)" inputmode="numeric" value="${escapeHtml(cust.birthday)}">
+                                <div style="flex:1;">
+                                    <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:2px;">手機號碼</label>
+                                    <input type="tel" id="edit-phone-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; padding:6px; font-size:12px;" placeholder="手機號碼" value="${escapeHtml(cust.phone)}">
+                                </div>
+                                <div style="flex:1;">
+                                    <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:2px;">生日4碼 (如0529)</label>
+                                    <input type="number" id="edit-birth-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; padding:6px; font-size:12px;" placeholder="例如0529" inputmode="numeric" value="${escapeHtml(cust.birthday)}">
+                                </div>
                             </div>
                             <div style="margin-bottom:6px;">
+                                <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:2px;">專屬備註</label>
                                 <input type="text" id="edit-note-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; padding:6px; font-size:12px;" placeholder="輸入客戶專屬備註（如喜好、捲度等）" value="${escapeHtml(cust.note)}">
                             </div>
                             
@@ -1439,25 +1511,44 @@
             if (!isOpen) cardElement.classList.add('open');
         }
 
-        function saveCRMData(name) {
-            const phoneVal = document.getElementById(`edit-phone-${name}`).value.trim();
-            const birthVal = document.getElementById(`edit-birth-${name}`).value.trim();
-            const noteVal = document.getElementById(`edit-note-${name}`).value.trim();
+        function saveCRMData(oldName) {
+            const newName = document.getElementById(`edit-name-${oldName}`).value.trim();
+            const phoneVal = document.getElementById(`edit-phone-${oldName}`).value.trim();
+            const birthVal = document.getElementById(`edit-birth-${oldName}`).value.trim();
+            const noteVal = document.getElementById(`edit-note-${oldName}`).value.trim();
+
+            if (!newName) {
+                alert('客戶姓名不能留空！');
+                return;
+            }
 
             if (birthVal && birthVal.length !== 4) {
                 alert('生日格式錯誤！請輸入 4 碼數字，例如 0529。');
                 return;
             }
 
-            if (!customerCRM[name]) {
-                customerCRM[name] = {};
+            if (oldName !== newName) {
+                records.forEach(r => {
+                    if (r.custName && r.custName.trim() === oldName) {
+                        r.custName = newName;
+                    }
+                });
+
+                customerCRM[newName] = {
+                    phone: phoneVal,
+                    birthday: birthVal,
+                    note: noteVal
+                };
+                delete customerCRM[oldName];
+            } else {
+                if (!customerCRM[oldName]) customerCRM[oldName] = {};
+                customerCRM[oldName].phone = phoneVal;
+                customerCRM[oldName].birthday = birthVal;
+                customerCRM[oldName].note = noteVal;
             }
-            customerCRM[name].phone = phoneVal;
-            customerCRM[name].birthday = birthVal;
-            customerCRM[name].note = noteVal;
 
             saveData();
-            alert(`${name} 的資料已成功同步更新！`);
+            alert(`資料已成功同步更新！`);
             renderCustomerPage();
         }
 
