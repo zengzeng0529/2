@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MUMU STUDIO | 沐目 美睫記帳與進階報表CRM系統</title>
+    <!-- 載入 Firebase SDK (v9 相容模式 CDN) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     
@@ -515,12 +516,6 @@
             border-radius: 8px; padding: 5px 10px; font-size: 11px; font-weight: 500; cursor: pointer;
         }
         .no-data { text-align: center; color: var(--text-muted); font-size: 14px; padding: 20px 0; }
-        
-        /* 雲端狀態提示 */
-        .cloud-badge {
-            font-size: 11px; background-color: #E8F5E9; color: #2E7D32;
-            padding: 2px 8px; border-radius: 10px; font-weight: normal;
-        }
     </style>
 </head>
 <body>
@@ -742,11 +737,10 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         
-        // 分別建立雲端備忘錄集合
         const dbRecordsRef = db.collection('mumu_records_v4');
         const dbCrmRef = db.collection('mumu_crm_v4');
 
-        // ==================== 【自動資料救援與向下相容與雲端同步機制】 ====================
+        // ==================== 【資料救援與雲端優先載入機制】 ====================
         function loadSavedData() {
             const recordKeys = ['mumu_records_v4', 'mumu_records_v3', 'mumu_records_v2', 'mumu_records'];
             const crmKeys = ['mumu_crm_v4', 'mumu_crm_v3', 'mumu_crm_v2', 'mumu_crm'];
@@ -759,7 +753,6 @@
                 if (data) {
                     try {
                         loadedRecords = JSON.parse(data);
-                        console.log(`成功救援/讀取記帳資料，來源 Key: ${key}`);
                         break; 
                     } catch(e) { console.error(e); }
                 }
@@ -770,7 +763,6 @@
                 if (data) {
                     try {
                         loadedCRM = JSON.parse(data);
-                        console.log(`成功救援/讀取 CRM 客戶資料，來源 Key: ${key}`);
                         break;
                     } catch(e) { console.error(e); }
                 }
@@ -792,7 +784,6 @@
             localStorage.setItem('mumu_crm_v4', JSON.stringify(customerCRM));
             
             if (syncToCloud) {
-                // 將最新完整狀態一鍵備份覆蓋到雲端固定的同一份文件中（避免單筆同步混亂）
                 dbRecordsRef.doc('global_backup').set({ data: JSON.stringify(records) })
                     .catch(e => console.error("雲端紀錄備份失敗", e));
                 dbCrmRef.doc('global_backup').set({ data: JSON.stringify(customerCRM) })
@@ -800,34 +791,45 @@
             }
         }
         
-        // 啟動時與 Firebase 雲端資料進行雙向同步融合
+        // 【核心修正】：跨設備雲端優先融合與強制雙向同步機制
         function syncWithCloud() {
             const syncStatus = document.getElementById('sync-status');
             
-            // 讀取雲端記帳紀錄
+            // 1. 讀取雲端記帳紀錄
             dbRecordsRef.doc('global_backup').get().then((doc) => {
                 if (doc.exists && doc.data().data) {
                     const cloudRecords = JSON.parse(doc.data().data);
-                    // 融合機制：將雲端與本地不重複的 ID 合併
-                    const localIds = new Set(records.map(r => r.id));
-                    cloudRecords.forEach(cr => {
-                        if (!localIds.has(cr.id)) { records.push(cr); }
-                    });
+                    
+                    if (records.length === 0) {
+                        // 如果這台新手機完全沒資料，無條件完全採用雲端資料
+                        records = cloudRecords;
+                    } else {
+                        // 如果這台手機已經有舊資料，進行不重複 ID 的嚴格雙向融合
+                        const localIds = new Set(records.map(r => r.id));
+                        cloudRecords.forEach(cr => {
+                            if (!localIds.has(cr.id)) { records.push(cr); }
+                        });
+                    }
                 }
                 return dbCrmRef.doc('global_backup').get();
             }).then((doc) => {
                 if (doc.exists && doc.data().data) {
                     const cloudCrm = JSON.parse(doc.data().data);
-                    // 合併 CRM
-                    Object.assign(cloudCrm, customerCRM);
-                    customerCRM = cloudCrm;
+                    if (Object.keys(customerCRM).length === 0) {
+                        // 新手機：無條件採用雲端客戶資料
+                        customerCRM = cloudCrm;
+                    } else {
+                        // 舊手機：融合新舊資料
+                        Object.assign(cloudCrm, customerCRM);
+                        customerCRM = cloudCrm;
+                    }
                 }
                 
-                // 融合完畢後，同時重刷本地與雲端，並渲染畫面
+                // 2. 融合完成後，不管是新舊手機，都立刻更新本機並回傳覆蓋雲端，確保同步！
                 saveData(true);
                 if(syncStatus) syncStatus.innerHTML = '✨ 雲端同步成功';
                 
-                // 重整網頁元件
+                // 3. 立即重新刷洗渲染所有頁面畫面
                 initCalendar();
                 renderDayRecords();
                 renderReports();
@@ -838,13 +840,11 @@
             });
         }
         
-        // 立即存入最新版 v4 的欄位，確保資料未來安全
         saveData(false);
         
         let currentDate = new Date();
         const todayStr = formatDateString(new Date());
         let selectedDateStr = todayStr;
-        
         let currentReportDetailFilter = ''; 
 
         window.onload = function() {
@@ -853,11 +853,10 @@
             initCalendar();
             renderDayRecords();
             handleTypeChange();
-            
             renderReports();
             renderCustomerPage();
             
-            // 網頁完全載入後，開始執行雲端融合
+            // 立即執行高階同步
             syncWithCloud();
         };
 
@@ -986,7 +985,7 @@
             const note = document.getElementById('modal-edit-note').value.trim();
 
             if (!date) { alert('請選擇有效的日期'); return; }
-            if (isNaN(amount) || amount < 0) { alert('請輸入有效的金額數字 (可為 0)'); return; }
+            if (isNaN(amount) || amount < 0) { alert('請輸入有效的金額數字'); return; }
 
             records[recIndex].date = date;
             records[recIndex].project = project || (records[recIndex].type === '收入' ? '美睫服務' : '日常開銷');
@@ -1017,7 +1016,6 @@
             if(document.getElementById('all-records-page').classList.contains('active')) renderAllRecords();
         }
 
-        // ==================== 月曆核心邏輯 ====================
         function initCalendar() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
@@ -1099,7 +1097,6 @@
                 li.setAttribute('onclick', `openEditModal('${rec.id}', event)`);
                 const isInc = rec.type === '收入';
                 const typeClass = isInc ? 'inc' : 'exp';
-
                 const displayName = isInc ? (rec.custName ? rec.custName : '無名客') : '店鋪';
 
                 li.innerHTML = `
@@ -1141,7 +1138,7 @@
             const note = document.getElementById('add-note').value.trim();
 
             if (amountInput === '' || isNaN(amount) || amount < 0) {
-                alert('請輸入有效的金額數字 (可為 0)');
+                alert('請輸入有效的金額數字');
                 return;
             }
 
@@ -1188,7 +1185,6 @@
             }
         }
 
-        // ==================== 頁面 2: 總紀錄 ====================
         function renderAllRecords() {
             const container = document.getElementById('all-records-container');
             if(!container) return;
@@ -1228,7 +1224,6 @@
                 item.setAttribute('onclick', `openEditModal('${rec.id}', event)`);
                 const isInc = rec.type === '收入';
                 const typeClass = isInc ? 'inc' : 'exp';
-                
                 const displayName = isInc ? (rec.custName ? rec.custName : '無名客') : '店鋪';
                 
                 item.innerHTML = `
@@ -1247,7 +1242,6 @@
             });
         }
 
-        // ==================== 頁面 3: 報表核心邏輯 ====================
         function renderReports() {
             const yearSel = document.getElementById('report-year-select');
             const monthSel = document.getElementById('report-month-select');
@@ -1318,7 +1312,7 @@
                             <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${percentage}%"></div></div>
                         `;
                         rankingContainer.appendChild(rankRow);
-                    });maxAmount
+                    });
                 }
             }
 
@@ -1408,7 +1402,6 @@
             });
         }
 
-        // ==================== 頁面 4: 客戶資料核心修改邏輯 ====================
         function renderCustomerPage() {
             const thisMonth = new Date().getMonth() + 1;
             const mTitleEl = document.getElementById('current-month-title');
@@ -1554,7 +1547,7 @@
                             </div>
                             <div style="margin-bottom:6px;">
                                 <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:2px;">專屬備註</label>
-                                <input type="text" id="edit-note-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; padding:6px; font-size:12px;" placeholder="輸入客戶專屬備註（如喜好、捲度等）" value="${escapeHtml(cust.note)}">
+                                <input type="text" id="edit-note-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; padding:6px; font-size:12px;" placeholder="輸入客戶專屬備註" value="${escapeHtml(cust.note)}">
                             </div>
                             
                             <div class="crm-action-row">
@@ -1587,28 +1580,14 @@
             const birthVal = document.getElementById(`edit-birth-${oldName}`).value.trim();
             const noteVal = document.getElementById(`edit-note-${oldName}`).value.trim();
 
-            if (!newName) {
-                alert('客戶姓名不能留空！');
-                return;
-            }
-
-            if (birthVal && birthVal.length !== 4) {
-                alert('生日格式錯誤！請輸入 4 碼數字，例如 0529。');
-                return;
-            }
+            if (!newName) { alert('客戶姓名不能留空！'); return; }
+            if (birthVal && birthVal.length !== 4) { alert('生日格式錯誤！請輸入 4 碼數字，例如 0529。'); return; }
 
             if (oldName !== newName) {
                 records.forEach(r => {
-                    if (r.custName && r.custName.trim() === oldName) {
-                        r.custName = newName;
-                    }
+                    if (r.custName && r.custName.trim() === oldName) { r.custName = newName; }
                 });
-
-                customerCRM[newName] = {
-                    phone: phoneVal,
-                    birthday: birthVal,
-                    note: noteVal
-                };
+                customerCRM[newName] = { phone: phoneVal, birthday: birthVal, note: noteVal };
                 delete customerCRM[oldName];
             } else {
                 if (!customerCRM[oldName]) customerCRM[oldName] = {};
@@ -1623,10 +1602,8 @@
         }
 
         function deleteCustomerData(name) {
-            if (confirm(`確定要刪除客戶「${name}」的基礎資料嗎？\n(注意：此動作不會刪除月曆或總紀錄中的歷史帳目資料)`)) {
-                if (customerCRM[name]) {
-                    delete customerCRM[name];
-                }
+            if (confirm(`確定要刪除客戶「${name}」的基礎資料嗎？`)) {
+                if (customerCRM[name]) delete customerCRM[name];
                 saveData();
                 alert(`客戶「${name}」的基礎資料已刪除！`);
                 renderCustomerPage();
