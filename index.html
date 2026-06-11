@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mumu Studio 美睫記帳系統</title>
-    <!-- 載入 Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     
@@ -21,17 +20,19 @@
         .info-col { display: flex; flex-direction: column; gap: 4px; }
         .customer-name { font-weight: bold; color: #333; font-size: 16px; }
         .service-type { font-size: 13px; color: #7f8c8d; background: #f1f2f6; padding: 2px 6px; border-radius: 3px; width: fit-content; }
-        .price { font-weight: bold; color: #e74c3c; font-size: 16px; }
-        .delete-btn { background-color: #e74c3c; color: white; width: auto; padding: 5px 10px; font-size: 12px; border-radius: 4px; }
+        .price { font-weight: bold; color: #e74c3c; font-size: 16px; margin-right: 10px; }
+        .delete-btn { background-color: #e74c3c; color: white; width: auto; padding: 5px 10px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer; }
         .delete-btn:hover { background-color: #c0392b; }
-        #status { text-align: center; color: #a4b0be; font-style: italic; }
+        #status { text-align: center; color: #a4b0be; font-style: italic; padding: 20px; }
+        .error-box { background-color: #ffebee; color: #c62828; padding: 15px; border-radius: 8px; border-left: 5px solid #ef5350; margin-bottom: 20px; font-size: 14px; line-height: 1.5; }
     </style>
 </head>
 <body>
 
     <h2>👁️ Mumu Studio 美睫記帳</h2>
     
-    <!-- 資料輸入區 -->
+    <div id="errorDisplay" style="display: none;"></div>
+    
     <div class="form-group">
         <div class="input-row">
             <input type="text" id="customer" placeholder="顧客姓名">
@@ -48,13 +49,12 @@
         <button id="addBtn">記帳一筆</button>
     </div>
 
-    <!-- 歷史帳目顯示區 -->
     <ul id="dataList">
-        <li id="status">正在同步雲端帳本...</li>
+        <li id="status">正在即時同步雲端帳本...</li>
     </ul>
 
     <script>
-        // ✅ 整合你 mumu-studio 專案的真實金鑰
+        // 使用您最新的 mumu-studio 專案真實金鑰
         const firebaseConfig = {
             apiKey: "AIzaSyCq9ZFswVWFw4z_nfUM49zmOmcYbo84ikA",
             authDomain: "mumu-studio.firebaseapp.com",
@@ -62,16 +62,16 @@
             storageBucket: "mumu-studio.firebasestorage.app",
             messagingSenderId: "390419965754",
             appId: "1:390419965754:web:1af3851f4a4f63a1979203",
-            measurementId: "G-CH8ZWGK48L"
+            measurementId: "G-CWD113M12R"
         };
 
         // 初始化 Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         
-        // 🎯【請注意這裡】
-        // 如果你在 Firebase 後台建的資料夾不是叫 'records'（例如叫 'accounting' 或 'orders'）
-        // 請把下面引號裡的 'records' 改成你後台那個資料夾的名字！
+        // 🎯【核心除錯關鍵：集合名稱】
+        // 請務必檢查：你在 Firebase 控制台左側 Firestore Database 建立的「第一欄（集合）」叫什麼名字？
+        // 如果不是 'records'，請把下面這行的 'records' 修改成你後台的那個名字（例如 'accounting' 或 'orders'）！
         const collectionRef = db.collection('records');
 
         const customerInput = document.getElementById('customer');
@@ -79,13 +79,15 @@
         const amountInput = document.getElementById('amount');
         const addBtn = document.getElementById('addBtn');
         const dataList = document.getElementById('dataList');
+        const errorDisplay = document.getElementById('errorDisplay');
 
         // 1. 即時同步資料庫資料
-        collectionRef.orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
+        collectionRef.onSnapshot((snapshot) => {
             dataList.innerHTML = '';
+            errorDisplay.style.display = 'none'; // 成功連線則隱藏錯誤
             
             if (snapshot.empty) {
-                dataList.innerHTML = '<li id="status">目前帳本空空如也（或集合名稱不對）</li>';
+                dataList.innerHTML = '<li id="status"> 雲端資料庫目前是空的。<br><br><span style="color:#e67e22; font-size:13px;">提示：如果後台其實有資料，代表程式碼第 67 行的集合名稱寫錯了，請改成與後台一致的名字。</span></li>';
                 return;
             }
 
@@ -93,10 +95,10 @@
                 const data = doc.data();
                 const li = document.createElement('li');
                 
-                // 如果後台欄位名稱不同，這邊會自動做安全阻退，防止畫面崩潰
-                const name = data.customer || data.name || "未登錄顧客";
-                const service = data.service || "未指定項目";
-                const amount = data.amount || data.price || 0;
+                // 盲測相容機制：自動探測所有可能遺留的欄位名稱，防噴錯
+                const name = data.customer || data.name || data.title || data.username || "未登錄顧客";
+                const service = data.service || data.project || data.item || "美睫服務";
+                const amount = data.amount || data.price || data.money || data.cost || 0;
 
                 li.innerHTML = `
                     <div class="info-col">
@@ -111,8 +113,15 @@
                 dataList.appendChild(li);
             });
         }, (error) => {
-            console.error("讀取失敗：", error);
-            dataList.innerHTML = `<li style="color:red;">讀取帳本失敗：${error.message}</li>`;
+            console.error("Firebase 連線失敗：", error);
+            errorDisplay.className = 'error-box';
+            errorDisplay.style.display = 'block';
+            errorDisplay.innerHTML = `
+                <strong>⚠️ 雲端連線失敗提示：</strong><br>
+                1. 錯誤訊息：${error.message}<br>
+                2. 請至 Firebase 後台檢查 <strong>Firestore Database -> Rules (規則)</strong> 是否過期关闭。若過期請修改為 <code>allow read, write: if true;</code>
+            `;
+            dataList.innerHTML = `<li style="color:red; text-align:center; padding:20px;">資料載入失敗，請參考上方紅框提示。</li>`;
         });
 
         // 2. 新增記帳資料
@@ -122,7 +131,7 @@
             const amount = Number(amountInput.value);
 
             if (!customer || !amount) {
-                alert('請填寫完整顧客姓名與金額！');
+                alert('請填寫顧客姓名與金額！');
                 return;
             }
 
@@ -133,12 +142,11 @@
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             })
             .then(() => {
-                // 清空輸入框
                 customerInput.value = '';
                 amountInput.value = '';
             })
             .catch((error) => {
-                alert("記帳失敗：" + error.message);
+                alert("記帳失敗，錯誤原因：" + error.message);
             });
         });
 
