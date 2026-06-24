@@ -839,8 +839,25 @@
                 document.getElementById('auth-page').style.display = 'none';
                 document.getElementById('main-app').style.display = 'block';
                 
-                // 從雲端載入該使用者的資料（含自動救援 LocalStorage 舊資料移轉機制）
-                await loadCloudData();
+        // 1. 先嘗試從雲端載入資料
+        await loadCloudData(); 
+
+        // 2. 判斷雲端載入後，你的資料變數（假設叫 customerCRM 或 records）是否為空
+        //    (請根據你專案實際儲存資料的變數名稱調整，這裡以 customerCRM 為例)
+        if (!customerCRM || Object.keys(customerCRM).length === 0) {
+            console.log('雲端無資料，嘗試從本地 LocalStorage 搬家...');
+            
+            // 讀取舊的本地資料（請替換成你以前在 LocalStorage 使用的 Key 名稱）
+            const localData = localStorage.getItem('mumu_studio_local_data'); 
+            
+            if (localData) {
+                customerCRM = JSON.parse(localData);
+                
+                // 3. 搬家成功後，立刻調用你的雲端同步函數，把資料推上 Firebase
+                await saveCloudData(); 
+                console.log('本地資料已成功同步至雲端！');
+            }
+        }
                 
                 // 網頁元件初始化
                 buildYearDropdowns();
