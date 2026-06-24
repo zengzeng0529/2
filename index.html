@@ -1,9 +1,812 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MUMU STUDIO | 沐目 美睫記帳與進階報表CRM系統</title>
+    <style>
+        /* --- 韓系奶油風 變數設定 --- */
+        :root {
+            --bg-cream: #FDFBF7;
+            --main-butter: #F5EBE0;
+            --accent-latte: #E3D5CA;
+            --text-dark: #4A3E3D;
+            --text-muted: #8C7A78;
+            --pure-white: #FFFFFF;
+            --shadow-soft: rgba(140, 122, 120, 0.08);
+            --delete-red: #E07A5F;
+            --income-green: #95B46A;
+            --expense-red: #E07A5F;
+            --birthday-pink: #E6B8A2;
+            --highlight-orange: #D87A60; /* 備註專用顯眼色 */
+        }
+
+        /* --- 全局樣式 --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-cream);
+            color: var(--text-dark);
+            padding-top: 65px; 
+            padding-bottom: 30px;
+        }
+
+        /* --- 登入區塊樣式 --- */
+        .auth-container {
+            max-width: 400px;
+            margin: 60px auto;
+            padding: 24px;
+            background: var(--pure-white);
+            border-radius: 24px;
+            box-shadow: 0 4px 20px var(--shadow-soft);
+            border: 1px solid rgba(227, 213, 202, 0.3);
+            text-align: center;
+        }
+        .auth-container h2 {
+            margin-bottom: 20px;
+            font-size: 20px;
+            color: var(--text-dark);
+        }
+        .auth-input {
+            width: 100%;
+            border: 1px solid var(--accent-latte);
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 14px;
+            margin-bottom: 12px;
+            background-color: var(--bg-cream);
+            outline: none;
+        }
+        .auth-btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .auth-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+        .auth-btn.login { background-color: var(--text-dark); color: var(--pure-white); }
+        .auth-btn.register { background-color: var(--main-butter); color: var(--text-dark); }
+        
+        .user-info-bar {
+            background-color: var(--main-butter);
+            padding: 6px 14px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 500px;
+            margin: -10px auto 15px auto;
+            border-radius: 12px;
+        }
+        .logout-btn {
+            background: none;
+            border: none;
+            color: var(--delete-red);
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* --- 頂部快選列 (Quick Toolbar) --- */
+        .top-toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background-color: var(--pure-white);
+            box-shadow: 0 2px 10px var(--shadow-soft);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 1000;
+            padding: 0 5px;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 500;
+            padding: 6px 10px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .nav-btn.active {
+            background-color: var(--main-butter);
+            color: var(--text-dark);
+            font-weight: bold;
+        }
+
+        /* --- 店名 Header --- */
+        .shop-header {
+            text-align: center;
+            margin: 20px 0 15px 0;
+        }
+        .shop-header h1 {
+            font-size: 22px;
+            letter-spacing: 2px;
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+        .shop-header p {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            letter-spacing: 1px;
+        }
+
+        /* --- 頁面容器切換 --- */
+        .page {
+            display: none;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 0 14px;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* --- 圓弧卡片方框通用樣式 --- */
+        .card-box {
+            background-color: var(--pure-white);
+            border-radius: 24px;
+            padding: 18px;
+            box-shadow: 0 4px 20px var(--shadow-soft);
+            margin-bottom: 18px;
+            border: 1px solid rgba(227, 213, 202, 0.3);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--text-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* ==================== 頁面 1: 月曆 ==================== */
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .calendar-header button {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: var(--text-dark);
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+        .calendar-title-select {
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 8px;
+            background-color: var(--bg-cream);
+            border: 1px solid var(--accent-latte);
+            color: var(--text-dark);
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            row-gap: 12px;
+            text-align: center;
+        }
+
+        .day-cell {
+            position: relative;
+            height: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            cursor: pointer;
+            color: var(--text-dark);
+        }
+
+        .day-cell.empty { cursor: default; }
+
+        .day-cell .day-number {
+            position: relative;
+            z-index: 2;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .day-cell.today .day-number {
+            background-color: var(--text-muted);
+            color: var(--pure-white);
+        }
+
+        .day-cell.selected .day-number {
+            background-color: var(--text-dark) !important;
+            color: var(--pure-white) !important;
+        }
+
+        .day-dot {
+            width: 4px;
+            height: 4px;
+            background-color: var(--accent-latte);
+            border-radius: 50%;
+            position: absolute;
+            bottom: 2px;
+            z-index: 3;
+        }
+
+        /* 表單進階排版 */
+        .form-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .income-only-field {
+            display: grid;
+            grid-template-columns: 1fr;
+        }
+        
+        .input-style {
+            width: 100%;
+            border: 1px solid var(--accent-latte);
+            border-radius: 12px;
+            padding: 9px 12px;
+            font-size: 14px;
+            color: var(--text-dark);
+            background-color: var(--bg-cream);
+            outline: none;
+        }
+        
+        .quick-tag-wrapper {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 6px;
+            margin-top: -2px;
+            margin-bottom: 2px;
+        }
+        .quick-tag {
+            background-color: var(--main-butter);
+            color: var(--text-dark);
+            font-size: 11px;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 1px solid rgba(227, 213, 202, 0.5);
+            transition: all 0.2s;
+        }
+        .quick-tag:hover {
+            background-color: var(--accent-latte);
+        }
+
+        .btn-submit {
+            width: 100%;
+            background-color: var(--text-dark);
+            color: var(--pure-white);
+            border: none;
+            border-radius: 12px;
+            padding: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+
+        /* 條列式明細樣式 */
+        .record-list { list-style: none; }
+        .record-item {
+            border-bottom: 1px solid rgba(227, 213, 202, 0.2);
+            padding: 12px 0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .record-item:hover {
+            background-color: rgba(245, 235, 224, 0.2);
+        }
+        
+        .rec-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .rec-mid { font-size: 13px; color: var(--text-dark); margin-bottom: 3px; }
+        .rec-bot { font-size: 11px; color: var(--text-muted); }
+
+        .type-tag {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-right: 4px;
+        }
+        .type-tag.inc { background-color: #E8F0FE; color: #1A73E8; }
+        .type-tag.exp { background-color: #FCE8E6; color: var(--delete-red); }
+
+        .record-amount { font-weight: 600; }
+        .record-amount.inc { color: var(--income-green); }
+        .record-amount.exp { color: var(--expense-red); }
+
+        .btn-delete { background: none; border: none; cursor: pointer; font-size: 16px; padding: 0 5px 0 10px; z-index: 10; position: relative; }
+
+        /* ==================== 通用搜尋列與滾動框 ==================== */
+        .search-container { display: flex; gap: 8px; margin-bottom: 15px; }
+        .search-bar {
+            flex: 1; border: 1px solid var(--accent-latte); border-radius: 12px;
+            padding: 10px; font-size: 14px; outline: none; background-color: var(--pure-white);
+        }
+        .btn-search-icon {
+            background-color: var(--main-butter); border: 1px solid var(--accent-latte);
+            border-radius: 12px; width: 42px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 16px;
+        }
+        .scroll-container { max-height: 55vh; overflow-y: auto; }
+        .date-group-title {
+            font-size: 12px; color: var(--text-muted); font-weight: 600; margin: 10px 0 5px 0;
+            background-color: var(--main-butter); padding: 2px 8px; border-radius: 6px; display: inline-block;
+        }
+
+        /* ==================== 頁面 3: 報表 ==================== */
+        .report-filter-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .select-report {
+            flex: 1;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid var(--accent-latte);
+            background-color: var(--pure-white);
+            color: var(--text-dark);
+            font-size: 14px;
+            outline: none;
+            font-weight: 600;
+        }
+        .report-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        
+        .summary-mini-card {
+            background-color: var(--pure-white); padding: 15px; border-radius: 16px; text-align: center;
+            border: 1px solid rgba(227, 213, 202, 0.4); cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 2px 8px var(--shadow-soft);
+        }
+        .summary-mini-card:active { transform: scale(0.97); }
+        .summary-mini-card.active-filter {
+            background-color: var(--main-butter);
+            border-color: var(--text-muted);
+        }
+        .summary-mini-card p { font-size: 12px; color: var(--text-muted); margin-bottom: 5px; }
+        .summary-mini-card h3 { font-size: 18px; font-weight: 700; }
+        
+        .stat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 14px; }
+        .progress-bar-bg { background-color: var(--main-butter); height: 6px; border-radius: 3px; width: 100%; margin-top: 4px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background-color: var(--text-muted); width: 0%; transition: width 0.5s ease; }
+
+        .report-detail-box {
+            margin-top: 15px;
+            border-top: 1px dashed var(--accent-latte);
+            padding-top: 15px;
+        }
+        .report-detail-title {
+            font-size: 14px; font-weight: bold; color: var(--text-dark); margin-bottom: 12px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        
+        .report-summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 4px;
+            border-bottom: 1px dashed rgba(227, 213, 202, 0.3);
+            font-size: 14px;
+        }
+        .report-summary-item:last-child {
+            border-bottom: none;
+        }
+
+        /* ==================== 彈出式編輯視窗 (Modal) ==================== */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.4);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            padding: 14px;
+        }
+        .modal-box {
+            background-color: var(--pure-white);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            animation: fadeIn 0.2s ease-out;
+        }
+        @keyframes fadeIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .modal-header {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: var(--text-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .btn-modal {
+            flex: 1;
+            padding: 10px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-modal.cancel {
+            background-color: var(--main-butter);
+            color: var(--text-dark);
+        }
+        .btn-modal.save {
+            background-color: var(--text-dark);
+            color: var(--pure-white);
+        }
+
+        /* ==================== 頁面 4: 客戶資料 ==================== */
+        .birthday-banner {
+            background-color: #FFF0EB;
+            border: 1px dashed var(--birthday-pink);
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+        .birthday-banner-title {
+            font-size: 13px; font-weight: bold; color: #D87A60; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;
+        }
+        .birthday-list { font-size: 12px; color: var(--text-dark); list-style: none; padding-left: 4px;}
+        .birthday-list li { margin-bottom: 3px; }
+
+        .customer-card {
+            background-color: var(--pure-white); border-radius: 16px; padding: 14px; margin-bottom: 12px;
+            border: 1px solid rgba(227, 213, 202, 0.5); cursor: pointer; transition: background-color 0.2s;
+        }
+        .customer-card:hover { background-color: #F7EFE5; }
+        .customer-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--accent-latte); padding-bottom: 6px; margin-bottom: 8px; }
+        .customer-name { font-weight: bold; font-size: 15px; }
+        
+        /* 頂部資產與消費總金額包裝欄 */
+        .customer-header-right {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .customer-deposit { font-size: 12px; color: #1A73E8; font-weight: 600; }
+        .customer-total-spent { font-size: 12px; color: var(--income-green); font-weight: 600; }
+        
+        /* 備註突顯樣式區塊碼 */
+        .customer-note-highlight {
+            font-size: 13px;
+            color: var(--highlight-orange) !important;
+            font-weight: bold !important;
+            background-color: #FFF5F2;
+            padding: 4px 8px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-top: 4px;
+            margin-bottom: 4px;
+            border: 1px dashed rgba(216, 122, 96, 0.3);
+        }
+        
+        .customer-detail-row { font-size: 12px; color: var(--text-dark); margin-bottom: 3px; }
+        
+        .customer-expanded-zone {
+            margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(227, 213, 202, 0.4);
+            display: none;
+        }
+        .customer-card.open .customer-expanded-zone { display: block; }
+        .edit-crm-group {
+            background-color: var(--pure-white); padding: 10px; border-radius: 12px;
+            border: 1px solid var(--accent-latte); margin-bottom: 8px;
+        }
+        .edit-crm-title { font-size: 11px; font-weight: bold; color: var(--text-muted); margin-bottom: 6px; }
+        
+        /* 底部按鈕群組 */
+        .crm-action-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+        }
+        .btn-mini-save {
+            background-color: var(--text-dark); color: var(--pure-white); border: none;
+            border-radius: 8px; padding: 6px 14px; font-size: 11px; font-weight: 600; cursor: pointer;
+        }
+        .btn-mini-delete {
+            background-color: #FCE8E6; color: var(--delete-red); border: 1px solid rgba(224, 122, 95, 0.4);
+            border-radius: 8px; padding: 5px 10px; font-size: 11px; font-weight: 500; cursor: pointer;
+        }
+        .no-data { text-align: center; color: var(--text-muted); font-size: 14px; padding: 20px 0; }
+    </style>
+</head>
+<body>
+
+    <div id="auth-page" class="auth-container">
+        <header class="shop-header">
+            <h1>MUMU STUDIO</h1>
+            <p>沐 目 ﹒ 美 睫 記 帳 與 客 戶 管 理</p>
+        </header>
+        <h2>系統登入 / 註冊</h2>
+        <input type="email" id="auth-email" class="auth-input" placeholder="請輸入電子信箱 (Email)">
+        <input type="password" id="auth-password" class="auth-input" placeholder="請輸入密碼 (至少 6 位數)">
+        <div class="auth-btn-group">
+            <button class="auth-btn register" onclick="handleRegister()">註冊帳號</button>
+            <button class="auth-btn login" onclick="handleLogin()">登入系統</button>
+        </div>
+    </div>
+
+    <div id="main-app" style="display: none;">
+        <nav class="top-toolbar">
+            <button class="nav-btn active" onclick="switchPage('calendar-page', this)">1. 月曆</button>
+            <button class="nav-btn" onclick="switchPage('all-records-page', this)">2. 總紀錄</button>
+            <button class="nav-btn" onclick="switchPage('reports-page', this)">3. 報表</button>
+            <button class="nav-btn" onclick="switchPage('customers-page', this)">4. 客戶資料</button>
+        </nav>
+
+        <header class="shop-header">
+            <h1>MUMU STUDIO</h1>
+            <p>沐 目 ﹒ 美 睫 記 帳 與 客 戶 管 理</p>
+        </header>
+
+        <div class="user-info-bar">
+            <span id="user-display-email">帳號：loading...</span>
+            <button class="logout-btn" onclick="handleLogout()">登出 ➔</button>
+        </div>
+
+        <main id="calendar-page" class="page active">
+            <div class="card-box">
+                <div class="calendar-header">
+                    <button onclick="changeMonth(-1)">❮</button>
+                    <div>
+                        <select id="select-cal-year" class="calendar-title-select" onchange="selectCalendarDate()"></select>
+                        <select id="select-cal-month" class="calendar-title-select" onchange="selectCalendarDate()"></select>
+                    </div>
+                    <button onclick="changeMonth(1)">❯</button>
+                </div>
+                <div class="weekdays">
+                    <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
+                </div>
+                <div id="calendar-days" class="days-grid"></div>
+            </div>
+
+            <div class="card-box">
+                <div class="card-title"><span id="selected-date-label">收支紀錄</span></div>
+                <div style="margin-bottom: 18px; padding-bottom: 15px; border-bottom: 1px solid rgba(227, 213, 202, 0.4);">
+                    
+                    <div class="form-group">
+                        <select id="add-type" class="input-style" onchange="handleTypeChange()">
+                            <option value="收入">收入 (美睫/儲值)</option>
+                            <option value="支出">支出 (店鋪開銷)</option>
+                        </select>
+                        
+                        <div id="cust-name-wrapper" class="income-only-field">
+                            <input type="text" id="add-cust-name" class="input-style" placeholder="客戶姓名">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <div class="quick-tag-wrapper">
+                                <span class="quick-tag" onclick="quickSelectProject('美睫')">＋ 美睫</span>
+                                <span class="quick-tag" onclick="quickSelectProject('睫毛管理')">＋ 睫毛管理</span>
+                            </div>
+                            <input type="text" id="add-project" class="input-style" style="grid-column: 1 / -1;" placeholder="施作項目 或 自行填寫">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <input type="number" id="add-amount" class="input-style" style="grid-column: 1 / -1;" placeholder="本次收支金額" inputmode="numeric">
+                    </div>
+
+                    <div class="form-group" id="deposit-wrapper-row">
+                        <div id="deposit-wrapper" style="grid-column: 1 / -1; display: grid; grid-template-columns: 110px 1fr; gap: 8px;">
+                            <select id="add-deposit-type" class="input-style" style="padding: 9px 8px; font-size: 14px;">
+                                <option value="儲值金">儲值金</option>
+                                <option value="課堂數">課堂數</option>
+                            </select>
+                            <input type="number" id="add-deposit" class="input-style" placeholder="輸入剩餘數量 (無改動可留空)" inputmode="numeric">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="grid-template-columns: 1fr;">
+                        <input type="text" id="add-note" class="input-style" placeholder="備註說明 📝">
+                    </div>
+
+                    <button class="btn-submit" onclick="addRecord()">確認新增紀錄</button>
+                </div>
+                <ul id="day-record-list" class="record-list"></ul>
+            </div>
+        </main>
+
+        <main id="all-records-page" class="page">
+            <div class="card-box">
+                <div class="card-title">歷史所有明細</div>
+                <div class="search-container">
+                    <input type="text" id="search-input" class="search-bar" placeholder="輸入關鍵字搜尋（姓名、項目、備註）">
+                    <button class="btn-search-icon" onclick="renderAllRecords()">🔍</button>
+                </div>
+                <div id="all-records-container" class="scroll-container"></div>
+            </div>
+        </main>
+
+        <main id="reports-page" class="page">
+            <div class="report-filter-bar">
+                <select id="report-year-select" class="select-report" onchange="renderReports()"></select>
+                <select id="report-month-select" class="select-report" onchange="renderReports()">
+                    <option value="all">全年總覽</option>
+                    <option value="0">1 月</option><option value="1">2 月</option><option value="2">3 月</option>
+                    <option value="3">4 月</option><option value="4">5 月</option><option value="5">6 月</option>
+                    <option value="6">7 月</option><option value="7">8 月</option><option value="9">9 月</option>
+                    <option value="9">10 月</option><option value="10">11 月</option><option value="11">12 月</option>
+                </select>
+            </div>
+
+            <div class="report-summary">
+                <div id="card-inc-trigger" class="summary-mini-card" onclick="toggleReportDetailFilter('收入')">
+                    <p>區間總收入 (點擊看項目統計)</p>
+                    <h3 id="rep-total-income" style="color: var(--income-green);">$0</h3>
+                </div>
+                <div id="card-exp-trigger" class="summary-mini-card" onclick="toggleReportDetailFilter('支出')">
+                    <p>區間總支出 (點擊看項目統計)</p>
+                    <h3 id="rep-total-expense" style="color: var(--expense-red);">$0</h3>
+                </div>
+            </div>
+            
+            <div class="card-box" id="report-detail-box-container" style="display:none; margin-bottom:18px;">
+                <div class="report-detail-title">
+                    <span id="report-detail-type-label">項目統計統整</span>
+                    <span style="font-size:11px; color:var(--text-muted); font-weight:normal; cursor:pointer;" onclick="closeReportDetail()">關閉 ✕</span>
+                </div>
+                <div id="report-detail-list-wrapper" class="scroll-container" style="max-height:280px;"></div>
+            </div>
+
+            <div class="card-box">
+                <div class="card-title">
+                    <span>財務效益分析</span>
+                    <span id="report-scope-label" style="font-size:13px; color:var(--text-muted);"></span>
+                </div>
+                <div class="stat-row" style="margin-bottom: 20px;">
+                    <span style="font-weight: bold;">營運淨利:</span>
+                    <span id="rep-net-profit" style="font-size: 18px; font-weight: bold;">$0</span>
+                </div>
+                <div>
+                    <p style="font-size: 14px; font-weight: 600; margin-bottom: 10px;">施作項目排行 (收入分析)</p>
+                    <div id="income-ranking-container"></div>
+                </div>
+            </div>
+        </main>
+
+        <main id="customers-page" class="page">
+            <div class="birthday-banner">
+                <div class="birthday-banner-title">🎂 <span id="current-month-title"></span>月壽星提醒專區</div>
+                <ul id="birthday-list-container" class="birthday-list"></ul>
+            </div>
+
+            <div class="card-box">
+                <div class="card-title">客戶管理中心</div>
+                <div class="search-container">
+                    <input type="text" id="cust-search-input" class="search-bar" placeholder="輸入客戶姓名搜尋...">
+                    <button class="btn-search-icon" onclick="renderCustomerPage()">🔍</button>
+                </div>
+                <div id="customers-container" class="scroll-container"></div>
+            </div>
+        </main>
+    </div>
+
+    <div id="edit-modal" class="modal-overlay" onclick="closeEditModal(event)">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span>✏️ 修改紀錄資料</span>
+                <span style="cursor:pointer; font-weight:normal; font-size:14px;" onclick="closeEditModal()">✕</span>
+            </div>
+            <input type="hidden" id="edit-id">
+            
+            <div style="margin-bottom: 12px;">
+                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">日期</label>
+                <input type="date" id="modal-edit-date" class="input-style" style="background:#fff;">
+            </div>
+
+            <div style="margin-bottom: 12px;" id="modal-cust-wrapper">
+                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">客戶姓名</label>
+                <input type="text" id="modal-edit-name" class="input-style" style="background:#fff;">
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">項目</label>
+                <input type="text" id="modal-edit-project" class="input-style" style="background:#fff;">
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">金額</label>
+                <input type="number" id="modal-edit-amount" class="input-style" style="background:#fff;" inputmode="numeric">
+            </div>
+
+            <div style="margin-bottom: 12px;" id="modal-deposit-wrapper">
+                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">剩餘資產紀錄</label>
+                <div style="display: grid; grid-template-columns: 110px 1fr; gap: 8px;">
+                    <select id="modal-edit-deposit-type" class="input-style" style="background:#fff; padding: 9px 8px; font-size: 14px;">
+                        <option value="儲值金">儲值金</option>
+                        <option value="課堂數">課堂數</option>
+                    </select>
+                    <input type="number" id="modal-edit-deposit" class="input-style" style="background:#fff;" placeholder="無改動可留空" inputmode="numeric">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">備註說明</label>
+                <input type="text" id="modal-edit-note" class="input-style" style="background:#fff;">
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-modal cancel" onclick="closeEditModal()">取消</button>
+                <button class="btn-modal save" onclick="updateRecordData()">儲存修改</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // 主體設定檔（已修正內部語法錯誤）
+        // ⚠️ Firebase 後台申請的配置資訊（已修正完畢）
         const firebaseConfig = {
             apiKey: "AIzaSyBskoljPhASGXHB2oPqMFHjr2X4NajGVXk",
             authDomain: "studio-6429e.firebaseapp.com",
@@ -520,3 +1323,5 @@
             }
         }
     </script>
+</body>
+</html>
