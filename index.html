@@ -693,7 +693,7 @@
                     <option value="all">全年總覽</option>
                     <option value="0">1 月</option><option value="1">2 月</option><option value="2">3 月</option>
                     <option value="3">4 月</option><option value="4">5 月</option><option value="5">6 月</option>
-                    <option value="6">7 月</option><option value="7">8 月</option><option value="9">9 月</option>
+                    <option value="6">7 月</option><option value="7">8 月</option><option value="8">9 月</option>
                     <option value="9">10 月</option><option value="10">11 月</option><option value="11">12 月</option>
                 </select>
             </div>
@@ -839,7 +839,7 @@
                 document.getElementById('auth-page').style.display = 'none';
                 document.getElementById('main-app').style.display = 'block';
                 
-                // 從雲端載入該使用者的資料
+                // 從雲端載入該使用者的資料（含自動救援 LocalStorage 舊資料移轉機制）
                 await loadCloudData();
                 
                 // 網頁元件初始化
@@ -866,7 +866,13 @@
                 await createUserWithEmailAndPassword(auth, email, password);
                 alert('帳號註冊成功並已自動登入！');
             } catch (error) {
-                alert('註冊失敗：' + error.message);
+                if (error.code === 'auth/email-already-in-use') {
+                    alert('此電子郵件已被註冊，請直接點選登入。');
+                } else if (error.code === 'auth/weak-password') {
+                    alert('密碼強度不足，請至少輸入 6 位數。');
+                } else {
+                    alert('註冊失敗：' + error.message);
+                }
             }
         }
 
@@ -878,7 +884,11 @@
             try {
                 await signInWithEmailAndPassword(auth, email, password);
             } catch (error) {
-                alert('登入失敗：' + error.message);
+                if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    alert('電子郵件或密碼錯誤。');
+                } else {
+                    alert('登入失敗：' + error.message);
+                }
             }
         }
 
@@ -889,7 +899,7 @@
             }
         }
 
-        // 從 Firebase 雲端讀取資料
+        // 從 Firebase 雲端讀取資料（💡方案 A：核心自動移轉與讀取機制）
         async function loadCloudData() {
             if (!currentUser) return;
             try {
@@ -901,11 +911,13 @@
                     records = data.records || [];
                     customerCRM = data.customerCRM || {};
                 } else {
-                    // 若是新使用者，嘗試看看本機有沒有舊資料(自動移轉機制)
+                    // 💡 如果雲端目前沒資料，代表此帳號第一次使用，啟動 LocalStorage 舊資料搬家救援機制
+                    console.log("偵測到雲端無資料，正在嘗試從本機 LocalStorage 轉移舊客戶資產資料...");
                     const oldData = loadSavedLocalData();
                     records = oldData.records;
                     customerCRM = oldData.crm;
-                    // 馬上存入雲端備份
+                    
+                    // 搬家完畢後，立刻同步並備份到雲端，防止資料消失
                     await saveCloudData();
                 }
             } catch (e) {
@@ -913,11 +925,12 @@
             }
         }
 
-        // 本地舊資料救援讀取（向下相容）
+        // 本地舊資料救援讀取（向下相容，精準抓取各版本舊資料）
         function loadSavedLocalData() {
             const recordKeys = ['mumu_records_v4', 'mumu_records_v3', 'mumu_records_v2', 'mumu_records'];
-            const crmKeys = ['mumu_crm_v4', 'mumu_crm_v3', 'mumu_crm_v2', 'mumu_crm'];
+            const crmKeys = ['mumu_crm_v4', 'mumu_crm_v3', 'mumu_crm_v2', 'mumu_crm', 'customerCRM']; // 加入你原本常用的 customerCRM 欄位
             let loadedRecords = null, loadedCRM = null;
+            
             for (let key of recordKeys) {
                 let data = localStorage.getItem(key);
                 if (data) { try { loadedRecords = JSON.parse(data); break; } catch(e){} }
@@ -944,7 +957,7 @@
             }
         }
 
-        // ==================== 以下為你原有的記帳邏輯 (已串接 saveCloudData) ====================
+        // ==================== 記帳與 CRM 核心渲染邏輯 ====================
         function formatDateString(dateObj) {
             return `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
         }
@@ -1017,7 +1030,7 @@
                 nameWrapper.style.display = 'block'; depositWrapper.style.display = 'block';
                 document.getElementById('modal-edit-name').value = rec.custName || '';
                 document.getElementById('modal-edit-deposit-type').value = rec.depositType || '儲值金';
-                document.getElementById('modal-edit-deposit').value = rec.deposit !== '' ? rec.deposit : '';
+                document.getElementById('modal-edit-deposit').value = (rec.deposit !== undefined && rec.deposit !== '') ? rec.deposit : '';
             } else {
                 nameWrapper.style.display = 'none'; depositWrapper.style.display = 'none';
             }
@@ -1238,7 +1251,7 @@
                 }
                 customerMap[name].visitCount++; customerMap[name].totalSpent += r.amount; customerMap[name].history.push(r);
                 let recordTime = new Date(r.date).getTime();
-                if (r.deposit !== '' && recordTime >= customerMap[name].latestDepositTime) {
+                if (r.deposit !== undefined && r.deposit !== '' && recordTime >= customerMap[name].latestDepositTime) {
                     customerMap[name].latestDepositLabel = r.depositType || '儲值金'; customerMap[name].latestDepositValue = formatDepositDisplay(r.deposit, r.depositType); customerMap[name].latestDepositTime = recordTime;
                 }
             });
