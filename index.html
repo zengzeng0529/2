@@ -808,12 +808,27 @@
 
         // ⚠️ 【重要：請將此處替換成你自己在 Firebase 後台申請的配置資訊】
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            // Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBskoljPhASGXHB2oPqMFHjr2X4NajGVXk",
+  authDomain: "studio-6429e.firebaseapp.com",
+  projectId: "studio-6429e",
+  storageBucket: "studio-6429e.firebasestorage.app",
+  messagingSenderId: "647698948838",
+  appId: "1:647698948838:web:9f51ddc458fa93ff6f9127",
+  measurementId: "G-LR1MP5QJJ9"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
         };
 
         // 初始化 Firebase
