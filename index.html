@@ -37,6 +37,68 @@
             padding-bottom: 30px;
         }
 
+        /* --- 登入區塊樣式 --- */
+        .auth-container {
+            max-width: 400px;
+            margin: 60px auto;
+            padding: 24px;
+            background: var(--pure-white);
+            border-radius: 24px;
+            box-shadow: 0 4px 20px var(--shadow-soft);
+            border: 1px solid rgba(227, 213, 202, 0.3);
+            text-align: center;
+        }
+        .auth-container h2 {
+            margin-bottom: 20px;
+            font-size: 20px;
+            color: var(--text-dark);
+        }
+        .auth-input {
+            width: 100%;
+            border: 1px solid var(--accent-latte);
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 14px;
+            margin-bottom: 12px;
+            background-color: var(--bg-cream);
+            outline: none;
+        }
+        .auth-btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .auth-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+        .auth-btn.login { background-color: var(--text-dark); color: var(--pure-white); }
+        .auth-btn.register { background-color: var(--main-butter); color: var(--text-dark); }
+        
+        .user-info-bar {
+            background-color: var(--main-butter);
+            padding: 6px 14px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 500px;
+            margin: -10px auto 15px auto;
+            border-radius: 12px;
+        }
+        .logout-btn {
+            background: none;
+            border: none;
+            color: var(--delete-red);
+            cursor: pointer;
+            font-weight: bold;
+        }
+
         /* --- 頂部快選列 (Quick Toolbar) --- */
         .top-toolbar {
             position: fixed;
@@ -516,156 +578,177 @@
 </head>
 <body>
 
-    <nav class="top-toolbar">
-        <button class="nav-btn active" onclick="switchPage('calendar-page', this)">1. 月曆</button>
-        <button class="nav-btn" onclick="switchPage('all-records-page', this)">2. 總紀錄</button>
-        <button class="nav-btn" onclick="switchPage('reports-page', this)">3. 報表</button>
-        <button class="nav-btn" onclick="switchPage('customers-page', this)">4. 客戶資料</button>
-    </nav>
+    <div id="auth-page" class="auth-container">
+        <header class="shop-header">
+            <h1>MUMU STUDIO</h1>
+            <p>沐 目 ﹒ 美 睫 記 帳 與 客 戶 管 理</p>
+        </header>
+        <h2>系統登入 / 註冊</h2>
+        <input type="email" id="auth-email" class="auth-input" placeholder="請輸入電子信箱 (Email)">
+        <input type="password" id="auth-password" class="auth-input" placeholder="請輸入密碼 (至少 6 位數)">
+        <div class="auth-btn-group">
+            <button class="auth-btn register" onclick="handleRegister()">註冊帳號</button>
+            <button class="auth-btn login" onclick="handleLogin()">登入系統</button>
+        </div>
+    </div>
 
-    <header class="shop-header">
-        <h1>MUMU STUDIO</h1>
-        <p>沐 目 ﹒ 美 睫 記 帳 與 客 戶 管 理</p>
-    </header>
+    <div id="main-app" style="display: none;">
+        <nav class="top-toolbar">
+            <button class="nav-btn active" onclick="switchPage('calendar-page', this)">1. 月曆</button>
+            <button class="nav-btn" onclick="switchPage('all-records-page', this)">2. 總紀錄</button>
+            <button class="nav-btn" onclick="switchPage('reports-page', this)">3. 報表</button>
+            <button class="nav-btn" onclick="switchPage('customers-page', this)">4. 客戶資料</button>
+        </nav>
 
-    <main id="calendar-page" class="page active">
-        <div class="card-box">
-            <div class="calendar-header">
-                <button onclick="changeMonth(-1)">❮</button>
-                <div>
-                    <select id="select-cal-year" class="calendar-title-select" onchange="selectCalendarDate()"></select>
-                    <select id="select-cal-month" class="calendar-title-select" onchange="selectCalendarDate()"></select>
-                </div>
-                <button onclick="changeMonth(1)">❯</button>
-            </div>
-            <div class="weekdays">
-                <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
-            </div>
-            <div id="calendar-days" class="days-grid"></div>
+        <header class="shop-header">
+            <h1>MUMU STUDIO</h1>
+            <p>沐 目 ﹒ 美 睫 記 帳 與 客 戶 管 理</p>
+        </header>
+
+        <div class="user-info-bar">
+            <span id="user-display-email">帳號：loading...</span>
+            <button class="logout-btn" onclick="handleLogout()">登出 ➔</button>
         </div>
 
-        <div class="card-box">
-            <div class="card-title"><span id="selected-date-label">收支紀錄</span></div>
-            <div style="margin-bottom: 18px; padding-bottom: 15px; border-bottom: 1px solid rgba(227, 213, 202, 0.4);">
-                
-                <div class="form-group">
-                    <select id="add-type" class="input-style" onchange="handleTypeChange()">
-                        <option value="收入">收入 (美睫/儲值)</option>
-                        <option value="支出">支出 (店鋪開銷)</option>
-                    </select>
+        <main id="calendar-page" class="page active">
+            <div class="card-box">
+                <div class="calendar-header">
+                    <button onclick="changeMonth(-1)">❮</button>
+                    <div>
+                        <select id="select-cal-year" class="calendar-title-select" onchange="selectCalendarDate()"></select>
+                        <select id="select-cal-month" class="calendar-title-select" onchange="selectCalendarDate()"></select>
+                    </div>
+                    <button onclick="changeMonth(1)">❯</button>
+                </div>
+                <div class="weekdays">
+                    <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
+                </div>
+                <div id="calendar-days" class="days-grid"></div>
+            </div>
+
+            <div class="card-box">
+                <div class="card-title"><span id="selected-date-label">收支紀錄</span></div>
+                <div style="margin-bottom: 18px; padding-bottom: 15px; border-bottom: 1px solid rgba(227, 213, 202, 0.4);">
                     
-                    <div id="cust-name-wrapper" class="income-only-field">
-                        <input type="text" id="add-cust-name" class="input-style" placeholder="客戶姓名">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <div style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                        <div class="quick-tag-wrapper">
-                            <span class="quick-tag" onclick="quickSelectProject('美睫')">＋ 美睫</span>
-                            <span class="quick-tag" onclick="quickSelectProject('睫毛管理')">＋ 睫毛管理</span>
-                        </div>
-                        <input type="text" id="add-project" class="input-style" style="grid-column: 1 / -1;" placeholder="施作項目 或 自行填寫">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <input type="number" id="add-amount" class="input-style" style="grid-column: 1 / -1;" placeholder="本次收支金額" inputmode="numeric">
-                </div>
-
-                <div class="form-group" id="deposit-wrapper-row">
-                    <div id="deposit-wrapper" style="grid-column: 1 / -1; display: grid; grid-template-columns: 110px 1fr; gap: 8px;">
-                        <select id="add-deposit-type" class="input-style" style="padding: 9px 8px; font-size: 14px;">
-                            <option value="儲值金">儲值金</option>
-                            <option value="課堂數">課堂數</option>
+                    <div class="form-group">
+                        <select id="add-type" class="input-style" onchange="handleTypeChange()">
+                            <option value="收入">收入 (美睫/儲值)</option>
+                            <option value="支出">支出 (店鋪開銷)</option>
                         </select>
-                        <input type="number" id="add-deposit" class="input-style" placeholder="輸入剩餘數量 (無改動可留空)" inputmode="numeric">
+                        
+                        <div id="cust-name-wrapper" class="income-only-field">
+                            <input type="text" id="add-cust-name" class="input-style" placeholder="客戶姓名">
+                        </div>
                     </div>
+
+                    <div class="form-group">
+                        <div style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <div class="quick-tag-wrapper">
+                                <span class="quick-tag" onclick="quickSelectProject('美睫')">＋ 美睫</span>
+                                <span class="quick-tag" onclick="quickSelectProject('睫毛管理')">＋ 睫毛管理</span>
+                            </div>
+                            <input type="text" id="add-project" class="input-style" style="grid-column: 1 / -1;" placeholder="施作項目 或 自行填寫">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <input type="number" id="add-amount" class="input-style" style="grid-column: 1 / -1;" placeholder="本次收支金額" inputmode="numeric">
+                    </div>
+
+                    <div class="form-group" id="deposit-wrapper-row">
+                        <div id="deposit-wrapper" style="grid-column: 1 / -1; display: grid; grid-template-columns: 110px 1fr; gap: 8px;">
+                            <select id="add-deposit-type" class="input-style" style="padding: 9px 8px; font-size: 14px;">
+                                <option value="儲值金">儲值金</option>
+                                <option value="課堂數">課堂數</option>
+                            </select>
+                            <input type="number" id="add-deposit" class="input-style" placeholder="輸入剩餘數量 (無改動可留空)" inputmode="numeric">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="grid-template-columns: 1fr;">
+                        <input type="text" id="add-note" class="input-style" placeholder="備註說明 📝">
+                    </div>
+
+                    <button class="btn-submit" onclick="addRecord()">確認新增紀錄</button>
                 </div>
+                <ul id="day-record-list" class="record-list"></ul>
+            </div>
+        </main>
 
-                <div class="form-group" style="grid-template-columns: 1fr;">
-                    <input type="text" id="add-note" class="input-style" placeholder="備註說明 📝">
+        <main id="all-records-page" class="page">
+            <div class="card-box">
+                <div class="card-title">歷史所有明細</div>
+                <div class="search-container">
+                    <input type="text" id="search-input" class="search-bar" placeholder="輸入關鍵字搜尋（姓名、項目、備註）">
+                    <button class="btn-search-icon" onclick="renderAllRecords()">🔍</button>
                 </div>
+                <div id="all-records-container" class="scroll-container"></div>
+            </div>
+        </main>
 
-                <button class="btn-submit" onclick="addRecord()">確認新增紀錄</button>
+        <main id="reports-page" class="page">
+            <div class="report-filter-bar">
+                <select id="report-year-select" class="select-report" onchange="renderReports()"></select>
+                <select id="report-month-select" class="select-report" onchange="renderReports()">
+                    <option value="all">全年總覽</option>
+                    <option value="0">1 月</option><option value="1">2 月</option><option value="2">3 月</option>
+                    <option value="3">4 月</option><option value="4">5 月</option><option value="5">6 月</option>
+                    <option value="6">7 月</option><option value="7">8 月</option><option value="9">9 月</option>
+                    <option value="9">10 月</option><option value="10">11 月</option><option value="11">12 月</option>
+                </select>
             </div>
-            <ul id="day-record-list" class="record-list"></ul>
-        </div>
-    </main>
 
-    <main id="all-records-page" class="page">
-        <div class="card-box">
-            <div class="card-title">歷史所有明細</div>
-            <div class="search-container">
-                <input type="text" id="search-input" class="search-bar" placeholder="輸入關鍵字搜尋（姓名、項目、備註）">
-                <button class="btn-search-icon" onclick="renderAllRecords()">🔍</button>
+            <div class="report-summary">
+                <div id="card-inc-trigger" class="summary-mini-card" onclick="toggleReportDetailFilter('收入')">
+                    <p>區間總收入 (點擊看項目統計)</p>
+                    <h3 id="rep-total-income" style="color: var(--income-green);">$0</h3>
+                </div>
+                <div id="card-exp-trigger" class="summary-mini-card" onclick="toggleReportDetailFilter('支出')">
+                    <p>區間總支出 (點擊看項目統計)</p>
+                    <h3 id="rep-total-expense" style="color: var(--expense-red);">$0</h3>
+                </div>
             </div>
-            <div id="all-records-container" class="scroll-container"></div>
-        </div>
-    </main>
+            
+            <div class="card-box" id="report-detail-box-container" style="display:none; margin-bottom:18px;">
+                <div class="report-detail-title">
+                    <span id="report-detail-type-label">項目統計統整</span>
+                    <span style="font-size:11px; color:var(--text-muted); font-weight:normal; cursor:pointer;" onclick="closeReportDetail()">關閉 ✕</span>
+                </div>
+                <div id="report-detail-list-wrapper" class="scroll-container" style="max-height:280px;"></div>
+            </div>
 
-    <main id="reports-page" class="page">
-        <div class="report-filter-bar">
-            <select id="report-year-select" class="select-report" onchange="renderReports()"></select>
-            <select id="report-month-select" class="select-report" onchange="renderReports()">
-                <option value="all">全年總覽</option>
-                <option value="0">1 月</option><option value="1">2 月</option><option value="2">3 月</option>
-                <option value="3">4 月</option><option value="4">5 月</option><option value="5">6 月</option>
-                <option value="6">7 月</option><option value="7">8 月</option><option value="9">9 月</option>
-                <option value="9">10 月</option><option value="10">11 月</option><option value="11">12 月</option>
-            </select>
-        </div>
+            <div class="card-box">
+                <div class="card-title">
+                    <span>財務效益分析</span>
+                    <span id="report-scope-label" style="font-size:13px; color:var(--text-muted);"></span>
+                </div>
+                <div class="stat-row" style="margin-bottom: 20px;">
+                    <span style="font-weight: bold;">營運淨利:</span>
+                    <span id="rep-net-profit" style="font-size: 18px; font-weight: bold;">$0</span>
+                </div>
+                <div>
+                    <p style="font-size: 14px; font-weight: 600; margin-bottom: 10px;">施作項目排行 (收入分析)</p>
+                    <div id="income-ranking-container"></div>
+                </div>
+            </div>
+        </main>
 
-        <div class="report-summary">
-            <div id="card-inc-trigger" class="summary-mini-card" onclick="toggleReportDetailFilter('收入')">
-                <p>區間總收入 (點擊看項目統計)</p>
-                <h3 id="rep-total-income" style="color: var(--income-green);">$0</h3>
+        <main id="customers-page" class="page">
+            <div class="birthday-banner">
+                <div class="birthday-banner-title">🎂 <span id="current-month-title"></span>月壽星提醒專區</div>
+                <ul id="birthday-list-container" class="birthday-list"></ul>
             </div>
-            <div id="card-exp-trigger" class="summary-mini-card" onclick="toggleReportDetailFilter('支出')">
-                <p>區間總支出 (點擊看項目統計)</p>
-                <h3 id="rep-total-expense" style="color: var(--expense-red);">$0</h3>
-            </div>
-        </div>
-        
-        <div class="card-box" id="report-detail-box-container" style="display:none; margin-bottom:18px;">
-            <div class="report-detail-title">
-                <span id="report-detail-type-label">項目統計統整</span>
-                <span style="font-size:11px; color:var(--text-muted); font-weight:normal; cursor:pointer;" onclick="closeReportDetail()">關閉 ✕</span>
-            </div>
-            <div id="report-detail-list-wrapper" class="scroll-container" style="max-height:280px;"></div>
-        </div>
 
-        <div class="card-box">
-            <div class="card-title">
-                <span>財務效益分析</span>
-                <span id="report-scope-label" style="font-size:13px; color:var(--text-muted);"></span>
+            <div class="card-box">
+                <div class="card-title">客戶管理中心</div>
+                <div class="search-container">
+                    <input type="text" id="cust-search-input" class="search-bar" placeholder="輸入客戶姓名搜尋...">
+                    <button class="btn-search-icon" onclick="renderCustomerPage()">🔍</button>
+                </div>
+                <div id="customers-container" class="scroll-container"></div>
             </div>
-            <div class="stat-row" style="margin-bottom: 20px;">
-                <span style="font-weight: bold;">營運淨利:</span>
-                <span id="rep-net-profit" style="font-size: 18px; font-weight: bold;">$0</span>
-            </div>
-            <div>
-                <p style="font-size: 14px; font-weight: 600; margin-bottom: 10px;">施作項目排行 (收入分析)</p>
-                <div id="income-ranking-container"></div>
-            </div>
-        </div>
-    </main>
-
-    <main id="customers-page" class="page">
-        <div class="birthday-banner">
-            <div class="birthday-banner-title">🎂 <span id="current-month-title"></span>月壽星提醒專區</div>
-            <ul id="birthday-list-container" class="birthday-list"></ul>
-        </div>
-
-        <div class="card-box">
-            <div class="card-title">客戶管理中心</div>
-            <div class="search-container">
-                <input type="text" id="cust-search-input" class="search-bar" placeholder="輸入客戶姓名搜尋...">
-                <button class="btn-search-icon" onclick="renderCustomerPage()">🔍</button>
-            </div>
-            <div id="customers-container" class="scroll-container"></div>
-        </div>
-    </main>
+        </main>
+    </div>
 
     <div id="edit-modal" class="modal-overlay" onclick="closeEditModal(event)">
         <div class="modal-box" onclick="event.stopPropagation()">
@@ -718,206 +801,240 @@
         </div>
     </div>
 
-    <script>
-        // ==================== 【自動資料救援與向下相容機制】 ====================
-        function loadSavedData() {
-            // 定義所有可能在舊版本中用過的 LocalStorage 鍵值順序（從新排到舊）
-            const recordKeys = ['mumu_records_v4', 'mumu_records_v3', 'mumu_records_v2', 'mumu_records'];
-            const crmKeys = ['mumu_crm_v4', 'mumu_crm_v3', 'mumu_crm_v2', 'mumu_crm'];
-            
-            let loadedRecords = null;
-            let loadedCRM = null;
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-            // 尋找記帳紀錄資料
-            for (let key of recordKeys) {
-                let data = localStorage.getItem(key);
-                if (data) {
-                    try {
-                        loadedRecords = JSON.parse(data);
-                        console.log(`成功救援/讀取記帳資料，來源 Key: ${key}`);
-                        break; 
-                    } catch(e) { console.error(e); }
-                }
-            }
+        // ⚠️ 【重要：請將此處替換成你自己在 Firebase 後台申請的配置資訊】
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
 
-            // 尋找 CRM 客戶基礎資料
-            for (let key of crmKeys) {
-                let data = localStorage.getItem(key);
-                if (data) {
-                    try {
-                        loadedCRM = JSON.parse(data);
-                        console.log(`成功救援/讀取 CRM 客戶資料，來源 Key: ${key}`);
-                        break;
-                    } catch(e) { console.error(e); }
-                }
-            }
+        // 初始化 Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-            // 如果都沒找到舊資料，才初始化為空陣列/空物件
-            return {
-                records: loadedRecords || [],
-                crm: loadedCRM || {}
-            };
-        }
-
-        // 執行救援讀取
-        const rescuedData = loadSavedData();
-        let records = rescuedData.records;
-        let customerCRM = rescuedData.crm;
-
-        // 立即同步存入最新版 v4 的欄位，確保資料未來安全
-        localStorage.setItem('mumu_records_v4', JSON.stringify(records));
-        localStorage.setItem('mumu_crm_v4', JSON.stringify(customerCRM));
-        // ======================================================================
-        
+        // 全域變數
+        let currentUser = null;
+        let records = [];
+        let customerCRM = {};
         let currentDate = new Date();
         const todayStr = formatDateString(new Date());
         let selectedDateStr = todayStr;
-        
-        let currentReportDetailFilter = ''; 
+        let currentReportDetailFilter = '';
 
-        window.onload = function() {
-            buildYearDropdowns();
-            buildMonthDropdown();
-            initCalendar();
-            renderDayRecords();
-            handleTypeChange();
-            
-            renderReports();
-            renderCustomerPage();
-        };
+        // 監聽登入狀態切換
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('user-display-email').innerText = `帳號：${user.email}`;
+                document.getElementById('auth-page').style.display = 'none';
+                document.getElementById('main-app').style.display = 'block';
+                
+                // 從雲端載入該使用者的資料
+                await loadCloudData();
+                
+                // 網頁元件初始化
+                buildYearDropdowns();
+                buildMonthDropdown();
+                initCalendar();
+                renderDayRecords();
+                handleTypeChange();
+                renderReports();
+                renderCustomerPage();
+            } else {
+                currentUser = null;
+                document.getElementById('auth-page').style.display = 'block';
+                document.getElementById('main-app').style.display = 'none';
+            }
+        });
 
+        // 註冊帳號
+        window.handleRegister = async function() {
+            const email = document.getElementById('auth-email').value.trim();
+            const password = document.getElementById('auth-password').value;
+            if(!email || !password) return alert('請輸入完整信箱與密碼');
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                alert('帳號註冊成功並已自動登入！');
+            } catch (error) {
+                alert('註冊失敗：' + error.message);
+            }
+        }
+
+        // 登入系統
+        window.handleLogin = async function() {
+            const email = document.getElementById('auth-email').value.trim();
+            const password = document.getElementById('auth-password').value;
+            if(!email || !password) return alert('請輸入信箱與密碼');
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                alert('登入失敗：' + error.message);
+            }
+        }
+
+        // 登出系統
+        window.handleLogout = function() {
+            if(confirm('確定要登出系統嗎？')) {
+                signOut(auth);
+            }
+        }
+
+        // 從 Firebase 雲端讀取資料
+        async function loadCloudData() {
+            if (!currentUser) return;
+            try {
+                const userDocRef = doc(db, "users", currentUser.uid);
+                const docSnap = await getDoc(userDocRef);
+                
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    records = data.records || [];
+                    customerCRM = data.customerCRM || {};
+                } else {
+                    // 若是新使用者，嘗試看看本機有沒有舊資料(自動移轉機制)
+                    const oldData = loadSavedLocalData();
+                    records = oldData.records;
+                    customerCRM = oldData.crm;
+                    // 馬上存入雲端備份
+                    await saveCloudData();
+                }
+            } catch (e) {
+                console.error("讀取雲端資料失敗：", e);
+            }
+        }
+
+        // 本地舊資料救援讀取（向下相容）
+        function loadSavedLocalData() {
+            const recordKeys = ['mumu_records_v4', 'mumu_records_v3', 'mumu_records_v2', 'mumu_records'];
+            const crmKeys = ['mumu_crm_v4', 'mumu_crm_v3', 'mumu_crm_v2', 'mumu_crm'];
+            let loadedRecords = null, loadedCRM = null;
+            for (let key of recordKeys) {
+                let data = localStorage.getItem(key);
+                if (data) { try { loadedRecords = JSON.parse(data); break; } catch(e){} }
+            }
+            for (let key of crmKeys) {
+                let data = localStorage.getItem(key);
+                if (data) { try { loadedCRM = JSON.parse(data); break; } catch(e){} }
+            }
+            return { records: loadedRecords || [], crm: loadedCRM || {} };
+        }
+
+        // 同步資料回 Firebase 雲端
+        async function saveCloudData() {
+            if (!currentUser) return;
+            try {
+                const userDocRef = doc(db, "users", currentUser.uid);
+                await setDoc(userDocRef, {
+                    records: records,
+                    customerCRM: customerCRM,
+                    lastUpdated: new Date().toISOString()
+                }, { merge: true });
+            } catch (e) {
+                console.error("同步至雲端失敗：", e);
+            }
+        }
+
+        // ==================== 以下為你原有的記帳邏輯 (已串接 saveCloudData) ====================
         function formatDateString(dateObj) {
             return `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
         }
-
-        function saveData() {
-            localStorage.setItem('mumu_records_v4', JSON.stringify(records));
-            localStorage.setItem('mumu_crm_v4', JSON.stringify(customerCRM));
-        }
-
         function escapeHtml(text) {
             if(!text) return '';
             return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
-
         function formatDepositDisplay(val, type) {
             if (val === undefined || val === null || val === '') return '未記錄';
-            const actualType = type || '儲值金';
-            return actualType === '課堂數' ? `${val} 堂` : `$${val}`;
+            return type === '課堂數' ? `${val} 堂` : `$${val}`;
         }
-
-        function handleTypeChange() {
+        window.handleTypeChange = function() {
             const type = document.getElementById('add-type').value;
             const custWrapper = document.getElementById('cust-name-wrapper');
             const depositRow = document.getElementById('deposit-wrapper-row');
-
             if (type === '收入') {
-                custWrapper.style.display = 'block';
-                depositRow.style.display = 'grid'; 
+                custWrapper.style.display = 'block'; depositRow.style.display = 'grid'; 
             } else {
-                custWrapper.style.display = 'none';
-                depositRow.style.display = 'none';
-                document.getElementById('add-cust-name').value = '';
-                document.getElementById('add-deposit').value = '';
+                custWrapper.style.display = 'none'; depositRow.style.display = 'none';
+                document.getElementById('add-cust-name').value = ''; document.getElementById('add-deposit').value = '';
             }
         }
-
-        function quickSelectProject(projectName) {
+        window.quickSelectProject = function(projectName) {
             document.getElementById('add-project').value = projectName;
         }
-
         function buildYearDropdowns() {
             const currentYear = new Date().getFullYear();
             const calYearSelect = document.getElementById('select-cal-year');
-            const repYearSelect = document.getElementById('report-year-select');
-            
-            if(calYearSelect && repYearSelect) {
-                calYearSelect.innerHTML = '';
-                repYearSelect.innerHTML = '';
-
+            const reportYearSelect = document.getElementById('report-year-select');
+            if (calYearSelect && reportYearSelect) {
+                calYearSelect.innerHTML = ''; reportYearSelect.innerHTML = '';
                 for (let y = currentYear - 3; y <= currentYear + 5; y++) {
-                    let opt1 = document.createElement('option');
-                    opt1.value = y; opt1.innerText = `${y} 年`;
-                    calYearSelect.appendChild(opt1);
-
-                    let opt2 = document.createElement('option');
-                    opt2.value = y; opt2.innerText = `${y} 年度`;
-                    repYearSelect.appendChild(opt2);
+                    let opt1 = document.createElement('option'); opt1.value = y; opt1.innerText = `${y} 年`; calYearSelect.appendChild(opt1);
+                    let opt2 = document.createElement('option'); opt2.value = y; opt2.innerText = `${y} 年度`; reportYearSelect.appendChild(opt2);
                 }
-                repYearSelect.value = currentYear;
+                reportYearSelect.value = currentYear;
             }
         }
-
         function buildMonthDropdown() {
             const calMonthSelect = document.getElementById('select-cal-month');
-            if(calMonthSelect) {
+            if (calMonthSelect) {
                 calMonthSelect.innerHTML = '';
                 for (let m = 0; m < 12; m++) {
-                    let opt = document.createElement('option');
-                    opt.value = m; opt.innerText = `${m + 1} 月`;
-                    calMonthSelect.appendChild(opt);
+                    let opt = document.createElement('option'); opt.value = m; opt.innerText = `${m + 1} 月`; calMonthSelect.appendChild(opt);
                 }
             }
         }
-
-        function switchPage(pageId, btnElement) {
+        window.switchPage = function(pageId, btnElement) {
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             btnElement.classList.add('active');
             document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
-
             if (pageId === 'all-records-page') renderAllRecords();
             if (pageId === 'reports-page') { closeReportDetail(); renderReports(); }
             if (pageId === 'calendar-page') { initCalendar(); renderDayRecords(); }
             if (pageId === 'customers-page') renderCustomerPage();
         }
-
-        function openEditModal(id, event) {
+        window.openEditModal = function(id, event) {
             if(event) event.stopPropagation();
-            
             const rec = records.find(r => r.id === id);
             if (!rec) return;
-
             document.getElementById('edit-id').value = rec.id;
             document.getElementById('modal-edit-date').value = rec.date;
             document.getElementById('modal-edit-project').value = rec.project;
             document.getElementById('modal-edit-amount').value = rec.amount;
             document.getElementById('modal-edit-note').value = rec.note || '';
-
             const nameWrapper = document.getElementById('modal-cust-wrapper');
             const depositWrapper = document.getElementById('modal-deposit-wrapper');
-
             if(rec.type === '收入') {
-                nameWrapper.style.display = 'block';
-                depositWrapper.style.display = 'block';
+                nameWrapper.style.display = 'block'; depositWrapper.style.display = 'block';
                 document.getElementById('modal-edit-name').value = rec.custName || '';
                 document.getElementById('modal-edit-deposit-type').value = rec.depositType || '儲值金';
                 document.getElementById('modal-edit-deposit').value = rec.deposit !== '' ? rec.deposit : '';
             } else {
-                nameWrapper.style.display = 'none';
-                depositWrapper.style.display = 'none';
+                nameWrapper.style.display = 'none'; depositWrapper.style.display = 'none';
             }
-
             document.getElementById('edit-modal').style.display = 'flex';
         }
-
-        function closeEditModal(event) {
+        window.closeEditModal = function(event) {
             document.getElementById('edit-modal').style.display = 'none';
         }
-
-        function updateRecordData() {
+        window.updateRecordData = async function() {
             const id = document.getElementById('edit-id').value;
             const recIndex = records.findIndex(r => r.id === id);
             if(recIndex === -1) return;
-
             const date = document.getElementById('modal-edit-date').value;
             const project = document.getElementById('modal-edit-project').value.trim();
             const amount = parseInt(document.getElementById('modal-edit-amount').value);
             const note = document.getElementById('modal-edit-note').value.trim();
-
-            if (!date) { alert('請選擇有效的日期'); return; }
-            if (isNaN(amount) || amount < 0) { alert('請輸入有效的金額數字 (可為 0)'); return; }
-
+            if (!date || isNaN(amount) || amount < 0) return alert('請輸入有效資料');
+            
             records[recIndex].date = date;
             records[recIndex].project = project || (records[recIndex].type === '收入' ? '美睫服務' : '日常開銷');
             records[recIndex].amount = amount;
@@ -927,639 +1044,281 @@
                 const custName = document.getElementById('modal-edit-name').value.trim();
                 const depositType = document.getElementById('modal-edit-deposit-type').value;
                 const depositInput = document.getElementById('modal-edit-deposit').value.trim();
-                
                 records[recIndex].custName = custName;
                 records[recIndex].depositType = depositType;
                 records[recIndex].deposit = depositInput !== '' ? parseInt(depositInput) : '';
-
-                if (custName && !customerCRM[custName]) {
-                    customerCRM[custName] = { phone: '', birthday: '', note: '' };
-                }
+                if (custName && !customerCRM[custName]) customerCRM[custName] = { phone: '', birthday: '', note: '' };
             }
-
-            saveData();
+            await saveCloudData();
             closeEditModal();
-
-            initCalendar();
-            renderDayRecords();
-            renderReports();
-            renderCustomerPage();
+            initCalendar(); renderDayRecords(); renderReports(); renderCustomerPage();
             if(document.getElementById('all-records-page').classList.contains('active')) renderAllRecords();
         }
-
-        // ==================== 月曆核心邏輯 ====================
         function initCalendar() {
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
-
+            const year = currentDate.getFullYear(); const month = currentDate.getMonth();
             const calYearSel = document.getElementById('select-cal-year');
             const calMonthSel = document.getElementById('select-cal-month');
-            if(calYearSel) calYearSel.value = year;
-            if(calMonthSel) calMonthSel.value = month;
-
+            if(calYearSel) calYearSel.value = year; if(calMonthSel) calMonthSel.value = month;
             const firstDayIndex = new Date(year, month, 1).getDay();
             const totalDays = new Date(year, month + 1, 0).getDate();
             const daysContainer = document.getElementById('calendar-days');
-            if(!daysContainer) return;
-            daysContainer.innerHTML = '';
-
+            if(!daysContainer) return; daysContainer.innerHTML = '';
             for (let i = 0; i < firstDayIndex; i++) {
-                const emptyCell = document.createElement('div');
-                emptyCell.classList.add('day-cell', 'empty');
-                daysContainer.appendChild(emptyCell);
+                const emptyCell = document.createElement('div'); emptyCell.classList.add('day-cell', 'empty'); daysContainer.appendChild(emptyCell);
             }
-
             for (let day = 1; day <= totalDays; day++) {
-                const dayCell = document.createElement('div');
-                dayCell.classList.add('day-cell');
+                const dayCell = document.createElement('div'); dayCell.classList.add('day-cell');
                 const currentCellDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                
                 dayCell.innerHTML = `<div class="day-number">${day}</div>`;
                 if (records.some(r => r.date === currentCellDateStr)) {
-                    const dot = document.createElement('div');
-                    dot.classList.add('day-dot');
-                    dayCell.appendChild(dot);
+                    const dot = document.createElement('div'); dot.classList.add('day-dot'); dayCell.appendChild(dot);
                 }
-
                 if (currentCellDateStr === todayStr) dayCell.classList.add('today');
                 if (currentCellDateStr === selectedDateStr) dayCell.classList.add('selected');
-
                 dayCell.onclick = function() {
                     selectedDateStr = currentCellDateStr;
                     document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('selected'));
-                    dayCell.classList.add('selected');
-                    renderDayRecords();
+                    dayCell.classList.add('selected'); renderDayRecords();
                 };
                 daysContainer.appendChild(dayCell);
             }
         }
-
-        function selectCalendarDate() {
-            const y = parseInt(document.getElementById('select-cal-year').value);
-            const m = parseInt(document.getElementById('select-cal-month').value);
-            currentDate.setFullYear(y);
-            currentDate.setMonth(m);
+        window.selectCalendarDate = function() {
+            currentDate.setFullYear(parseInt(document.getElementById('select-cal-year').value));
+            currentDate.setMonth(parseInt(document.getElementById('select-cal-month').value));
             initCalendar();
         }
-
-        function changeMonth(direction) {
-            currentDate.setMonth(currentDate.getMonth() + direction);
-            initCalendar();
+        window.changeMonth = function(direction) {
+            currentDate.setMonth(currentDate.getMonth() + direction); initCalendar();
         }
-
         function renderDayRecords() {
-            const labelEl = document.getElementById('selected-date-label');
-            if(!labelEl) return;
-            const dateParts = selectedDateStr.split('-');
-            labelEl.innerText = `${dateParts[1]}月${dateParts[2]}日 收支紀錄 (點擊可修改)`;
-
+            const labelEl = document.getElementById('selected-date-label'); if(!labelEl) return;
+            const dateParts = selectedDateStr.split('-'); labelEl.innerText = `${dateParts[1]}月${dateParts[2]}日 收支紀錄 (點擊可修改)`;
             const dayRecords = records.filter(r => r.date === selectedDateStr);
-            const listContainer = document.getElementById('day-record-list');
-            if(!listContainer) return;
+            const listContainer = document.getElementById('day-record-list'); if(!listContainer) return;
             listContainer.innerHTML = '';
-
-            if (dayRecords.length === 0) {
-                listContainer.innerHTML = '<li class="no-data">今日尚無收支紀錄清單</li>';
-                return;
-            }
-
+            if (dayRecords.length === 0) { listContainer.innerHTML = '<li class="no-data">今日尚無收支紀錄清單</li>'; return; }
             dayRecords.forEach(rec => {
-                const li = document.createElement('li');
-                li.classList.add('record-item');
-                li.setAttribute('onclick', `openEditModal('${rec.id}', event)`);
-                const isInc = rec.type === '收入';
-                const typeClass = isInc ? 'inc' : 'exp';
-
+                const li = document.createElement('li'); li.classList.add('record-item'); li.setAttribute('onclick', `openEditModal('${rec.id}', event)`);
+                const isInc = rec.type === '收入'; const typeClass = isInc ? 'inc' : 'exp';
                 const displayName = isInc ? (rec.custName ? rec.custName : '無名客') : '店鋪';
-
                 li.innerHTML = `
                     <div class="rec-top">
-                        <div>
-                            <span class="type-tag ${typeClass}">${rec.type}</span>
-                            <span style="font-weight:600;">${escapeHtml(displayName)}</span>
-                        </div>
-                        <div>
-                            <span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span>
-                            <button class="btn-delete" onclick="deleteRecord('${rec.id}', 'day', event)">🗑️</button>
-                        </div>
+                        <div><span class="type-tag ${typeClass}">${rec.type}</span><span style="font-weight:600;">${escapeHtml(displayName)}</span></div>
+                        <div><span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span><button class="btn-delete" onclick="deleteRecord('${rec.id}', 'day', event)">🗑️</button></div>
                     </div>
                     <div class="rec-mid">項目: ${escapeHtml(rec.project)}</div>
-                    ${isInc ? `
                     <div class="rec-bot">
-                        <span>${rec.depositType || '儲值金'}餘額: ${formatDepositDisplay(rec.deposit, rec.depositType)}</span>
+                        ${isInc ? `<span>${rec.depositType || '儲值金'}餘額: ${formatDepositDisplay(rec.deposit, rec.depositType)}</span>` : ''}
                         ${rec.note ? `<span style="margin-left:10px;">📝 ${escapeHtml(rec.note)}</span>` : ''}
-                    </div>
-                    ` : `
-                    <div class="rec-bot">
-                        ${rec.note ? `<span>📝 ${escapeHtml(rec.note)}</span>` : ''}
-                    </div>
-                    `}
-                `;
+                    </div>`;
                 listContainer.appendChild(li);
             });
         }
-
-        function addRecord() {
+        window.addRecord = async function() {
             const type = document.getElementById('add-type').value;
             const custName = type === '收入' ? document.getElementById('add-cust-name').value.trim() : '';
             const depositType = type === '收入' ? document.getElementById('add-deposit-type').value : '儲值金';
             const depositInput = type === '收入' ? document.getElementById('add-deposit').value.trim() : '';
-            
             const project = document.getElementById('add-project').value.trim() || (type === '收入' ? '美睫服務' : '日常開銷');
             const amountInput = document.getElementById('add-amount').value.trim();
-            const amount = parseInt(amountInput);
-            const note = document.getElementById('add-note').value.trim();
+            const amount = parseInt(amountInput); const note = document.getElementById('add-note').value.trim();
+            if (amountInput === '' || isNaN(amount) || amount < 0) return alert('請輸入有效的金額數字');
 
-            if (amountInput === '' || isNaN(amount) || amount < 0) {
-                alert('請輸入有效的金額數字 (可為 0)');
-                return;
-            }
-
-            const newRecord = {
+            records.push({
                 id: 'id_' + Date.now() + Math.random().toString(36).substr(2, 4),
-                date: selectedDateStr,
-                type: type,
-                custName: custName,
-                project: project,
-                amount: amount,
-                depositType: depositType,
-                deposit: depositInput !== '' ? parseInt(depositInput) : '',
-                note: note
-            };
-
-            records.push(newRecord);
-            if (type === '收入' && custName && !customerCRM[custName]) {
-                customerCRM[custName] = { phone: '', birthday: '', note: '' };
-            }
-            saveData();
-
-            document.getElementById('add-cust-name').value = '';
-            document.getElementById('add-project').value = '';
-            document.getElementById('add-amount').value = '';
-            document.getElementById('add-deposit').value = '';
-            document.getElementById('add-note').value = '';
-
-            initCalendar();
-            renderDayRecords();
-            renderReports();
-            renderCustomerPage();
+                date: selectedDateStr, type: type, custName: custName, project: project, amount: amount,
+                depositType: depositType, deposit: depositInput !== '' ? parseInt(depositInput) : '', note: note
+            });
+            if (type === '收入' && custName && !customerCRM[custName]) customerCRM[custName] = { phone: '', birthday: '', note: '' };
+            
+            await saveCloudData();
+            document.getElementById('add-cust-name').value = ''; document.getElementById('add-project').value = '';
+            document.getElementById('add-amount').value = ''; document.getElementById('add-deposit').value = ''; document.getElementById('add-note').value = '';
+            initCalendar(); renderDayRecords(); renderReports(); renderCustomerPage();
         }
-
-        function deleteRecord(id, pageSource, event) {
+        window.deleteRecord = async function(id, pageSource, event) {
             if(event) event.stopPropagation();
             if(confirm('❌確定要刪除這筆紀錄嗎？')) {
                 records = records.filter(r => r.id !== id);
-                saveData();
-                initCalendar();
-                renderDayRecords();
-                renderReports();
-                renderCustomerPage();
+                await saveCloudData();
+                initCalendar(); renderDayRecords(); renderReports(); renderCustomerPage();
                 if (pageSource === 'all') renderAllRecords();
             }
         }
-
-        // ==================== 頁面 2: 總紀錄 ====================
-        function renderAllRecords() {
-            const container = document.getElementById('all-records-container');
-            if(!container) return;
-            const searchKey = document.getElementById('search-input').value.toLowerCase().trim();
-            container.innerHTML = '';
-
-            let filtered = records.filter(r => 
-                r.project.toLowerCase().includes(searchKey) || 
-                (r.custName && r.custName.toLowerCase().includes(searchKey)) ||
-                (r.note && r.note.toLowerCase().includes(searchKey)) ||
-                (!r.custName && '店鋪'.includes(searchKey) && r.type === '支出')
-            );
-
-            if (filtered.length === 0) {
-                container.innerHTML = '<div class="no-data">找不到相關紀錄</div>';
-                return;
-            }
-
+        window.renderAllRecords = function() {
+            const container = document.getElementById('all-records-container'); if(!container) return;
+            const searchKey = document.getElementById('search-input').value.toLowerCase().trim(); container.innerHTML = '';
+            let filtered = records.filter(r => r.project.toLowerCase().includes(searchKey) || (r.custName && r.custName.toLowerCase().includes(searchKey)) || (r.note && r.note.toLowerCase().includes(searchKey)));
+            if (filtered.length === 0) { container.innerHTML = '<div class="no-data">找不到相關紀錄</div>'; return; }
             filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
-            let currentGroupDate = "";
-            let currentGroupDiv = null;
-
+            let currentGroupDate = ""; let currentGroupDiv = null;
             filtered.forEach(rec => {
                 if (rec.date !== currentGroupDate) {
-                    currentGroupDate = rec.date;
-                    const groupWrapper = document.createElement('div');
-                    const dateTitle = document.createElement('div');
-                    dateTitle.classList.add('date-group-title');
-                    dateTitle.innerText = rec.date;
-                    groupWrapper.appendChild(dateTitle);
-                    container.appendChild(groupWrapper);
-                    currentGroupDiv = groupWrapper;
+                    currentGroupDate = rec.date; currentGroupDiv = document.createElement('div');
+                    let dT = document.createElement('div'); dT.classList.add('date-group-title'); dT.innerText = rec.date;
+                    currentGroupDiv.appendChild(dT); container.appendChild(currentGroupDiv);
                 }
-
-                const item = document.createElement('div');
-                item.classList.add('record-item');
-                item.setAttribute('onclick', `openEditModal('${rec.id}', event)`);
-                const isInc = rec.type === '收入';
-                const typeClass = isInc ? 'inc' : 'exp';
-                
-                const displayName = isInc ? (rec.custName ? rec.custName : '無名客') : '店鋪';
-                
+                let item = document.createElement('div'); item.classList.add('record-item'); item.setAttribute('onclick', `openEditModal('${rec.id}', event)`);
+                let isInc = rec.type === '收入'; let typeClass = isInc ? 'inc' : 'exp';
                 item.innerHTML = `
                     <div class="rec-top">
-                        <div><span class="type-tag ${typeClass}">${rec.type}</span><span style="font-weight:600;">${escapeHtml(displayName)}</span></div>
+                        <div><span class="type-tag ${typeClass}">${rec.type}</span><span style="font-weight:600;">${escapeHtml(isInc ? rec.custName : '店鋪')}</span></div>
                         <div><span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span><button class="btn-delete" onclick="deleteRecord('${rec.id}', 'all', event)">🗑️</button></div>
                     </div>
-                    <div class="rec-mid">項目: ${escapeHtml(rec.project)}</div>
-                    ${isInc ? `
-                    <div class="rec-bot"><span>${rec.depositType || '儲值金'}: ${formatDepositDisplay(rec.deposit, rec.depositType)}</span>${rec.note ? `<span style="margin-left:10px;">📝 ${escapeHtml(rec.note)}</span>` : ''}</div>
-                    ` : `
-                    <div class="rec-bot">${rec.note ? `<span>📝 ${escapeHtml(rec.note)}</span>` : ''}</div>
-                    `}
-                `;
+                    <div class="rec-mid">項目: ${escapeHtml(rec.project)}</div>`;
                 currentGroupDiv.appendChild(item);
             });
         }
-
-        // ==================== 頁面 3: 報表核心邏輯 ====================
-        function renderReports() {
-            const yearSel = document.getElementById('report-year-select');
-            const monthSel = document.getElementById('report-month-select');
+        window.renderReports = function() {
+            const yearSel = document.getElementById('report-year-select'); const monthSel = document.getElementById('report-month-select');
             if(!yearSel || !monthSel) return;
-
-            const selectedYear = parseInt(yearSel.value);
-            const selectedMonthVal = monthSel.value;
-            
+            const selectedYear = parseInt(yearSel.value); const selectedMonthVal = monthSel.value;
             const scopeLabel = document.getElementById('report-scope-label');
-            if(scopeLabel) {
-                if (selectedMonthVal === 'all') {
-                    scopeLabel.innerText = `${selectedYear} 全年度總覽`;
-                } else {
-                    scopeLabel.innerText = `${selectedYear} 年 ${parseInt(selectedMonthVal) + 1} 月 統計`;
-                }
-            }
-
-            const filteredRecords = records.filter(r => {
-                const d = new Date(r.date);
-                if (d.getFullYear() !== selectedYear) return false;
-                if (selectedMonthVal !== 'all' && d.getMonth() !== parseInt(selectedMonthVal)) return false;
-                return true;
-            });
-
-            let totalIncome = 0; 
-            let totalExpense = 0; 
-            let projectRanking = {};
-
-            filteredRecords.forEach(r => {
-                if (r.type === '收入') {
-                    totalIncome += r.amount;
-                    projectRanking[r.project] = (projectRanking[r.project] || 0) + r.amount;
-                } else { 
-                    totalExpense += r.amount; 
-                }
-            });
-
-            document.getElementById('rep-total-income').innerText = `$${totalIncome.toLocaleString()}`;
-            document.getElementById('rep-total-expense').innerText = `$${totalExpense.toLocaleString()}`;
-            
-            const netProfit = totalIncome - totalExpense;
-            const netProfitEl = document.getElementById('rep-net-profit');
-            if(netProfitEl) {
-                netProfitEl.innerText = `${netProfit >= 0 ? '' : '-'}$${Math.abs(netProfit).toLocaleString()}`;
-                netProfitEl.style.color = netProfit >= 0 ? 'var(--income-green)' : 'var(--expense-red)';
-            }
-
-            const rankingContainer = document.getElementById('income-ranking-container');
+            if(scopeLabel) scopeLabel.innerText = selectedMonthVal === 'all' ? `${selectedYear} 全年度總覽` : `${selectedYear} 年 ${parseInt(selectedMonthVal) + 1} 月 統計`;
+            const filtered = records.filter(r => { let d = new Date(r.date); return d.getFullYear() === selectedYear && (selectedMonthVal === 'all' || d.getMonth() === parseInt(selectedMonthVal)); });
+            let inc = 0, exp = 0, rank = {};
+            filtered.forEach(r => { if (r.type === '收入') { inc += r.amount; rank[r.project] = (rank[r.project] || 0) + r.amount; } else { exp += r.amount; } });
+            document.getElementById('rep-total-income').innerText = `$${inc.toLocaleString()}`;
+            document.getElementById('rep-total-expense').innerText = `$${exp.toLocaleString()}`;
+            let net = inc - exp; let netEl = document.getElementById('rep-net-profit');
+            if(netEl) { netEl.innerText = `$${net.toLocaleString()}`; netEl.style.color = net >= 0 ? 'var(--income-green)' : 'var(--expense-red)'; }
+            // 項目排行
+            let rankingContainer = document.getElementById('income-ranking-container');
             if(rankingContainer) {
                 rankingContainer.innerHTML = '';
-                const sortedRank = Object.keys(projectRanking).map(key => {
-                    return { project: key, amount: projectRanking[key] };
-                }).sort((a, b) => b.amount - a.amount);
-
-                if(sortedRank.length === 0) {
-                    rankingContainer.innerHTML = '<p class="no-data">此區間尚無收入項目明細</p>';
-                } else {
-                    const maxAmount = sortedRank[0].amount;
-                    sortedRank.forEach((item, index) => {
-                        const percentage = maxAmount > 0 ? (item.amount / maxAmount) * 100 : 0;
-                        const rankRow = document.createElement('div');
-                        rankRow.style.marginBottom = '12px';
-                        rankRow.innerHTML = `
-                            <div style="display:flex; justify-content:space-between; font-size:13px;">
-                                <span>${index + 1}. ${escapeHtml(item.project)}</span>
-                                <span style="font-weight:600;">$${item.amount.toLocaleString()}</span>
-                            </div>
-                            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${percentage}%"></div></div>
-                        `;
-                        rankingContainer.appendChild(rankRow);
+                let sorted = Object.keys(rank).map(k => ({project: k, amount: rank[k]})).sort((a,b) => b.amount - a.amount);
+                if(!sorted.length) { rankingContainer.innerHTML = '<p class="no-data">此區間尚無收入</p>'; }
+                else {
+                    let max = sorted[0].amount;
+                    sorted.forEach((item, index) => {
+                        let row = document.createElement('div'); row.style.marginBottom = '12px';
+                        row.innerHTML = `<div style="display:flex; justify-content:space-between; font-size:13px;"><span>${index + 1}. ${escapeHtml(item.project)}</span><strong>$${item.amount.toLocaleString()}</strong></div>
+                                         <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${(item.amount/max)*100}%"></div></div>`;
+                        rankingContainer.appendChild(row);
                     });
                 }
             }
-
-            if (currentReportDetailFilter) {
-                renderReportDetailList(filteredRecords, currentReportDetailFilter);
-            }
+            if (currentReportDetailFilter) renderReportDetailList(filtered, currentReportDetailFilter);
         }
-
-        function toggleReportDetailFilter(type) {
-            const incCard = document.getElementById('card-inc-trigger');
-            const expCard = document.getElementById('card-exp-trigger');
-
-            if (currentReportDetailFilter === type) {
-                closeReportDetail();
-                return;
-            }
-
-            currentReportDetailFilter = type;
-            document.getElementById('report-detail-box-container').style.display = 'block';
-            document.getElementById('report-detail-type-label').innerText = `📊 區間【${type}】項目項目合計統整`;
-
-            if (type === '收入') {
-                if(incCard) incCard.classList.add('active-filter');
-                if(expCard) expCard.classList.remove('active-filter');
-            } else {
-                if(expCard) expCard.classList.add('active-filter');
-                if(incCard) incCard.classList.remove('active-filter');
-            }
-
-            const selectedYear = parseInt(document.getElementById('report-year-select').value);
-            const selectedMonthVal = document.getElementById('report-month-select').value;
-            const filteredRecords = records.filter(r => {
-                const d = new Date(r.date);
-                if (d.getFullYear() !== selectedYear) return false;
-                if (selectedMonthVal !== 'all' && d.getMonth() !== parseInt(selectedMonthVal)) return false;
-                return true;
-            });
-
-            renderReportDetailList(filteredRecords, type);
+        window.toggleReportDetailFilter = function(type) {
+            if (currentReportDetailFilter === type) { closeReportDetail(); return; }
+            currentReportDetailFilter = type; document.getElementById('report-detail-box-container').style.display = 'block';
+            document.getElementById('report-detail-type-label').innerText = `📊 區間【${type}】項目合計統整`;
+            renderReports();
         }
-
-        function closeReportDetail() {
-            currentReportDetailFilter = '';
-            const detailBox = document.getElementById('report-detail-box-container');
-            if(detailBox) detailBox.style.display = 'none';
-            
-            const incCard = document.getElementById('card-inc-trigger');
-            const expCard = document.getElementById('card-exp-trigger');
-            if(incCard) incCard.classList.remove('active-filter');
-            if(expCard) expCard.classList.remove('active-filter');
+        window.closeReportDetail = function() {
+            currentReportDetailFilter = ''; let el = document.getElementById('report-detail-box-container'); if(el) el.style.display = 'none';
         }
-
         function renderReportDetailList(scopedRecords, type) {
-            const listWrapper = document.getElementById('report-detail-list-wrapper');
-            if(!listWrapper) return;
-            listWrapper.innerHTML = '';
-
-            const targetRecords = scopedRecords.filter(r => r.type === type);
-            if (targetRecords.length === 0) {
-                listWrapper.innerHTML = `<div class="no-data">該區間內尚無${type}項目數據</div>`;
-                return;
-            }
-
-            let projectSummary = {};
-            targetRecords.forEach(rec => {
-                let pName = rec.project.trim() || (type === '收入' ? '未命名收入' : '未命名支出');
-                projectSummary[pName] = (projectSummary[pName] || 0) + rec.amount;
-            });
-
-            let sortedSummary = Object.keys(projectSummary).map(key => {
-                return { project: key, totalAmount: projectSummary[key] };
-            }).sort((a, b) => b.totalAmount - a.totalAmount);
-
-            sortedSummary.forEach(item => {
-                const row = document.createElement('div');
-                row.classList.add('report-summary-item');
-                
-                const isInc = type === '收入';
-                const sign = isInc ? '+' : '-';
-                const colorStyle = isInc ? 'color: var(--income-green);' : 'color: var(--expense-red);';
-
-                row.innerHTML = `
-                    <span style="font-weight: 500; color: var(--text-dark);">${escapeHtml(item.project)}</span>
-                    <span style="font-weight: 600; ${colorStyle}">${sign}$${item.totalAmount.toLocaleString()}</span>
-                `;
+            const listWrapper = document.getElementById('report-detail-list-wrapper'); if(!listWrapper) return; listWrapper.innerHTML = '';
+            const targets = scopedRecords.filter(r => r.type === type);
+            if (!targets.length) { listWrapper.innerHTML = '<div class="no-data">無數據</div>'; return; }
+            let sum = {}; targets.forEach(r => { let p = r.project.trim() || '未命名'; sum[p] = (sum[p] || 0) + r.amount; });
+            Object.keys(sum).sort((a,b) => sum[b] - sum[a]).forEach(k => {
+                let row = document.createElement('div'); row.classList.add('report-summary-item');
+                row.innerHTML = `<span>${escapeHtml(k)}</span><span style="color:${type==='收入'?'var(--income-green)':'var(--delete-red)'}">${type==='收入'?'+':'-'}$${sum[k].toLocaleString()}</span>`;
                 listWrapper.appendChild(row);
             });
         }
-
-        // ==================== 頁面 4: 客戶資料核心修改邏輯 ====================
-        function renderCustomerPage() {
+        window.renderCustomerPage = function() {
             const thisMonth = new Date().getMonth() + 1;
-            const mTitleEl = document.getElementById('current-month-title');
-            if(mTitleEl) mTitleEl.innerText = thisMonth;
-
-            const container = document.getElementById('customers-container');
-            if(!container) return;
-            
-            const searchInputEl = document.getElementById('cust-search-input');
-            const searchKey = searchInputEl ? searchInputEl.value.trim().toLowerCase() : '';
-            container.innerHTML = '';
-
+            let mTitleEl = document.getElementById('current-month-title'); if(mTitleEl) mTitleEl.innerText = thisMonth;
+            const container = document.getElementById('customers-container'); if(!container) return;
+            const searchKey = document.getElementById('cust-search-input')?.value.trim().toLowerCase() || ''; container.innerHTML = '';
             let customerMap = {};
-            
+
             records.forEach(r => {
                 if (r.type === '支出' || !r.custName) return;
-                const name = r.custName.trim();
-                if (searchKey && !name.toLowerCase().includes(searchKey)) return;
-
+                const name = r.custName.trim(); if (searchKey && !name.toLowerCase().includes(searchKey)) return;
                 if (!customerMap[name]) {
-                    const crmData = customerCRM[name] || { phone: '', birthday: '', note: '' };
-                    customerMap[name] = {
-                        name: name,
-                        phone: crmData.phone || '',
-                        birthday: crmData.birthday || '',
-                        note: crmData.note || '', 
-                        visitCount: 0,
-                        totalSpent: 0, 
-                        latestDepositLabel: '剩餘資產',
-                        latestDepositValue: '未記錄',
-                        latestDepositTime: 0,
-                        history: []
-                    };
+                    let crmData = customerCRM[name] || { phone: '', birthday: '', note: '' };
+                    customerMap[name] = { name: name, phone: crmData.phone||'', birthday: crmData.birthday||'', note: crmData.note||'', visitCount: 0, totalSpent: 0, latestDepositLabel: '剩餘資產', latestDepositValue: '未記錄', latestDepositTime: 0, history: [] };
                 }
-
-                customerMap[name].visitCount++;
-                customerMap[name].totalSpent += r.amount; 
-                customerMap[name].history.push(r);
-
-                const recordTime = new Date(r.date).getTime();
+                customerMap[name].visitCount++; customerMap[name].totalSpent += r.amount; customerMap[name].history.push(r);
+                let recordTime = new Date(r.date).getTime();
                 if (r.deposit !== '' && recordTime >= customerMap[name].latestDepositTime) {
-                    customerMap[name].latestDepositLabel = r.depositType || '儲值金';
-                    customerMap[name].latestDepositValue = formatDepositDisplay(r.deposit, r.depositType);
-                    customerMap[name].latestDepositTime = recordTime;
+                    customerMap[name].latestDepositLabel = r.depositType || '儲值金'; customerMap[name].latestDepositValue = formatDepositDisplay(r.deposit, r.depositType); customerMap[name].latestDepositTime = recordTime;
                 }
             });
-
             Object.keys(customerCRM).forEach(name => {
                 if (searchKey && !name.toLowerCase().includes(searchKey)) return;
-                if (!customerMap[name]) {
-                    customerMap[name] = {
-                        name: name,
-                        phone: customerCRM[name].phone || '',
-                        birthday: customerCRM[name].birthday || '',
-                        note: customerCRM[name].note || '',
-                        visitCount: 0,
-                        totalSpent: 0, 
-                        latestDepositLabel: '儲值餘額',
-                        latestDepositValue: '未記錄',
-                        history: []
-                    };
-                }
+                if (!customerMap[name]) customerMap[name] = { name: name, phone: customerCRM[name].phone||'', birthday: customerCRM[name].birthday||'', note: customerCRM[name].note||'', visitCount: 0, totalSpent: 0, latestDepositLabel: '儲值餘額', latestDepositValue: '未記錄', history: [] };
             });
-
-            const customers = Object.values(customerMap);
-
-            const birthdayContainer = document.getElementById('birthday-list-container');
+            let customers = Object.values(customerMap);
+            // 壽星提醒
+            let birthdayContainer = document.getElementById('birthday-list-container');
             if(birthdayContainer) {
-                birthdayContainer.innerHTML = '';
-                let birthdayCount = 0;
-                customers.forEach(cust => {
-                    if (cust.birthday && cust.birthday.length === 4) {
-                        const mPart = parseInt(cust.birthday.substring(0, 2), 10);
-                        if (mPart === thisMonth) {
-                            birthdayCount++;
-                            const formattedBirthDisplay = `${cust.birthday.substring(0,2)}月${cust.birthday.substring(2,4)}日`;
-                            const li = document.createElement('li');
-                            li.innerHTML = `🎉 <strong>${escapeHtml(cust.name)}</strong> (${formattedBirthDisplay}) ${cust.phone ? ` 📞 ${escapeHtml(cust.phone)}` : ''}`;
-                            birthdayContainer.appendChild(li);
-                        }
+                birthdayContainer.innerHTML = ''; let bCount = 0;
+                customers.forEach(c => {
+                    if (c.birthday && c.birthday.length === 4 && parseInt(c.birthday.substring(0,2)) === thisMonth) {
+                        bCount++; let li = document.createElement('li'); li.innerHTML = `🎉 <strong>${escapeHtml(c.name)}</strong> (${c.birthday.substring(0,2)}月${c.birthday.substring(2,4)}日) ${c.phone ? `📞 ${escapeHtml(c.phone)}` : ''}`; birthdayContainer.appendChild(li);
                     }
                 });
-                if (birthdayCount === 0) {
-                    birthdayContainer.innerHTML = '<li>本月暫無壽星顧客記錄</li>';
-                }
+                if(!bCount) birthdayContainer.innerHTML = '<li>本月暫無壽星顧客記錄</li>';
             }
-
-            if (customers.length === 0) {
-                container.innerHTML = '<div class="no-data">暫無符合條件的客戶資料</div>';
-                return;
-            }
-
-            customers.sort((a, b) => a.name.localeCompare(b.name, 'zh-Hans-CN'));
-
+            if (!customers.length) { container.innerHTML = '<div class="no-data">暫無客戶資料</div>'; return; }
+            customers.sort((a,b) => a.name.localeCompare(b.name, 'zh-Hans-CN'));
             customers.forEach(cust => {
-                const card = document.createElement('div');
-                card.classList.add('customer-card');
-
-                cust.history.sort((a, b) => new Date(b.date) - new Date(a.date));
-                let historyHtml = cust.history.map(h => `
-                    <div style="border-top:1px dashed rgba(227,213,202,0.3); padding-top:4px; margin-top:4px;">
-                        <span style="color:var(--text-muted);">${h.date}</span> | <span>${escapeHtml(h.project)}</span> 
-                        <span style="font-weight:600; color:${h.type==='收入'?'var(--income-green)':'var(--expense-red)'};">(${h.type==='收入'?'+':'-'}$${h.amount})</span>
-                    </div>
-                `).join('');
-
-                let birthDisplay = '未填寫';
-                if(cust.birthday && cust.birthday.length === 4) {
-                    birthDisplay = `${cust.birthday.substring(0,2)} / ${cust.birthday.substring(2,4)}`;
-                }
-
+                let card = document.createElement('div'); card.classList.add('customer-card');
+                cust.history.sort((a,b) => new Date(b.date) - new Date(a.date));
+                let hHtml = cust.history.map(h => `<div style="border-top:1px dashed rgba(227,213,202,0.3); padding-top:4px; margin-top:4px;"><span style="color:var(--text-muted);">${h.date}</span> | <span>${escapeHtml(h.project)}</span> <strong style="color:${h.type==='收入'?'var(--income-green)':'var(--delete-red)'}">($${h.amount})</strong></div>`).join('');
                 card.innerHTML = `
                     <div class="customer-card-header" onclick="toggleCard(this.parentNode)">
                         <span class="customer-name">👤 ${escapeHtml(cust.name)}</span>
-                        <div class="customer-header-right">
-                            <span class="customer-deposit">${cust.latestDepositLabel}: ${cust.latestDepositValue}</span>
-                            <span class="customer-total-spent">累積消費: $${cust.totalSpent.toLocaleString()}</span>
-                        </div>
+                        <div class="customer-header-right"><span class="customer-deposit">${cust.latestDepositLabel}: ${cust.latestDepositValue}</span><span class="customer-total-spent">累積消費: $${cust.totalSpent.toLocaleString()}</span></div>
                     </div>
                     <div onclick="toggleCard(this.parentNode)">
                         <div class="customer-detail-row">📞 電話: ${cust.phone ? escapeHtml(cust.phone) : '未填寫'}</div>
-                        <div class="customer-detail-row">🎂 生日: ${birthDisplay}</div>
+                        <div class="customer-detail-row">🎂 生日: ${cust.birthday ? cust.birthday.substring(0,2)+'/'+cust.birthday.substring(2,4) : '未填寫'}</div>
                         <div class="customer-note-highlight">📝 備註：${cust.note ? escapeHtml(cust.note) : '無備註紀錄'}</div>
-                        <div class="customer-detail-row" style="margin-top: 2px;">累積消費次數: <strong>${cust.visitCount}</strong> 次</div>
                     </div>
-                    
                     <div class="customer-expanded-zone">
                         <div class="edit-crm-group" onclick="event.stopPropagation()">
                             <div class="edit-crm-title">✏️ 編輯客戶資料</div>
-                            <div style="margin-bottom:6px;">
-                                <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:2px;">修改姓名</label>
-                                <input type="text" id="edit-name-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; padding:6px; font-size:12px;" placeholder="姓名" value="${escapeHtml(cust.name)}">
-                            </div>
+                            <input type="text" id="edit-name-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; margin-bottom:6px;" value="${escapeHtml(cust.name)}">
                             <div style="display:flex; gap:6px; margin-bottom:6px;">
-                                <div style="flex:1;">
-                                    <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:2px;">手機號碼</label>
-                                    <input type="tel" id="edit-phone-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; padding:6px; font-size:12px;" placeholder="手機號碼" value="${escapeHtml(cust.phone)}">
-                                </div>
-                                <div style="flex:1;">
-                                    <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:2px;">生日4碼 (如0529)</label>
-                                    <input type="number" id="edit-birth-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; padding:6px; font-size:12px;" placeholder="例如0529" inputmode="numeric" value="${escapeHtml(cust.birthday)}">
-                                </div>
+                                <input type="tel" id="edit-phone-${escapeHtml(cust.name)}" class="input-style" style="background:#fff;" value="${escapeHtml(cust.phone)}" placeholder="手機">
+                                <input type="number" id="edit-birth-${escapeHtml(cust.name)}" class="input-style" style="background:#fff;" value="${escapeHtml(cust.birthday)}" placeholder="生日4碼">
                             </div>
-                            <div style="margin-bottom:6px;">
-                                <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:2px;">專屬備註</label>
-                                <input type="text" id="edit-note-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; padding:6px; font-size:12px;" placeholder="輸入客戶專屬備註（如喜好、捲度等）" value="${escapeHtml(cust.note)}">
-                            </div>
-                            
+                            <input type="text" id="edit-note-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; margin-bottom:6px;" value="${escapeHtml(cust.note)}" placeholder="備註">
                             <div class="crm-action-row">
                                 <button class="btn-mini-delete" onclick="deleteCustomerData('${escapeHtml(cust.name)}')">🗑️ 刪除客戶</button>
                                 <button class="btn-mini-save" onclick="saveCRMData('${escapeHtml(cust.name)}')">💾 儲存修改</button>
                             </div>
-                            <div style="clear:both;"></div>
                         </div>
-                        <div style="margin-top:8px;">
-                            <p style="font-size:11px; font-weight:600; color:var(--text-muted);">歷史到店明細：</p>
-                            <div style="max-height:90px; overflow-y:auto; font-size:12px;">
-                                ${historyHtml || '<span style="color:var(--text-muted)">無消費明細</span>'}
-                            </div>
-                        </div>
-                    </div>
-                `;
+                        <div style="max-height:90px; overflow-y:auto; font-size:12px;">${hHtml || '無消費明細'}</div>
+                    </div>`;
                 container.appendChild(card);
             });
         }
-
-        function toggleCard(cardElement) {
-            const isOpen = cardElement.classList.contains('open');
+        window.toggleCard = function(cardElement) {
+            let isOpen = cardElement.classList.contains('open');
             document.querySelectorAll('.customer-card').forEach(c => c.classList.remove('open'));
             if (!isOpen) cardElement.classList.add('open');
         }
-
-        function saveCRMData(oldName) {
+        window.saveCRMData = async function(oldName) {
             const newName = document.getElementById(`edit-name-${oldName}`).value.trim();
             const phoneVal = document.getElementById(`edit-phone-${oldName}`).value.trim();
             const birthVal = document.getElementById(`edit-birth-${oldName}`).value.trim();
             const noteVal = document.getElementById(`edit-note-${oldName}`).value.trim();
-
-            if (!newName) {
-                alert('客戶姓名不能留空！');
-                return;
-            }
-
-            if (birthVal && birthVal.length !== 4) {
-                alert('生日格式錯誤！請輸入 4 碼數字，例如 0529。');
-                return;
-            }
+            if (!newName) return alert('姓名不能留空');
+            if (birthVal && birthVal.length !== 4) return alert('生日請輸入 4 碼數字');
 
             if (oldName !== newName) {
-                records.forEach(r => {
-                    if (r.custName && r.custName.trim() === oldName) {
-                        r.custName = newName;
-                    }
-                });
-
-                customerCRM[newName] = {
-                    phone: phoneVal,
-                    birthday: birthVal,
-                    note: noteVal
-                };
+                records.forEach(r => { if (r.custName && r.custName.trim() === oldName) r.custName = newName; });
+                customerCRM[newName] = { phone: phoneVal, birthday: birthVal, note: noteVal };
                 delete customerCRM[oldName];
             } else {
-                if (!customerCRM[oldName]) customerCRM[oldName] = {};
-                customerCRM[oldName].phone = phoneVal;
-                customerCRM[oldName].birthday = birthVal;
-                customerCRM[oldName].note = noteVal;
+                customerCRM[oldName] = { phone: phoneVal, birthday: birthVal, note: noteVal };
             }
-
-            saveData();
-            alert(`資料已成功同步更新！`);
-            renderCustomerPage();
+            await saveCloudData();
+            alert(`資料已成功同步更新！`); renderCustomerPage();
         }
-
-        function deleteCustomerData(name) {
-            if (confirm(`確定要刪除客戶「${name}」的基礎資料嗎？\n(注意：此動作不會刪除月曆或總紀錄中的歷史帳目資料)`)) {
-                if (customerCRM[name]) {
-                    delete customerCRM[name];
-                }
-                saveData();
-                alert(`客戶「${name}」的基礎資料已刪除！`);
-                renderCustomerPage();
+        window.deleteCustomerData = async function(name) {
+            if (confirm(`確定要刪除客戶「${name}」的基礎資料嗎？`)) {
+                if (customerCRM[name]) delete customerCRM[name];
+                await saveCloudData(); renderCustomerPage();
             }
         }
     </script>
