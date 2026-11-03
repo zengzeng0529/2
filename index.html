@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MUMU POCKET | 美睫記帳、報價與進階報表CRM系統</title>
+    <title>MUMU POCKET | 美睫記帳、報價與進階帳本CRM系統</title>
     <style>
         /* --- 韓系奶油風 變數設定 --- */
         :root {
@@ -23,7 +23,6 @@
             --price-accent: #bc6c25;    
         }
 
-        /* --- 全局樣式 --- */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -163,7 +162,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* --- 頁面容器切換 --- */
         .page {
             display: none;
             max-width: 500px;
@@ -175,7 +173,6 @@
             display: block;
         }
 
-        /* --- 圓弧卡片方框通用樣式 --- */
         .card-box {
             background-color: var(--pure-white);
             border-radius: 24px;
@@ -283,7 +280,6 @@
             z-index: 3;
         }
 
-        /* 表單進階排版 */
         .form-group {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -310,7 +306,8 @@
         .quick-tag-wrapper {
             grid-column: 1 / -1;
             display: flex;
-            gap: 6px;
+            flex-wrap: wrap;
+            gap: 5px;
             margin-top: -2px;
             margin-bottom: 2px;
         }
@@ -319,7 +316,7 @@
             color: var(--text-dark);
             font-size: 11px;
             font-weight: 500;
-            padding: 4px 10px;
+            padding: 4px 8px;
             border-radius: 8px;
             cursor: pointer;
             border: 1px solid rgba(227, 213, 202, 0.5);
@@ -342,7 +339,6 @@
             margin-top: 5px;
         }
 
-        /* 條列式明細樣式 */
         .record-list { list-style: none; }
         .record-item {
             border-bottom: 1px solid rgba(227, 213, 202, 0.2);
@@ -379,7 +375,6 @@
 
         .btn-delete { background: none; border: none; cursor: pointer; font-size: 16px; padding: 0 5px 0 10px; z-index: 10; position: relative; }
 
-        /* ==================== 通用搜尋列與滾動框 ==================== */
         .search-container { display: flex; gap: 8px; margin-bottom: 15px; }
         .search-bar {
             flex: 1; border: 1px solid var(--accent-latte); border-radius: 12px;
@@ -396,7 +391,7 @@
             background-color: var(--main-butter); padding: 2px 8px; border-radius: 6px; display: inline-block;
         }
 
-        /* ==================== 頁面 3: 報表 ==================== */
+        /* ==================== 頁面 3: 帳本 ==================== */
         .report-filter-bar {
             display: flex;
             gap: 10px;
@@ -432,11 +427,6 @@
         .progress-bar-bg { background-color: var(--main-butter); height: 6px; border-radius: 3px; width: 100%; margin-top: 4px; overflow: hidden; }
         .progress-bar-fill { height: 100%; background-color: var(--text-muted); width: 0%; transition: width 0.5s ease; }
 
-        .report-detail-box {
-            margin-top: 15px;
-            border-top: 1px dashed var(--accent-latte);
-            padding-top: 15px;
-        }
         .report-detail-title {
             font-size: 14px; font-weight: bold; color: var(--text-dark); margin-bottom: 12px;
             display: flex; justify-content: space-between; align-items: center;
@@ -450,11 +440,9 @@
             border-bottom: 1px dashed rgba(227, 213, 202, 0.3);
             font-size: 14px;
         }
-        .report-summary-item:last-child {
-            border-bottom: none;
-        }
+        .report-summary-item:last-child { border-bottom: none; }
 
-        /* ==================== 彈出式編輯視窗 (Modal) ==================== */
+        /* ==================== 彈出式視窗 (Modal) ==================== */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -624,11 +612,27 @@
         .quote-option-label {
             flex-grow: 1;
             margin-left: 12px;
-            font-size: 14px;
+            font-size: 13px;
         }
-        .quote-option-price {
+        .quote-custom-name-input {
+            border: 1px solid var(--accent-latte);
+            border-radius: 6px;
+            padding: 3px 6px;
+            font-size: 13px;
+            width: 120px;
+            margin-right: 6px;
+            background: var(--bg-cream);
+        }
+        .quote-option-price-input {
+            border: 1px solid var(--accent-latte);
+            border-radius: 6px;
+            padding: 3px 6px;
+            font-size: 13px;
+            width: 75px;
             font-weight: bold;
             color: var(--price-accent);
+            text-align: right;
+            background: var(--bg-cream);
         }
         .quote-total-section {
             background-color: var(--main-butter);
@@ -702,11 +706,8 @@
             text-decoration: none;
             box-sizing: border-box;
         }
-        .btn-quote-booking:hover {
-            opacity: 0.9;
-        }
+        .btn-quote-booking:hover { opacity: 0.9; }
 
-        /* 🌟明細彈出視窗樣式 */
         .detail-modal-body {
             font-size: 13px;
             line-height: 1.6;
@@ -743,7 +744,7 @@
         <nav class="top-toolbar">
             <button class="nav-btn active" onclick="switchPage('calendar-page', this)">1. 月曆</button>
             <button class="nav-btn" onclick="switchPage('all-records-page', this)">2. 總紀錄</button>
-            <button class="nav-btn" onclick="switchPage('reports-page', this)">3. 報表</button>
+            <button class="nav-btn" onclick="switchPage('reports-page', this)">3. 帳本</button>
             <button class="nav-btn" onclick="switchPage('customers-page', this)">4. 客戶資料</button>
             <button class="nav-btn" onclick="switchPage('quote-page', this)">5. 報價</button>
         </nav>
@@ -791,12 +792,11 @@
                     </div>
 
                     <div class="form-group">
-                        <div style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                            <div class="quick-tag-wrapper">
-                                <span class="quick-tag" onclick="quickSelectProject('美睫')">＋ 美睫</span>
-                                <span class="quick-tag" onclick="quickSelectProject('睫毛管理')">＋ 睫毛管理</span>
+                        <div style="grid-column: 1 / -1;">
+                            <div class="quick-tag-wrapper" id="quick-tags-container">
+                                <!-- 動態載入快捷鍵 -->
                             </div>
-                            <input type="text" id="add-project" class="input-style" style="grid-column: 1 / -1;" placeholder="施作項目 或 自行填寫">
+                            <input type="text" id="add-project" class="input-style" style="margin-top:4px;" placeholder="施作項目 或 自行填寫">
                         </div>
                     </div>
 
@@ -849,11 +849,11 @@
 
             <div class="report-summary">
                 <div id="card-inc-trigger" class="summary-mini-card" onclick="toggleReportDetailFilter('收入')">
-                    <p>區間總收入 (點擊看項目統計)</p>
+                    <p>工作收入 (點擊看項目統計)</p>
                     <h3 id="rep-total-income" style="color: var(--income-green);">$0</h3>
                 </div>
                 <div id="card-exp-trigger" class="summary-mini-card" onclick="toggleReportDetailFilter('支出')">
-                    <p>區間總支出 (點擊看項目統計)</p>
+                    <p>工作支出 (點擊看項目統計)</p>
                     <h3 id="rep-total-expense" style="color: var(--expense-red);">$0</h3>
                 </div>
             </div>
@@ -868,7 +868,7 @@
 
             <div class="card-box">
                 <div class="card-title">
-                    <span>財務效益分析</span>
+                    <span>帳本效益分析</span>
                     <span id="report-scope-label" style="font-size:13px; color:var(--text-muted);"></span>
                 </div>
                 <div class="stat-row" style="margin-bottom: 20px;">
@@ -889,95 +889,97 @@
             </div>
 
             <div class="card-box">
-                <div class="card-title">客戶管理中心</div>
+                <div class="card-title">
+                    <span>客戶管理中心</span>
+                    <button class="quick-tag" style="background:var(--text-dark); color:#fff; font-size:12px; padding:6px 12px;" onclick="openAddCustomerModal()">＋ 新增客人</button>
+                </div>
                 <div class="search-container">
-                    <input type="text" id="cust-search-input" class="search-bar" placeholder="輸入客戶姓名搜尋...">
+                    <input type="text" id="cust-search-input" class="search-bar" placeholder="輸入姓名、電話或生日(例0529)搜尋...">
                     <button class="btn-search-icon" onclick="renderCustomerPage()">🔍</button>
                 </div>
                 <div id="customers-container" class="scroll-container"></div>
             </div>
         </main>
 
-        <!-- 💡 頁面 5: 報價與價目試算 -->
+        <!-- 💡 頁面 5: 互動式報價與價目試算 -->
         <main id="quote-page" class="page">
             <div class="card-box">
                 <div class="card-title" style="justify-content: center; font-size: 18px;">✨ MUMU STUDIO PRICE LIST ✨</div>
-                <div class="quote-subtitle">線上即時報價與金額計算</div>
+                <div class="quote-subtitle">線上即時報價與金額計算（支援自由修改項目與金額）</div>
 
                 <!-- 1. 極致單根 -->
                 <div class="quote-option-group">
                     <div class="quote-section-title">1. 極致單根</div>
-                    <label class="quote-option-item"><input type="radio" name="quote-style" value="999" data-name="極致單根 - 80根" onchange="calculateQuoteTotal()"><span class="quote-option-label">80根</span><span class="quote-option-price">$999</span></label>
-                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1199" data-name="極致單根 - 100根" onchange="calculateQuoteTotal()"><span class="quote-option-label">100根</span><span class="quote-option-price">$1,199</span></label>
-                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1299" data-name="極致單根 - 120根" onchange="calculateQuoteTotal()"><span class="quote-option-label">120根</span><span class="quote-option-price">$1,299</span></label>
-                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1399" data-name="極致單根 - 150根" onchange="calculateQuoteTotal()"><span class="quote-option-label">150根</span><span class="quote-option-price">$1,399</span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="999" data-category="base" data-name="極致單根 - 80根" onchange="handleStyleChange()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="極致單根 - 80根" oninput="updateStyleData(this)"></span><span class="quote-option-price">$<input type="number" class="quote-option-price-input" value="999" oninput="calculateQuoteTotal()"></span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1199" data-category="base" data-name="極致單根 - 100根" onchange="handleStyleChange()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="極致單根 - 100根" oninput="updateStyleData(this)"></span><span class="quote-option-price">$<input type="number" class="quote-option-price-input" value="1199" oninput="calculateQuoteTotal()"></span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1299" data-category="base" data-name="極致單根 - 120根" onchange="handleStyleChange()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="極致單根 - 120根" oninput="updateStyleData(this)"></span><span class="quote-option-price">$<input type="number" class="quote-option-price-input" value="1299" oninput="calculateQuoteTotal()"></span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1399" data-category="base" data-name="極致單根 - 150根" onchange="handleStyleChange()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="極致單根 - 150根" oninput="updateStyleData(this)"></span><span class="quote-option-price">$<input type="number" class="quote-option-price-input" value="1399" oninput="calculateQuoteTotal()"></span></label>
                 </div>
 
                 <!-- 2. 訂製睫毛膏款 -->
                 <div class="quote-option-group">
                     <div class="quote-section-title">2. 訂製睫毛膏款</div>
-                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1199" data-name="訂製睫毛膏款 - 輕透感" onchange="calculateQuoteTotal()"><span class="quote-option-label">輕透感</span><span class="quote-option-price">$1,199</span></label>
-                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1299" data-name="訂製睫毛膏款 - 濃密款" onchange="calculateQuoteTotal()"><span class="quote-option-label">濃密款</span><span class="quote-option-price">$1,299</span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1199" data-category="base" data-name="訂製睫毛膏款 - 輕透感" onchange="handleStyleChange()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="訂製睫毛膏款 - 輕透感" oninput="updateStyleData(this)"></span><span class="quote-option-price">$<input type="number" class="quote-option-price-input" value="1199" oninput="calculateQuoteTotal()"></span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1299" data-category="base" data-name="訂製睫毛膏款 - 濃密款" onchange="handleStyleChange()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="訂製睫毛膏款 - 濃密款" oninput="updateStyleData(this)"></span><span class="quote-option-price">$<input type="number" class="quote-option-price-input" value="1299" oninput="calculateQuoteTotal()"></span></label>
                 </div>
 
                 <!-- 3. 混血兒款 -->
                 <div class="quote-option-group">
                     <div class="quote-section-title">3. 混血兒款</div>
-                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1299" data-name="混血兒款 - 輕透感" onchange="calculateQuoteTotal()"><span class="quote-option-label">輕透感</span><span class="quote-option-price">$1,299</span></label>
-                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1399" data-name="混血兒款 - 濃密款" onchange="calculateQuoteTotal()"><span class="quote-option-label">濃密款</span><span class="quote-option-price">$1,399</span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1299" data-category="base" data-name="混血兒款 - 輕透感" onchange="handleStyleChange()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="混血兒款 - 輕透感" oninput="updateStyleData(this)"></span><span class="quote-option-price">$<input type="number" class="quote-option-price-input" value="1299" oninput="calculateQuoteTotal()"></span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1399" data-category="base" data-name="混血兒款 - 濃密款" onchange="handleStyleChange()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="混血兒款 - 濃密款" oninput="updateStyleData(this)"></span><span class="quote-option-price">$<input type="number" class="quote-option-price-input" value="1399" oninput="calculateQuoteTotal()"></span></label>
                 </div>
 
                 <!-- 4. 6D蓬鬆款 -->
                 <div class="quote-option-group">
                     <div class="quote-section-title">4. 6D蓬鬆款</div>
-                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1299" data-name="6D蓬鬆款 - 輕透感" onchange="calculateQuoteTotal()"><span class="quote-option-label">輕透感</span><span class="quote-option-price">$1,299</span></label>
-                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1399" data-name="6D蓬鬆款 - 濃密款" onchange="calculateQuoteTotal()"><span class="quote-option-label">濃密款</span><span class="quote-option-price">$1,399</span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1299" data-category="base" data-name="6D蓬鬆款 - 輕透感" onchange="handleStyleChange()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="6D蓬鬆款 - 輕透感" oninput="updateStyleData(this)"></span><span class="quote-option-price">$<input type="number" class="quote-option-price-input" value="1299" oninput="calculateQuoteTotal()"></span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1399" data-category="base" data-name="6D蓬鬆款 - 濃密款" onchange="handleStyleChange()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="6D蓬鬆款 - 濃密款" oninput="updateStyleData(this)"></span><span class="quote-option-price">$<input type="number" class="quote-option-price-input" value="1399" oninput="calculateQuoteTotal()"></span></label>
                 </div>
 
                 <!-- 5. 設計款 -->
                 <div class="quote-option-group">
                     <div class="quote-section-title">5. 設計款</div>
-                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1099" data-name="設計款 - 人魚編織款" onchange="calculateQuoteTotal()"><span class="quote-option-label">人魚編織款</span><span class="quote-option-price">$1,099</span></label>
-                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1399" data-name="設計款 - 小紅書造型款" onchange="calculateQuoteTotal()"><span class="quote-option-label">小紅書造型款</span><span class="quote-option-price">$1,399</span></label>
-                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1399" data-name="設計款 - 穿插設計款" onchange="calculateQuoteTotal()"><span class="quote-option-label">穿插設計款</span><span class="quote-option-price">$1,399</span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1099" data-category="base" data-name="設計款 - 人魚編織款" onchange="handleStyleChange()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="設計款 - 人魚編織款" oninput="updateStyleData(this)"></span><span class="quote-option-price">$<input type="number" class="quote-option-price-input" value="1099" oninput="calculateQuoteTotal()"></span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1399" data-category="base" data-name="設計款 - 小紅書造型款" onchange="handleStyleChange()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="設計款 - 小紅書造型款" oninput="updateStyleData(this)"></span><span class="quote-option-price">$<input type="number" class="quote-option-price-input" value="1399" oninput="calculateQuoteTotal()"></span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1399" data-category="base" data-name="設計款 - 穿插設計款" onchange="handleStyleChange()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="設計款 - 穿插設計款" oninput="updateStyleData(this)"></span><span class="quote-option-price">$<input type="number" class="quote-option-price-input" value="1399" oninput="calculateQuoteTotal()"></span></label>
                 </div>
 
                 <!-- 6. 睫毛管理 & 其他 -->
                 <div class="quote-option-group">
                     <div class="quote-section-title">6. 睫毛管理與組合價</div>
-                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1000" data-name="睫毛管理 - 上睫毛" onchange="calculateQuoteTotal()"><span class="quote-option-label">睫毛管理：上睫毛</span><span class="quote-option-price">$1,000</span></label>
-                    <label class="quote-option-item"><input type="radio" name="quote-style" value="699" data-name="睫毛管理 - 下睫毛" onchange="calculateQuoteTotal()"><span class="quote-option-label">睫毛管理：下睫毛</span><span class="quote-option-price">$699</span></label>
-                    <label class="quote-option-item"><input type="radio" name="quote-style" value="899" data-name="睫毛管理 - 野生眉雕塑" onchange="calculateQuoteTotal()"><span class="quote-option-label">野生眉雕塑</span><span class="quote-option-price">$899</span></label>
-                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1500" data-name="組合價 - 睫毛管理+野生眉" onchange="calculateQuoteTotal()"><span class="quote-option-label">組合價：睫毛管理+野生眉</span><span class="quote-option-price">$1,500</span></label>
-                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1400" data-name="組合價 - 睫毛管理(上下睫毛)" onchange="calculateQuoteTotal()"><span class="quote-option-label">組合價：睫毛管理(上.下睫毛)</span><span class="quote-option-price">$1,400</span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1000" data-category="base" data-name="睫毛管理 - 上睫毛" onchange="handleStyleChange()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="睫毛管理 - 上睫毛" oninput="updateStyleData(this)"></span><span class="quote-option-price">$<input type="number" class="quote-option-price-input" value="1000" oninput="calculateQuoteTotal()"></span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="699" data-category="base" data-name="睫毛管理 - 下睫毛" onchange="handleStyleChange()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="睫毛管理 - 下睫毛" oninput="updateStyleData(this)"></span><span class="quote-option-price">$<input type="number" class="quote-option-price-input" value="699" oninput="calculateQuoteTotal()"></span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="899" data-category="base" data-name="野生眉雕塑" onchange="handleStyleChange()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="野生眉雕塑" oninput="updateStyleData(this)"></span><span class="quote-option-price">$<input type="number" class="quote-option-price-input" value="899" oninput="calculateQuoteTotal()"></span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1500" data-category="base" data-name="組合價 - 睫毛管理+野生眉" onchange="handleStyleChange()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="組合價：睫毛管理+野生眉" oninput="updateStyleData(this)"></span><span class="quote-option-price">$<input type="number" class="quote-option-price-input" value="1500" oninput="calculateQuoteTotal()"></span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1400" data-category="base" data-name="組合價 - 睫毛管理(上下睫毛)" onchange="handleStyleChange()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="組合價：睫毛管理(上.下睫毛)" oninput="updateStyleData(this)"></span><span class="quote-option-price">$<input type="number" class="quote-option-price-input" value="1400" oninput="calculateQuoteTotal()"></span></label>
                 </div>
 
-                <!-- 7. 補睫專區 -->
+                <!-- 7. 補睫專區（預設停用，須先選上方款式） -->
                 <div class="quote-option-group">
-                    <div class="quote-section-title">7. 補睫（以所選款式打折計算）</div>
-                    <label class="quote-option-item"><input type="radio" name="quote-style" value="discount_7" data-name="補睫 - 嫁接後兩週內 (7折)" onchange="calculateQuoteTotal()"><span class="quote-option-label">嫁接後兩週內</span><span class="quote-option-price">原價7折</span></label>
-                    <label class="quote-option-item"><input type="radio" name="quote-style" value="discount_8" data-name="補睫 - 嫁接後三週內 (8折)" onchange="calculateQuoteTotal()"><span class="quote-option-label">嫁接後三週內</span><span class="quote-option-price">原價8折</span></label>
+                    <div class="quote-section-title">7. 補睫專區（須先勾選上方 1~5 款式）</div>
+                    <label class="quote-option-item" id="discount-7-label" style="opacity:0.5;"><input type="radio" name="quote-style" value="discount_7" data-category="refill" data-name="補睫 - 嫁接後兩週內 (7折)" disabled onchange="handleStyleChange()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="補睫 - 嫁接後兩週內" oninput="updateStyleData(this)"></span><span class="quote-option-price" id="price-d7">原價7折</span></label>
+                    <label class="quote-option-item" id="discount-8-label" style="opacity:0.5;"><input type="radio" name="quote-style" value="discount_8" data-category="refill" data-name="補睫 - 嫁接後三週內 (8折)" disabled onchange="handleStyleChange()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="補睫 - 嫁接後三週內" oninput="updateStyleData(this)"></span><span class="quote-option-price" id="price-d8">原價8折</span></label>
                 </div>
 
                 <!-- 8. 卸睫項目（可複選） -->
                 <div class="quote-option-group">
                     <div class="quote-section-title">8. 卸睫項目（可複選）</div>
-                    <label class="quote-option-item"><input type="checkbox" name="quote-addon" value="300" data-name="他店卸除不續接" onchange="calculateQuoteTotal()"><span class="quote-option-label">他店卸除不續接</span><span class="quote-option-price">+$300</span></label>
-                    <label class="quote-option-item"><input type="checkbox" name="quote-addon" value="200" data-name="他店卸除續接" onchange="calculateQuoteTotal()"><span class="quote-option-label">他店卸除續接</span><span class="quote-option-price">+$200</span></label>
-                    <label class="quote-option-item"><input type="checkbox" name="quote-addon" value="200" data-name="本店卸除不續接" onchange="calculateQuoteTotal()"><span class="quote-option-label">本店卸除不續接</span><span class="quote-option-price">+$200</span></label>
-                    <label class="quote-option-item"><input type="checkbox" name="quote-addon" value="0" data-name="本店卸除續接" onchange="calculateQuoteTotal()"><span class="quote-option-label">本店卸除續接</span><span class="quote-option-price">Free</span></label>
+                    <label class="quote-option-item"><input type="checkbox" name="quote-addon" data-name="他店卸除不續接" onchange="calculateQuoteTotal()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="他店卸除不續接" oninput="updateAddonData(this)"></span><span class="quote-option-price">$<input type="number" class="quote-option-price-input" value="300" oninput="calculateQuoteTotal()"></span></label>
+                    <label class="quote-option-item"><input type="checkbox" name="quote-addon" data-name="他店卸除續接" onchange="calculateQuoteTotal()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="他店卸除續接" oninput="updateAddonData(this)"></span><span class="quote-option-price">$<input type="number" class="quote-option-price-input" value="200" oninput="calculateQuoteTotal()"></span></label>
+                    <label class="quote-option-item"><input type="checkbox" name="quote-addon" data-name="本店卸除不續接" onchange="calculateQuoteTotal()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="本店卸除不續接" oninput="updateAddonData(this)"></span><span class="quote-option-price">$<input type="number" class="quote-option-price-input" value="200" oninput="calculateQuoteTotal()"></span></label>
+                    <label class="quote-option-item"><input type="checkbox" name="quote-addon" data-name="本店卸除續接" onchange="calculateQuoteTotal()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="本店卸除續接" oninput="updateAddonData(this)"></span><span class="quote-option-price">$<input type="number" class="quote-option-price-input" value="0" oninput="calculateQuoteTotal()"></span></label>
                 </div>
 
                 <!-- 9. 加購項目（可複選） -->
                 <div class="quote-option-group">
                     <div class="quote-section-title">9. 加購項目（可複選）</div>
-                    <label class="quote-option-item"><input type="checkbox" name="quote-addon" value="150" data-name="加購 - 下睫毛" onchange="calculateQuoteTotal()"><span class="quote-option-label">下睫毛</span><span class="quote-option-price">+$150</span></label>
-                    <label class="quote-option-item"><input type="checkbox" name="quote-addon" value="200" data-name="加購 - 根源矯正" onchange="calculateQuoteTotal()"><span class="quote-option-label">根源矯正</span><span class="quote-option-price">+$200</span></label>
-                    <label class="quote-option-item"><input type="checkbox" name="quote-addon" value="499" data-name="加購 - 野生眉" onchange="calculateQuoteTotal()"><span class="quote-option-label">野生眉</span><span class="quote-option-price">+$499</span></label>
-                    <label class="quote-option-item"><input type="checkbox" name="quote-addon" value="100" data-name="加購 - 深層滋養保濕" onchange="calculateQuoteTotal()"><span class="quote-option-label">深層滋養保濕</span><span class="quote-option-price">+$100</span></label>
+                    <label class="quote-option-item"><input type="checkbox" name="quote-addon" data-name="加購 - 下睫毛" onchange="calculateQuoteTotal()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="加購 - 下睫毛" oninput="updateAddonData(this)"></span><span class="quote-option-price">$<input type="number" class="quote-option-price-input" value="150" oninput="calculateQuoteTotal()"></span></label>
+                    <label class="quote-option-item"><input type="checkbox" name="quote-addon" data-name="加購 - 根源矯正" onchange="calculateQuoteTotal()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="加購 - 根源矯正" oninput="updateAddonData(this)"></span><span class="quote-option-price">$<input type="number" class="quote-option-price-input" value="200" oninput="calculateQuoteTotal()"></span></label>
+                    <label class="quote-option-item"><input type="checkbox" name="quote-addon" data-name="加購 - 野生眉" onchange="calculateQuoteTotal()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="加購 - 野生眉" oninput="updateAddonData(this)"></span><span class="quote-option-price">$<input type="number" class="quote-option-price-input" value="499" oninput="calculateQuoteTotal()"></span></label>
+                    <label class="quote-option-item"><input type="checkbox" name="quote-addon" data-name="加購 - 深層滋養保濕" onchange="calculateQuoteTotal()"><span class="quote-option-label"><input type="text" class="quote-custom-name-input" value="加購 - 深層滋養保濕" oninput="updateAddonData(this)"></span><span class="quote-option-price">$<input type="number" class="quote-option-price-input" value="100" oninput="calculateQuoteTotal()"></span></label>
                 </div>
 
-                <!-- 訂金與優惠金額輸入區 -->
                 <div class="quote-input-row">
                     <div class="quote-input-box">
                         <label>💳 預付訂金 (元)</label>
@@ -989,13 +991,11 @@
                     </div>
                 </div>
 
-                <!-- 總金額與操作按鈕 -->
                 <div class="quote-total-section">
-                    <div style="font-size: 13px; color: var(--text-muted);">應付總金額</div>
+                    <div style="font-size: 13px; color: var(--text-muted);">總金額</div>
                     <div class="quote-total-price" id="quoteTotalAmount">$0</div>
                     <div class="quote-sub-calc" id="quoteSubCalcText">小計 $0 | 折扣 -$0 | 預付訂金 $0 | 尾款應收 $0</div>
 
-                    <!-- 操作選單按鈕：重新選擇、複製文字、查看明細 -->
                     <div class="quote-action-buttons">
                         <button class="btn-quote-action" onclick="resetQuote()">🔄 重新選擇</button>
                         <button class="btn-quote-action" onclick="copyQuoteText()">📋 複製文字</button>
@@ -1008,18 +1008,46 @@
         </main>
     </div>
 
-    <!-- 🌟 查看明細彈出視窗 (Modal) -->
+    <!-- 🌟 查看明細彈出視窗 -->
     <div id="quote-detail-modal" class="modal-overlay" onclick="closeQuoteDetailModal(event)">
         <div class="modal-box" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <span>🌟 預約報價明細總覽</span>
                 <span style="cursor:pointer; font-weight:normal; font-size:14px;" onclick="closeQuoteDetailModal()">✕</span>
             </div>
-            <div id="quote-detail-content" class="detail-modal-body">
-                <!-- 動態填入明細 -->
-            </div>
+            <div id="quote-detail-content" class="detail-modal-body"></div>
             <div class="modal-footer">
                 <button class="btn-modal save" onclick="copyQuoteText(); closeQuoteDetailModal();">複製明細文字</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ✏️ 手動新增客人群組彈出視窗 -->
+    <div id="add-customer-modal" class="modal-overlay" onclick="closeAddCustomerModal(event)">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span>👤 新增客戶基本資料</span>
+                <span style="cursor:pointer; font-weight:normal; font-size:14px;" onclick="closeAddCustomerModal()">✕</span>
+            </div>
+            <div style="margin-bottom: 12px;">
+                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">客戶姓名 (必填)</label>
+                <input type="text" id="new-cust-name" class="input-style" style="background:#fff;" placeholder="請輸入客人姓名">
+            </div>
+            <div style="margin-bottom: 12px;">
+                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">連絡電話</label>
+                <input type="tel" id="new-cust-phone" class="input-style" style="background:#fff;" placeholder="例如: 0912345678">
+            </div>
+            <div style="margin-bottom: 12px;">
+                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">生日 (4碼數字，例如 0529)</label>
+                <input type="number" id="new-cust-birth" class="input-style" style="background:#fff;" placeholder="MMDD">
+            </div>
+            <div style="margin-bottom: 12px;">
+                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">備註說明</label>
+                <input type="text" id="new-cust-note" class="input-style" style="background:#fff;" placeholder="例如: 習慣躺左側、敏感肌">
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal cancel" onclick="closeAddCustomerModal()">取消</button>
+                <button class="btn-modal save" onclick="saveNewCustomer()">儲存客戶</button>
             </div>
         </div>
     </div>
@@ -1229,11 +1257,29 @@
             const type = document.getElementById('add-type').value;
             const custWrapper = document.getElementById('cust-name-wrapper');
             const depositRow = document.getElementById('deposit-wrapper-row');
+            const tagsContainer = document.getElementById('quick-tags-container');
+            
             if (type === '收入') {
-                custWrapper.style.display = 'block'; depositRow.style.display = 'grid'; 
+                custWrapper.style.display = 'block'; 
+                depositRow.style.display = 'grid'; 
+                tagsContainer.innerHTML = `
+                    <span class="quick-tag" onclick="quickSelectProject('美睫')">＋美睫</span>
+                    <span class="quick-tag" onclick="quickSelectProject('睫毛管理')">＋睫毛管理</span>
+                    <span class="quick-tag" onclick="quickSelectProject('睫毛雨衣')">＋睫毛雨衣</span>
+                    <span class="quick-tag" onclick="quickSelectProject('黑雨衣')">＋黑雨衣</span>
+                `;
             } else {
-                custWrapper.style.display = 'none'; depositRow.style.display = 'none';
-                document.getElementById('add-cust-name').value = ''; document.getElementById('add-deposit').value = '';
+                custWrapper.style.display = 'none'; 
+                depositRow.style.display = 'none';
+                document.getElementById('add-cust-name').value = ''; 
+                document.getElementById('add-deposit').value = '';
+                tagsContainer.innerHTML = `
+                    <span class="quick-tag" onclick="quickSelectProject('睫毛')">睫毛</span>
+                    <span class="quick-tag" onclick="quickSelectProject('膠水')">膠水</span>
+                    <span class="quick-tag" onclick="quickSelectProject('工具/鑷子')">工具/鑷子</span>
+                    <span class="quick-tag" onclick="quickSelectProject('眼貼/棉片')">眼貼/棉片</span>
+                    <span class="quick-tag" onclick="quickSelectProject('保養品/精華')">保養品/精華</span>
+                `;
             }
         }
 
@@ -1374,7 +1420,7 @@
 
         function renderDayRecords() {
             const labelEl = document.getElementById('selected-date-label'); if(!labelEl) return;
-            const dateParts = selectedDateStr.split('-'); labelEl.innerText = `${dateParts[1]}月${dateParts[2]}日 收支紀錄 (點擊可修改)`;
+            const dateParts = selectedDateStr.split('-'); labelEl.innerText = `${dateParts[1]}月${dateParts[2]}日 收支紀錄`;
             const dayRecords = records.filter(r => r.date === selectedDateStr);
             const listContainer = document.getElementById('day-record-list'); if(!listContainer) return;
             listContainer.innerHTML = '';
@@ -1415,8 +1461,14 @@
             if (type === '收入' && custName && !customerCRM[custName]) customerCRM[custName] = { phone: '', birthday: '', note: '' };
             
             await saveCloudData();
-            document.getElementById('add-cust-name').value = ''; document.getElementById('add-project').value = '';
-            document.getElementById('add-amount').value = ''; document.getElementById('add-deposit').value = ''; document.getElementById('add-note').value = '';
+            
+            // 重新整理並清空表單欄位
+            document.getElementById('add-cust-name').value = ''; 
+            document.getElementById('add-project').value = '';
+            document.getElementById('add-amount').value = ''; 
+            document.getElementById('add-deposit').value = ''; 
+            document.getElementById('add-note').value = '';
+            
             initCalendar(); renderDayRecords(); renderReports(); renderCustomerPage();
         }
 
@@ -1510,6 +1562,7 @@
             });
         }
 
+        // 客戶中心：支援姓名、電話、生日搜尋與手動新增
         window.renderCustomerPage = function() {
             const thisMonth = new Date().getMonth() + 1;
             let mTitleEl = document.getElementById('current-month-title'); if(mTitleEl) mTitleEl.innerText = thisMonth;
@@ -1519,9 +1572,18 @@
 
             records.forEach(r => {
                 if (r.type === '支出' || !r.custName) return;
-                const name = r.custName.trim(); if (searchKey && !name.toLowerCase().includes(searchKey)) return;
+                const name = r.custName.trim();
+                let crmData = customerCRM[name] || { phone: '', birthday: '', note: '' };
+                
+                // 檢查是否符合搜尋條件 (支援姓名、電話、生日)
+                if (searchKey) {
+                    let matchName = name.toLowerCase().includes(searchKey);
+                    let matchPhone = crmData.phone && crmData.phone.toLowerCase().includes(searchKey);
+                    let matchBirth = crmData.birthday && crmData.birthday.toLowerCase().includes(searchKey);
+                    if (!matchName && !matchPhone && !matchBirth) return;
+                }
+
                 if (!customerMap[name]) {
-                    let crmData = customerCRM[name] || { phone: '', birthday: '', note: '' };
                     customerMap[name] = { name: name, phone: crmData.phone||'', birthday: crmData.birthday||'', note: crmData.note||'', visitCount: 0, totalSpent: 0, latestDepositLabel: '剩餘資產', latestDepositValue: '未記錄', latestDepositTime: 0, history: [] };
                 }
                 customerMap[name].visitCount++; customerMap[name].totalSpent += r.amount; customerMap[name].history.push(r);
@@ -1530,23 +1592,35 @@
                     customerMap[name].latestDepositLabel = r.depositType || '儲值金'; customerMap[name].latestDepositValue = formatDepositDisplay(r.deposit, r.depositType); customerMap[name].latestDepositTime = recordTime;
                 }
             });
+
             Object.keys(customerCRM).forEach(name => {
-                if (searchKey && !name.toLowerCase().includes(searchKey)) return;
-                if (!customerMap[name]) customerMap[name] = { name: name, phone: customerCRM[name].phone||'', birthday: customerCRM[name].birthday||'', note: customerCRM[name].note||'', visitCount: 0, totalSpent: 0, latestDepositLabel: '儲值餘額', latestDepositValue: '未記錄', history: [] };
+                let crmData = customerCRM[name];
+                if (searchKey) {
+                    let matchName = name.toLowerCase().includes(searchKey);
+                    let matchPhone = crmData.phone && crmData.phone.toLowerCase().includes(searchKey);
+                    let matchBirth = crmData.birthday && crmData.birthday.toLowerCase().includes(searchKey);
+                    if (!matchName && !matchPhone && !matchBirth) return;
+                }
+                if (!customerMap[name]) {
+                    customerMap[name] = { name: name, phone: crmData.phone||'', birthday: crmData.birthday||'', note: crmData.note||'', visitCount: 0, totalSpent: 0, latestDepositLabel: '儲值餘額', latestDepositValue: '未記錄', history: [] };
+                }
             });
+
             let customers = Object.values(customerMap);
             
             let birthdayContainer = document.getElementById('birthday-list-container');
             if(birthdayContainer) {
                 birthdayContainer.innerHTML = ''; let bCount = 0;
-                customers.forEach(c => {
-                    if (c.birthday && c.birthday.length === 4 && parseInt(c.birthday.substring(0,2)) === thisMonth) {
-                        bCount++; let li = document.createElement('li'); li.innerHTML = `🎉 <strong>${escapeHtml(c.name)}</strong> (${c.birthday.substring(0,2)}月${c.birthday.substring(2,4)}日) ${c.phone ? `📞 ${escapeHtml(c.phone)}` : ''}`; birthdayContainer.appendChild(li);
+                Object.keys(customerCRM).forEach(name => {
+                    let crm = customerCRM[name];
+                    if (crm.birthday && crm.birthday.length === 4 && parseInt(crm.birthday.substring(0,2)) === thisMonth) {
+                        bCount++; let li = document.createElement('li'); li.innerHTML = `🎉 <strong>${escapeHtml(name)}</strong> (${crm.birthday.substring(0,2)}月${crm.birthday.substring(2,4)}日) ${crm.phone ? `📞 ${escapeHtml(crm.phone)}` : ''}`; birthdayContainer.appendChild(li);
                     }
                 });
                 if(!bCount) birthdayContainer.innerHTML = '<li>本月暫無壽星顧客記錄</li>';
             }
-            if (!customers.length) { container.innerHTML = '<div class="no-data">暫無客戶資料</div>'; return; }
+
+            if (!customers.length) { container.innerHTML = '<div class="no-data">查無符合條件的客戶資料</div>'; return; }
             customers.sort((a,b) => a.name.localeCompare(b.name, 'zh-Hans-CN'));
             customers.forEach(cust => {
                 let card = document.createElement('div'); card.classList.add('customer-card');
@@ -1588,6 +1662,32 @@
             if (!isOpen) cardElement.classList.add('open');
         }
 
+        window.openAddCustomerModal = function() {
+            document.getElementById('new-cust-name').value = '';
+            document.getElementById('new-cust-phone').value = '';
+            document.getElementById('new-cust-birth').value = '';
+            document.getElementById('new-cust-note').value = '';
+            document.getElementById('add-customer-modal').style.display = 'flex';
+        }
+        window.closeAddCustomerModal = function() {
+            document.getElementById('add-customer-modal').style.display = 'none';
+        }
+
+        window.saveNewCustomer = async function() {
+            const name = document.getElementById('new-cust-name').value.trim();
+            const phone = document.getElementById('new-cust-phone').value.trim();
+            const birth = document.getElementById('new-cust-birth').value.trim();
+            const note = document.getElementById('new-cust-note').value.trim();
+            if (!name) return alert('請輸入客戶姓名');
+            if (birth && birth.length !== 4) return alert('生日請輸入4碼數字 (例如 0529)');
+
+            customerCRM[name] = { phone: phone, birthday: birth, note: note };
+            await saveCloudData();
+            closeAddCustomerModal();
+            renderCustomerPage();
+            alert(`成功新增客戶「${name}」！`);
+        }
+
         window.saveCRMData = async function(oldName) {
             const newName = document.getElementById(`edit-name-${oldName}`).value.trim();
             const phoneVal = document.getElementById(`edit-phone-${oldName}`).value.trim();
@@ -1614,7 +1714,44 @@
             }
         }
 
-        // 💡 報價單計算與互動邏輯
+        // ==================== 報價與價目試算（帶有補睫連動與自訂編輯功能） ====================
+        window.updateStyleData = function(inputEl) {
+            let label = inputEl.closest('.quote-option-item');
+            let radio = label.querySelector('input[type="radio"]');
+            if(radio) radio.setAttribute('data-name', inputEl.value);
+            calculateQuoteTotal();
+        }
+
+        window.updateAddonData = function(inputEl) {
+            let label = inputEl.closest('.quote-option-item');
+            let checkbox = label.querySelector('input[type="checkbox"]');
+            if(checkbox) checkbox.setAttribute('data-name', inputEl.value);
+            calculateQuoteTotal();
+        }
+
+        // 當點選款式改變時，控制補睫選項的啟用與禁用
+        window.handleStyleChange = function() {
+            const baseRadios = document.querySelectorAll('input[name="quote-style"][data-category="base"]');
+            const refillRadios = document.querySelectorAll('input[name="quote-style"][data-category="refill"]');
+            let hasSelectedBase = false;
+
+            baseRadios.forEach(r => { if (r.checked) hasSelectedBase = true; });
+
+            refillRadios.forEach(refillRadio => {
+                let parentLabel = refillRadio.closest('.quote-option-item');
+                if (hasSelectedBase) {
+                    refillRadio.disabled = false;
+                    parentLabel.style.opacity = '1';
+                } else {
+                    refillRadio.disabled = true;
+                    parentLabel.style.opacity = '0.5';
+                    if (refillRadio.checked) refillRadio.checked = false;
+                }
+            });
+
+            calculateQuoteTotal();
+        }
+
         window.calculateQuoteTotal = function() {
             const styleRadios = document.querySelectorAll('input[name="quote-style"]');
             const addonCheckboxes = document.querySelectorAll('input[name="quote-addon"]');
@@ -1628,20 +1765,36 @@
             let styleName = "未選擇款式";
             let isDiscount = false;
             let discountRate = 1.0;
+            let selectedBaseRadio = null;
+
+            // 先找出目前勾選的款式
+            styleRadios.forEach(radio => {
+                if (radio.checked && radio.getAttribute('data-category') === 'base') {
+                    selectedBaseRadio = radio;
+                }
+            });
 
             styleRadios.forEach(radio => {
                 if (radio.checked) {
-                    styleName = radio.getAttribute('data-name');
-                    if (radio.value === 'discount_7') {
+                    let label = radio.closest('.quote-option-item');
+                    let nameInput = label.querySelector('.quote-custom-name-input');
+                    let priceInput = label.querySelector('.quote-option-price-input');
+                    
+                    if(nameInput) styleName = nameInput.value;
+
+                    if (radio.value === 'discount_7' || radio.value === 'discount_8') {
                         isDiscount = true;
-                        discountRate = 0.7;
-                        basePrice = 1200; 
-                    } else if (radio.value === 'discount_8') {
-                        isDiscount = true;
-                        discountRate = 0.8;
-                        basePrice = 1200;
+                        discountRate = radio.value === 'discount_7' ? 0.7 : 0.8;
+                        // 若選了補睫，其原價自動對應目前所選的基礎款式價格
+                        if (selectedBaseRadio) {
+                            let baseLabel = selectedBaseRadio.closest('.quote-option-item');
+                            let basePriceInput = baseLabel.querySelector('.quote-option-price-input');
+                            basePrice = basePriceInput ? parseInt(basePriceInput.value) || 0 : 0;
+                        } else {
+                            basePrice = 0;
+                        }
                     } else {
-                        basePrice = parseInt(radio.value);
+                        basePrice = priceInput ? parseInt(priceInput.value) || 0 : 0;
                     }
                 }
             });
@@ -1654,8 +1807,14 @@
             let selectedAddons = [];
             addonCheckboxes.forEach(checkbox => {
                 if (checkbox.checked) {
-                    addonsTotal += parseInt(checkbox.value);
-                    selectedAddons.push({ name: checkbox.getAttribute('data-name'), price: parseInt(checkbox.value) });
+                    let label = checkbox.closest('.quote-option-item');
+                    let nameInput = label.querySelector('.quote-custom-name-input');
+                    let priceInput = label.querySelector('.quote-option-price-input');
+                    let aName = nameInput ? nameInput.value : '加購';
+                    let aPrice = priceInput ? parseInt(priceInput.value) || 0 : 0;
+                    
+                    addonsTotal += aPrice;
+                    selectedAddons.push({ name: aName, price: aPrice });
                 }
             });
 
@@ -1710,11 +1869,11 @@
         }
 
         window.resetQuote = function() {
-            document.querySelectorAll('input[name="quote-style"]').forEach((r, idx) => r.checked = (idx === 0));
+            document.querySelectorAll('input[name="quote-style"]').forEach(r => r.checked = false);
             document.querySelectorAll('input[name="quote-addon"]').forEach(c => c.checked = false);
             if(document.getElementById('quote-deposit-input')) document.getElementById('quote-deposit-input').value = 0;
             if(document.getElementById('quote-promo-input')) document.getElementById('quote-promo-input').value = 0;
-            calculateQuoteTotal();
+            handleStyleChange();
             alert('已重新選擇！');
         }
 
