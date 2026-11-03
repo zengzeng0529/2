@@ -908,7 +908,7 @@
                 <div class="card-title">
                     <div style="display:flex; align-items:center; gap:8px;">
                         <span>客戶管理中心</span>
-                        <button class="quick-tag" style="background:#333; color:#fff; font-size:11px; padding:4px 8px;" onclick="toggleBlacklistFilter()">🖤 黑名單</button>
+                        <button id="blacklist-toggle-btn" class="quick-tag" style="background:#333; color:#fff; font-size:11px; padding:4px 8px;" onclick="toggleBlacklistFilter()">🖤 黑名單</button>
                     </div>
                     <button class="quick-tag" style="background:var(--text-dark); color:#fff; font-size:12px; padding:6px 12px;" onclick="openAddCustomerModal()">＋ 新增客人</button>
                 </div>
@@ -1189,8 +1189,8 @@
         let currentUser = null;
         let records = [];
         let customerCRM = {};
-        let blacklist = {}; // 🖤 黑名單資料儲存結構
-        let showBlacklistOnly = false; // 是否只顯示黑名單
+        let blacklist = {}; 
+        let showBlacklistOnly = false; 
         let currentDate = new Date();
         const todayStr = formatDateString(new Date());
         let selectedDateStr = todayStr;
@@ -1511,14 +1511,17 @@
             });
         }
 
-        window.addRecord = async function() {
+        // 極速響應新增紀錄：前端立即渲染並清空欄位，雲端背景非同步儲存
+        window.addRecord = function() {
             const type = document.getElementById('add-type').value;
             const custName = type === '收入' ? document.getElementById('add-cust-name').value.trim() : '';
             const depositType = type === '收入' ? document.getElementById('add-deposit-type').value : '儲值金';
             const depositInput = type === '收入' ? document.getElementById('add-deposit').value.trim() : '';
             const project = document.getElementById('add-project').value.trim() || (type === '收入' ? '美睫服務' : '日常開銷');
             const amountInput = document.getElementById('add-amount').value.trim();
-            const amount = parseInt(amountInput); const note = document.getElementById('add-note').value.trim();
+            const amount = parseInt(amountInput); 
+            const note = document.getElementById('add-note').value.trim();
+            
             if (amountInput === '' || isNaN(amount) || amount < 0) return alert('請輸入有效的金額數字');
 
             records.push({
@@ -1526,18 +1529,26 @@
                 date: selectedDateStr, type: type, custName: custName, project: project, amount: amount,
                 depositType: depositType, deposit: depositInput !== '' ? parseInt(depositInput) : '', note: note
             });
-            if (type === '收入' && custName && !customerCRM[custName]) customerCRM[custName] = { phone: '', birthday: '', note: '' };
+
+            if (type === '收入' && custName && !customerCRM[custName]) {
+                customerCRM[custName] = { phone: '', birthday: '', note: '' };
+            }
             
-            await saveCloudData();
-            
-            // 欄位清空並即時重新整理
+            // 立即清空表單欄位以供下一位填寫
             document.getElementById('add-cust-name').value = ''; 
             document.getElementById('add-project').value = '';
             document.getElementById('add-amount').value = ''; 
             document.getElementById('add-deposit').value = ''; 
             document.getElementById('add-note').value = '';
             
-            initCalendar(); renderDayRecords(); renderReports(); renderCustomerPage();
+            // 立即更新畫面
+            initCalendar(); 
+            renderDayRecords(); 
+            renderReports(); 
+            renderCustomerPage();
+
+            // 背景同步至雲端
+            saveCloudData();
         }
 
         window.deleteRecord = async function(id, pageSource, event) {
@@ -1630,9 +1641,21 @@
             });
         }
 
-        // 客戶中心：支援姓名、電話、生日與黑名單切換
+        // 🖤 黑名單開關切換 (點一下開啟/跳出資料，再點一下關閉)
         window.toggleBlacklistFilter = function() {
             showBlacklistOnly = !showBlacklistOnly;
+            const btn = document.getElementById('blacklist-toggle-btn');
+            if (btn) {
+                if (showBlacklistOnly) {
+                    btn.style.background = '#000000';
+                    btn.style.color = '#FFFFFF';
+                    btn.innerText = '🖤 關閉黑名單';
+                } else {
+                    btn.style.background = '#333333';
+                    btn.style.color = '#FFFFFF';
+                    btn.innerText = '🖤 黑名單';
+                }
+            }
             renderCustomerPage();
         }
 
@@ -1704,7 +1727,6 @@
                 cust.history.sort((a,b) => new Date(b.date) - new Date(a.date));
                 let hHtml = cust.history.map(h => `<div style="border-top:1px dashed rgba(227,213,202,0.3); padding-top:4px; margin-top:4px;"><span style="color:var(--text-muted);">${h.date}</span> | <span>${escapeHtml(h.project)}</span> <strong style="color:${h.type==='收入'?'var(--income-green)':'var(--delete-red)'}">($${h.amount})</strong></div>`).join('');
                 
-                let isBlack = blacklist[cust.name] ? '已在黑名單中' : '加入黑名單';
                 card.innerHTML = `
                     <div class="customer-card-header" onclick="toggleCard(this.parentNode)">
                         <span class="customer-name">👤 ${escapeHtml(cust.name)} ${blacklist[cust.name] ? '🖤' : ''}</span>
@@ -1808,7 +1830,7 @@
             }
         }
 
-        // ==================== 報價與價目試算（支援動態新增與刪除項目） ====================
+        // ==================== 報價與價目試算 ====================
         window.addQuoteItem = function(groupId, type) {
             const groupEl = document.getElementById(groupId);
             const container = groupEl.querySelector('.quote-items-container');
