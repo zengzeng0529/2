@@ -1102,8 +1102,6 @@
         const todayStr = formatDateString(new Date());
         let selectedDateStr = todayStr;
         let currentReportDetailFilter = '';
-        
-        // 全域暫存最新報價資料，方便彈出視窗與複製使用
         let quoteDetailCache = { text: '', html: '' };
 
         onAuthStateChanged(auth, async (user) => {
@@ -1394,7 +1392,7 @@
                     <div class="rec-bot">
                         ${isInc ? `<span>${rec.depositType || '儲值金'}餘額: ${formatDepositDisplay(rec.deposit, rec.depositType)}</span>` : ''}
                         ${rec.note ? `<span style="margin-left:10px;">📝 ${escapeHtml(rec.note)}</span>` : ''}
-                    `;
+                    </div>`;
                 listContainer.appendChild(li);
             });
         }
@@ -1507,7 +1505,7 @@
             let sum = {}; targets.forEach(r => { let p = r.project.trim() || '未命名'; sum[p] = (sum[p] || 0) + r.amount; });
             Object.keys(sum).sort((a,b) => sum[b] - sum[a]).forEach(k => {
                 let row = document.createElement('div'); row.classList.add('report-summary-item');
-                row.innerHTML = `<span>${escapeHtml(k)}</span><span style="color:${type==='收入'?'var(--income-green)':'var(--delete-red)'}">${type==='收入'+'+':'-'}$${sum[k].toLocaleString()}</span>`;
+                row.innerHTML = `<span>${escapeHtml(k)}</span><span style="color:${type==='收入'?'var(--income-green)':'var(--delete-red)'}">${type==='收入'?'+':'-'}$${sum[k].toLocaleString()}</span>`;
                 listWrapper.appendChild(row);
             });
         }
@@ -1616,7 +1614,7 @@
             }
         }
 
-        // 💡 報價單計算與互動邏輯修正
+        // 💡 報價單計算與互動邏輯
         window.calculateQuoteTotal = function() {
             const styleRadios = document.querySelectorAll('input[name="quote-style"]');
             const addonCheckboxes = document.querySelectorAll('input[name="quote-addon"]');
@@ -1674,7 +1672,6 @@
             if(totalAmountElement) totalAmountElement.textContent = `$${finalTotal.toLocaleString()}`;
             if(subCalcElement) subCalcElement.textContent = `小計 $${subtotal.toLocaleString()} | 折扣 -$${promo.toLocaleString()} | 預付訂金 $${deposit.toLocaleString()} | 尾款應收 $${remainingBalance.toLocaleString()}`;
 
-            // 建立明細文字與 HTML 用於彈出視窗與複製
             let textMsg = `✨ MUMU POCKET 預約報價單 ✨\n- 選擇項目：${styleName} ($${basePrice})`;
             let htmlMsg = `<div style="font-weight:bold; margin-bottom:6px;">✨ 選擇項目明細：</div>`;
             htmlMsg += `<div>• 款式：${styleName} ($${basePrice})</div>`;
