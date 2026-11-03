@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MUMU POCKET | 美睫記帳、報價與進階帳本CRM系統</title>
+    <!-- 引入 SortableJS 支援長按拖曳排序 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root {
             --bg-cream: #FDFBF7;
@@ -610,13 +612,17 @@
             border: 1px solid var(--accent-latte);
             border-radius: 12px;
             margin-bottom: 8px;
-            cursor: pointer;
+            cursor: grab;
             transition: all 0.2s ease;
             background-color: var(--pure-white);
+            touch-action: pan-y;
         }
-        .quote-option-item:hover {
-            border-color: var(--primary-color);
-            background-color: #fff9f5;
+        .quote-option-item:active {
+            cursor: grabbing;
+        }
+        .sortable-ghost {
+            opacity: 0.4;
+            background-color: var(--main-butter);
         }
         .quote-option-item input[type="radio"], .quote-option-item input[type="checkbox"] {
             accent-color: var(--primary-color);
@@ -849,7 +855,7 @@
                     <option value="0">1 月</option><option value="1">2 月</option><option value="2">3 月</option>
                     <option value="3">4 月</option><option value="4">5 月</option><option value="5">6 月</option>
                     <option value="6">7 月</option><option value="7">8 月</option><option value="8">9 月</option>
-                    <option value="9">10 月</option><option value="10">11 月</option><option value="11">12 月</option>
+                    <option value="9">10 月</option><option value="10">11 月</option><option value="12">12 月</option>
                 </select>
             </div>
 
@@ -914,83 +920,83 @@
         <main id="quote-page" class="page">
             <div class="card-box">
                 <div class="card-title" style="justify-content: center; font-size: 18px;">✨ PRICE LIST📝 ✨</div>
-                <div class="quote-subtitle">線上即時報價與金額計算（1.~5.項可搭配補睫專區）</div>
+                <div class="quote-subtitle">線上即時報價與金額計算（長按細項可上下拖曳排序）</div>
 
-                <!-- 1. 極致單根 (可選補睫) -->
+                <!-- 1. 極致單根 (可選補睫，data-is-base="true") -->
                 <div class="quote-option-group" id="group-base-1" data-is-base="true">
                     <div class="quote-section-header">
                         <div class="quote-section-title">1. 極致單根</div>
                         <button class="btn-add-item" onclick="promptAddQuoteItem('group-base-1', 'base')">＋ 新增項目</button>
                     </div>
-                    <div class="quote-items-container">
-                        <label class="quote-option-item"><input type="radio" name="quote-style" value="999" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">80根</span><span class="quote-item-price-text">$999</span><input type="hidden" class="q-price-val" value="999"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
-                        <label class="quote-option-item"><input type="radio" name="quote-style" value="1199" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">100根</span><span class="quote-item-price-text">$1,199</span><input type="hidden" class="q-price-val" value="1199"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
-                        <label class="quote-option-item"><input type="radio" name="quote-style" value="1299" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">120根</span><span class="quote-item-price-text">$1,299</span><input type="hidden" class="q-price-val" value="1299"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
-                        <label class="quote-option-item"><input type="radio" name="quote-style" value="1399" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">150根</span><span class="quote-item-price-text">$1,399</span><input type="hidden" class="q-price-val" value="1399"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
+                    <div class="quote-items-container sortable-container">
+                        <label class="quote-option-item"><input type="radio" name="quote-base-style" value="999" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">80根</span><span class="quote-item-price-text">$999</span><input type="hidden" class="q-price-val" value="999"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
+                        <label class="quote-option-item"><input type="radio" name="quote-base-style" value="1199" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">100根</span><span class="quote-item-price-text">$1,199</span><input type="hidden" class="q-price-val" value="1199"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
+                        <label class="quote-option-item"><input type="radio" name="quote-base-style" value="1299" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">120根</span><span class="quote-item-price-text">$1,299</span><input type="hidden" class="q-price-val" value="1299"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
+                        <label class="quote-option-item"><input type="radio" name="quote-base-style" value="1399" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">150根</span><span class="quote-item-price-text">$1,399</span><input type="hidden" class="q-price-val" value="1399"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
                     </div>
                 </div>
 
-                <!-- 2. 訂製睫毛膏款 (可選補睫) -->
+                <!-- 2. 訂製睫毛膏款 (可選補睫，data-is-base="true") -->
                 <div class="quote-option-group" id="group-base-2" data-is-base="true">
                     <div class="quote-section-header">
                         <div class="quote-section-title">2. 訂製睫毛膏款</div>
                         <button class="btn-add-item" onclick="promptAddQuoteItem('group-base-2', 'base')">＋ 新增項目</button>
                     </div>
-                    <div class="quote-items-container">
-                        <label class="quote-option-item"><input type="radio" name="quote-style" value="1199" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">輕透感</span><span class="quote-item-price-text">$1,199</span><input type="hidden" class="q-price-val" value="1199"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
-                        <label class="quote-option-item"><input type="radio" name="quote-style" value="1299" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">濃密款</span><span class="quote-item-price-text">$1,299</span><input type="hidden" class="q-price-val" value="1299"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
+                    <div class="quote-items-container sortable-container">
+                        <label class="quote-option-item"><input type="radio" name="quote-base-style" value="1199" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">輕透感</span><span class="quote-item-price-text">$1,199</span><input type="hidden" class="q-price-val" value="1199"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
+                        <label class="quote-option-item"><input type="radio" name="quote-base-style" value="1299" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">濃密款</span><span class="quote-item-price-text">$1,299</span><input type="hidden" class="q-price-val" value="1299"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
                     </div>
                 </div>
 
-                <!-- 3. 混血兒款 (可選補睫) -->
+                <!-- 3. 混血兒款 (可選補睫，data-is-base="true") -->
                 <div class="quote-option-group" id="group-base-3" data-is-base="true">
                     <div class="quote-section-header">
                         <div class="quote-section-title">3. 混血兒款</div>
                         <button class="btn-add-item" onclick="promptAddQuoteItem('group-base-3', 'base')">＋ 新增項目</button>
                     </div>
-                    <div class="quote-items-container">
-                        <label class="quote-option-item"><input type="radio" name="quote-style" value="1299" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">輕透感</span><span class="quote-item-price-text">$1,299</span><input type="hidden" class="q-price-val" value="1299"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
-                        <label class="quote-option-item"><input type="radio" name="quote-style" value="1399" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">濃密款</span><span class="quote-item-price-text">$1,399</span><input type="hidden" class="q-price-val" value="1399"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
+                    <div class="quote-items-container sortable-container">
+                        <label class="quote-option-item"><input type="radio" name="quote-base-style" value="1299" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">輕透感</span><span class="quote-item-price-text">$1,299</span><input type="hidden" class="q-price-val" value="1299"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
+                        <label class="quote-option-item"><input type="radio" name="quote-base-style" value="1399" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">濃密款</span><span class="quote-item-price-text">$1,399</span><input type="hidden" class="q-price-val" value="1399"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
                     </div>
                 </div>
 
-                <!-- 4. 6D蓬鬆款 (可選補睫) -->
+                <!-- 4. 6D蓬鬆款 (可選補睫，data-is-base="true") -->
                 <div class="quote-option-group" id="group-base-4" data-is-base="true">
                     <div class="quote-section-header">
                         <div class="quote-section-title">4. 6D蓬鬆款</div>
                         <button class="btn-add-item" onclick="promptAddQuoteItem('group-base-4', 'base')">＋ 新增項目</button>
                     </div>
-                    <div class="quote-items-container">
-                        <label class="quote-option-item"><input type="radio" name="quote-style" value="1299" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">輕透感</span><span class="quote-item-price-text">$1,299</span><input type="hidden" class="q-price-val" value="1299"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
-                        <label class="quote-option-item"><input type="radio" name="quote-style" value="1399" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">濃密款</span><span class="quote-item-price-text">$1,399</span><input type="hidden" class="q-price-val" value="1399"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
+                    <div class="quote-items-container sortable-container">
+                        <label class="quote-option-item"><input type="radio" name="quote-base-style" value="1299" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">輕透感</span><span class="quote-item-price-text">$1,299</span><input type="hidden" class="q-price-val" value="1299"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
+                        <label class="quote-option-item"><input type="radio" name="quote-base-style" value="1399" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">濃密款</span><span class="quote-item-price-text">$1,399</span><input type="hidden" class="q-price-val" value="1399"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
                     </div>
                 </div>
 
-                <!-- 5. 設計款 (可選補睫) -->
+                <!-- 5. 設計款 (可選補睫，data-is-base="true") -->
                 <div class="quote-option-group" id="group-base-5" data-is-base="true">
                     <div class="quote-section-header">
                         <div class="quote-section-title">5. 設計款</div>
                         <button class="btn-add-item" onclick="promptAddQuoteItem('group-base-5', 'base')">＋ 新增項目</button>
                     </div>
-                    <div class="quote-items-container">
-                        <label class="quote-option-item"><input type="radio" name="quote-style" value="1099" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">人魚編織款</span><span class="quote-item-price-text">$1,099</span><input type="hidden" class="q-price-val" value="1099"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
-                        <label class="quote-option-item"><input type="radio" name="quote-style" value="1399" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">小紅書造型款</span><span class="quote-item-price-text">$1,399</span><input type="hidden" class="q-price-val" value="1399"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
-                        <label class="quote-option-item"><input type="radio" name="quote-style" value="1399" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">穿插設計款</span><span class="quote-item-price-text">$1,399</span><input type="hidden" class="q-price-val" value="1399"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
+                    <div class="quote-items-container sortable-container">
+                        <label class="quote-option-item"><input type="radio" name="quote-base-style" value="1099" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">人魚編織款</span><span class="quote-item-price-text">$1,099</span><input type="hidden" class="q-price-val" value="1099"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
+                        <label class="quote-option-item"><input type="radio" name="quote-base-style" value="1399" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">小紅書造型款</span><span class="quote-item-price-text">$1,399</span><input type="hidden" class="q-price-val" value="1399"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
+                        <label class="quote-option-item"><input type="radio" name="quote-base-style" value="1399" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">穿插設計款</span><span class="quote-item-price-text">$1,399</span><input type="hidden" class="q-price-val" value="1399"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
                     </div>
                 </div>
 
-                <!-- 6. 睫毛管理與其他 (不可選補睫) -->
+                <!-- 6. 睫毛管理與其他 (不可選補睫，data-is-base="false") -->
                 <div class="quote-option-group" id="group-base-6" data-is-base="false">
                     <div class="quote-section-header">
-                        <div class="quote-section-title">6. 睫毛管理與組合價 (不可選補睫)</div>
-                        <button class="btn-add-item" onclick="promptAddQuoteItem('group-base-6', 'base')">＋ 新增項目</button>
+                        <div class="quote-section-title">6. 睫毛管理與其他 (不可選補睫)</div>
+                        <button class="btn-add-item" onclick="promptAddQuoteItem('group-base-6', 'other')">＋ 新增項目</button>
                     </div>
-                    <div class="quote-items-container">
-                        <label class="quote-option-item"><input type="radio" name="quote-style" value="1000" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">上睫毛</span><span class="quote-item-price-text">$1,000</span><input type="hidden" class="q-price-val" value="1000"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
-                        <label class="quote-option-item"><input type="radio" name="quote-style" value="699" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">下睫毛</span><span class="quote-item-price-text">$699</span><input type="hidden" class="q-price-val" value="699"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
-                        <label class="quote-option-item"><input type="radio" name="quote-style" value="899" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">野生眉雕塑</span><span class="quote-item-price-text">$899</span><input type="hidden" class="q-price-val" value="899"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
-                        <label class="quote-option-item"><input type="radio" name="quote-style" value="1500" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">組合價：睫毛管理+野生眉</span><span class="quote-item-price-text">$1,500</span><input type="hidden" class="q-price-val" value="1500"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
-                        <label class="quote-option-item"><input type="radio" name="quote-style" value="1400" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">組合價：睫毛管理(上.下睫毛)</span><span class="quote-item-price-text">$1,400</span><input type="hidden" class="q-price-val" value="1400"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
+                    <div class="quote-items-container sortable-container">
+                        <label class="quote-option-item"><input type="radio" name="quote-base-style" value="1000" data-category="other" onchange="handleStyleChange()"><span class="quote-item-name-text">上睫毛</span><span class="quote-item-price-text">$1,000</span><input type="hidden" class="q-price-val" value="1000"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
+                        <label class="quote-option-item"><input type="radio" name="quote-base-style" value="699" data-category="other" onchange="handleStyleChange()"><span class="quote-item-name-text">下睫毛</span><span class="quote-item-price-text">$699</span><input type="hidden" class="q-price-val" value="699"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
+                        <label class="quote-option-item"><input type="radio" name="quote-base-style" value="899" data-category="other" onchange="handleStyleChange()"><span class="quote-item-name-text">野生眉雕塑</span><span class="quote-item-price-text">$899</span><input type="hidden" class="q-price-val" value="899"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
+                        <label class="quote-option-item"><input type="radio" name="quote-base-style" value="1500" data-category="other" onchange="handleStyleChange()"><span class="quote-item-name-text">睫毛管理+野生眉</span><span class="quote-item-price-text">$1,500</span><input type="hidden" class="q-price-val" value="1500"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
+                        <label class="quote-option-item"><input type="radio" name="quote-base-style" value="1400" data-category="other" onchange="handleStyleChange()"><span class="quote-item-name-text">睫毛管理(上.下睫毛)</span><span class="quote-item-price-text">$1,400</span><input type="hidden" class="q-price-val" value="1400"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
                     </div>
                 </div>
 
@@ -1000,8 +1006,8 @@
                         <div class="quote-section-title">7. 補睫專區（須先勾選上方 1~5 款式）</div>
                     </div>
                     <div class="quote-items-container">
-                        <label class="quote-option-item" id="discount-7-label" style="opacity:0.5;"><input type="radio" name="quote-style" value="discount_7" data-category="refill" disabled onchange="handleStyleChange()"><span class="quote-item-name-text">補睫 - 嫁接後兩週內</span><span style="color:var(--price-accent); font-weight:bold; font-size:12px;" id="price-d7">原價7折</span><input type="hidden" class="q-price-val" value="0"></label>
-                        <label class="quote-option-item" id="discount-8-label" style="opacity:0.5;"><input type="radio" name="quote-style" value="discount_8" data-category="refill" disabled onchange="handleStyleChange()"><span class="quote-item-name-text">補睫 - 嫁接後三週內</span><span style="color:var(--price-accent); font-weight:bold; font-size:12px;" id="price-d8">原價8折</span><input type="hidden" class="q-price-val" value="0"></label>
+                        <label class="quote-option-item" id="refill-7-label" style="opacity:0.5;"><input type="checkbox" id="quote-refill-7" value="discount_7" disabled onchange="handleRefillChange(7)"><span class="quote-item-name-text">補睫 - 嫁接後兩週內</span><span style="color:var(--price-accent); font-weight:bold; font-size:12px;" id="price-d7">原價7折</span></label>
+                        <label class="quote-option-item" id="refill-8-label" style="opacity:0.5;"><input type="checkbox" id="quote-refill-8" value="discount_8" disabled onchange="handleRefillChange(8)"><span class="quote-item-name-text">補睫 - 嫁接後三週內</span><span style="color:var(--price-accent); font-weight:bold; font-size:12px;" id="price-d8">原價8折</span></label>
                     </div>
                 </div>
 
@@ -1011,7 +1017,7 @@
                         <div class="quote-section-title">8. 卸睫項目（可複選）</div>
                         <button class="btn-add-item" onclick="promptAddQuoteItem('group-addon-1', 'addon')">＋ 新增項目</button>
                     </div>
-                    <div class="quote-items-container">
+                    <div class="quote-items-container sortable-container">
                         <label class="quote-option-item"><input type="checkbox" name="quote-addon" onchange="calculateQuoteTotal()"><span class="quote-item-name-text">他店卸除不續接</span><span class="quote-item-price-text">$300</span><input type="hidden" class="q-price-val" value="300"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
                         <label class="quote-option-item"><input type="checkbox" name="quote-addon" onchange="calculateQuoteTotal()"><span class="quote-item-name-text">他店卸除續接</span><span class="quote-item-price-text">$200</span><input type="hidden" class="q-price-val" value="200"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
                         <label class="quote-option-item"><input type="checkbox" name="quote-addon" onchange="calculateQuoteTotal()"><span class="quote-item-name-text">本店卸除不續接</span><span class="quote-item-price-text">$200</span><input type="hidden" class="q-price-val" value="200"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
@@ -1025,7 +1031,7 @@
                         <div class="quote-section-title">9. 加購項目（可複選）</div>
                         <button class="btn-add-item" onclick="promptAddQuoteItem('group-addon-2', 'addon')">＋ 新增項目</button>
                     </div>
-                    <div class="quote-items-container">
+                    <div class="quote-items-container sortable-container">
                         <label class="quote-option-item"><input type="checkbox" name="quote-addon" onchange="calculateQuoteTotal()"><span class="quote-item-name-text">下睫毛</span><span class="quote-item-price-text">$150</span><input type="hidden" class="q-price-val" value="150"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
                         <label class="quote-option-item"><input type="checkbox" name="quote-addon" onchange="calculateQuoteTotal()"><span class="quote-item-name-text">根源矯正</span><span class="quote-item-price-text">$200</span><input type="hidden" class="q-price-val" value="200"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
                         <label class="quote-option-item"><input type="checkbox" name="quote-addon" onchange="calculateQuoteTotal()"><span class="quote-item-name-text">野生眉</span><span class="quote-item-price-text">$499</span><input type="hidden" class="q-price-val" value="499"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
@@ -1227,6 +1233,7 @@
                 handleTypeChange();
                 renderReports();
                 renderCustomerPage();
+                initSortableLists();
                 calculateQuoteTotal();
             } else {
                 currentUser = null;
@@ -1234,6 +1241,20 @@
                 document.getElementById('main-app').style.display = 'none';
             }
         });
+
+        // 💡 初始化 SortableJS 拖曳排序功能
+        function initSortableLists() {
+            document.querySelectorAll('.sortable-container').forEach(container => {
+                if (container.sortableInstance) container.sortableInstance.destroy();
+                container.sortableInstance = new Sortable(container, {
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    onEnd: function() {
+                        calculateQuoteTotal();
+                    }
+                });
+            });
+        }
 
         window.handleRegister = async function() {
             const email = document.getElementById('auth-email').value.trim();
@@ -1263,7 +1284,6 @@
             if(confirm('確定要登出系統嗎？')) signOut(auth);
         }
 
-        // 💡 雙軌儲存機制 (LocalStorage 本地防護 + Firebase 雲端同步)
         function loadLocalFallback() {
             try {
                 const localRec = localStorage.getItem('mumu_pocket_records');
@@ -1299,7 +1319,7 @@
                     await saveCloudData();
                 }
             } catch (e) {
-                console.warn("雲端讀取失敗，已啟用本地端離線快取模式：", e);
+                console.warn("雲端讀取失敗：", e);
             }
         }
 
@@ -1398,7 +1418,7 @@
             if (pageId === 'reports-page') { closeReportDetail(); renderReports(); }
             if (pageId === 'calendar-page') { initCalendar(); renderDayRecords(); }
             if (pageId === 'customers-page') renderCustomerPage();
-            if (pageId === 'quote-page') calculateQuoteTotal();
+            if (pageId === 'quote-page') { initSortableLists(); calculateQuoteTotal(); }
         }
 
         window.openEditModal = function(id, event) {
@@ -1427,7 +1447,6 @@
             document.getElementById('edit-modal').style.display = 'none';
         }
 
-        // 💡 修正修改紀錄無法即時呈現的問題：儲存後立即更新介面與背景同步
         window.updateRecordData = function() {
             const id = document.getElementById('edit-id').value;
             const recIndex = records.findIndex(r => r.id === id);
@@ -1454,12 +1473,10 @@
             }
 
             closeEditModal();
-            // 立即刷新畫面
             initCalendar(); 
             renderDayRecords(); 
             renderReports(); 
             renderCustomerPage();
-            // 背景非同步同步
             saveCloudData();
         }
 
@@ -1654,7 +1671,6 @@
             });
         }
 
-        // 🖤 黑名單開關切換
         window.toggleBlacklistFilter = function() {
             showBlacklistOnly = !showBlacklistOnly;
             const btn = document.getElementById('blacklist-toggle-btn');
@@ -1866,27 +1882,19 @@
             if (isNaN(price) || price < 0) return alert('請輸入有效的金額');
 
             const groupEl = document.getElementById(groupId);
-            const container = groupEl.querySelector('.quote-items-container');
+            const container = groupEl.querySelector('.sortable-container') || groupEl.querySelector('.quote-items-container');
             const newLabel = document.createElement('label');
             newLabel.classList.add('quote-option-item');
             
-            if (type === 'base') {
-                newLabel.innerHTML = `
-                    <input type="radio" name="quote-style" value="${price}" data-category="base" onchange="handleStyleChange()">
-                    <span class="quote-item-name-text">${escapeHtml(name)}</span>
-                    <span class="quote-item-price-text">$${price.toLocaleString()}</span>
-                    <input type="hidden" class="q-price-val" value="${price}">
-                    <button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button>
-                `;
-            } else {
-                newLabel.innerHTML = `
-                    <input type="checkbox" name="quote-addon" onchange="calculateQuoteTotal()">
-                    <span class="quote-item-name-text">${escapeHtml(name)}</span>
-                    <span class="quote-item-price-text">$${price.toLocaleString()}</span>
-                    <input type="hidden" class="q-price-val" value="${price}">
-                    <button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button>
-                `;
-            }
+            const categoryAttr = type === 'base' ? 'base' : 'other';
+            newLabel.innerHTML = `
+                <input type="radio" name="quote-base-style" value="${price}" data-category="${categoryAttr}" onchange="handleStyleChange()">
+                <span class="quote-item-name-text">${escapeHtml(name)}</span>
+                <span class="quote-item-price-text">$${price.toLocaleString()}</span>
+                <input type="hidden" class="q-price-val" value="${price}">
+                <button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button>
+            `;
+
             container.appendChild(newLabel);
             closeAddQuoteItemModal();
             handleStyleChange();
@@ -1898,101 +1906,101 @@
             handleStyleChange();
         }
 
-        // 💡 智慧連動：僅第 1~5 款式可勾選補睫專區
+        // 💡 補睫核取方塊切換（確保 2 週 / 3 週互斥單選）
+        window.handleRefillChange = function(type) {
+            const ref7 = document.getElementById('quote-refill-7');
+            const ref8 = document.getElementById('quote-refill-8');
+            if (type === 7 && ref7.checked) ref8.checked = false;
+            if (type === 8 && ref8.checked) ref7.checked = false;
+            calculateQuoteTotal();
+        }
+
+        // 💡 智慧連動：判斷是否選中 1~5 區塊的項目
         window.handleStyleChange = function() {
-            const baseRadios = document.querySelectorAll('input[name="quote-style"][data-category="base"]');
-            const refillRadios = document.querySelectorAll('input[name="quote-style"][data-category="refill"]');
-            let isEligibleForRefill = false;
+            const selectedRadio = document.querySelector('input[name="quote-base-style"]:checked');
+            const ref7 = document.getElementById('quote-refill-7');
+            const ref8 = document.getElementById('quote-refill-8');
+            const label7 = document.getElementById('refill-7-label');
+            const label8 = document.getElementById('refill-8-label');
 
-            baseRadios.forEach(r => {
-                if (r.checked) {
-                    const group = r.closest('.quote-option-group');
-                    if (group && group.getAttribute('data-is-base') === 'true') {
-                        isEligibleForRefill = true;
-                    }
+            let isEligible = false;
+            if (selectedRadio) {
+                const parentGroup = selectedRadio.closest('.quote-option-group');
+                if (parentGroup && parentGroup.getAttribute('data-is-base') === 'true') {
+                    isEligible = true;
                 }
-            });
+            }
 
-            refillRadios.forEach(refillRadio => {
-                let parentLabel = refillRadio.closest('.quote-option-item');
-                if (isEligibleForRefill) {
-                    refillRadio.disabled = false;
-                    parentLabel.style.opacity = '1';
-                } else {
-                    refillRadio.disabled = true;
-                    parentLabel.style.opacity = '0.5';
-                    if (refillRadio.checked) refillRadio.checked = false;
-                }
-            });
+            if (isEligible) {
+                ref7.disabled = false;
+                ref8.disabled = false;
+                label7.style.opacity = '1';
+                label8.style.opacity = '1';
+            } else {
+                ref7.disabled = true;
+                ref8.disabled = true;
+                ref7.checked = false;
+                ref8.checked = false;
+                label7.style.opacity = '0.5';
+                label8.style.opacity = '0.5';
+            }
 
             calculateQuoteTotal();
         }
 
         window.calculateQuoteTotal = function() {
-            const styleRadios = document.querySelectorAll('input[name="quote-style"]');
-            const addonCheckboxes = document.querySelectorAll('input[name="quote-addon"]');
             const totalAmountElement = document.getElementById('quoteTotalAmount');
             const subCalcElement = document.getElementById('quoteSubCalcText');
             const lineBookingBtn = document.getElementById('lineBookingBtn');
             const depositInput = document.getElementById('quote-deposit-input');
             const promoInput = document.getElementById('quote-promo-input');
 
-            let basePrice = 0;
+            const selectedBaseRadio = document.querySelector('input[name="quote-base-style"]:checked');
+            
+            let originalBasePrice = 0;
+            let finalBasePrice = 0;
             let styleName = "未選擇款式";
-            let isDiscount = false;
-            let discountRate = 1.0;
-            let selectedBaseRadio = null;
+            let refillName = "";
 
-            styleRadios.forEach(radio => {
-                if (radio.checked && radio.getAttribute('data-category') === 'base') {
-                    selectedBaseRadio = radio;
-                }
-            });
+            if (selectedBaseRadio) {
+                let label = selectedBaseRadio.closest('.quote-option-item');
+                let nameSpan = label.querySelector('.quote-item-name-text');
+                let priceValInput = label.querySelector('.q-price-val');
+                
+                if (nameSpan) styleName = nameSpan.textContent.trim();
+                if (priceValInput) originalBasePrice = parseInt(priceValInput.value) || 0;
+                finalBasePrice = originalBasePrice;
 
-            styleRadios.forEach(radio => {
-                if (radio.checked) {
-                    let label = radio.closest('.quote-option-item');
-                    let nameSpan = label.querySelector('.quote-item-name-text');
-                    let priceValInput = label.querySelector('.q-price-val');
+                const parentGroup = selectedBaseRadio.closest('.quote-option-group');
+                if (parentGroup && parentGroup.getAttribute('data-is-base') === 'true') {
+                    const ref7 = document.getElementById('quote-refill-7');
+                    const ref8 = document.getElementById('quote-refill-8');
                     
-                    if(nameSpan) styleName = nameSpan.textContent;
-
-                    if (radio.value === 'discount_7' || radio.value === 'discount_8') {
-                        isDiscount = true;
-                        discountRate = radio.value === 'discount_7' ? 0.7 : 0.8;
-                        if (selectedBaseRadio) {
-                            let baseLabel = selectedBaseRadio.closest('.quote-option-item');
-                            let basePriceVal = baseLabel.querySelector('.q-price-val');
-                            basePrice = basePriceVal ? parseInt(basePriceVal.value) || 0 : 0;
-                        } else {
-                            basePrice = 0;
-                        }
-                    } else {
-                        basePrice = priceValInput ? parseInt(priceValInput.value) || 0 : 0;
+                    if (ref7 && ref7.checked) {
+                        finalBasePrice = Math.round(originalBasePrice * 0.7);
+                        refillName = " (補睫兩週內 7折)";
+                    } else if (ref8 && ref8.checked) {
+                        finalBasePrice = Math.round(originalBasePrice * 0.8);
+                        refillName = " (補睫三週內 8折)";
                     }
                 }
-            });
-
-            if (isDiscount) {
-                basePrice = Math.round(basePrice * discountRate);
             }
 
+            // 計算加購項目
             let addonsTotal = 0;
             let selectedAddons = [];
-            addonCheckboxes.forEach(checkbox => {
-                if (checkbox.checked) {
-                    let label = checkbox.closest('.quote-option-item');
-                    let nameSpan = label.querySelector('.quote-item-name-text');
-                    let priceValInput = label.querySelector('.q-price-val');
-                    let aName = nameSpan ? nameSpan.textContent : '加購';
-                    let aPrice = priceValInput ? parseInt(priceValInput.value) || 0 : 0;
-                    
-                    addonsTotal += aPrice;
-                    selectedAddons.push({ name: aName, price: aPrice });
-                }
+            document.querySelectorAll('input[name="quote-addon"]:checked').forEach(checkbox => {
+                let label = checkbox.closest('.quote-option-item');
+                let nameSpan = label.querySelector('.quote-item-name-text');
+                let priceValInput = label.querySelector('.q-price-val');
+                let aName = nameSpan ? nameSpan.textContent.trim() : '加購';
+                let aPrice = priceValInput ? parseInt(priceValInput.value) || 0 : 0;
+                
+                addonsTotal += aPrice;
+                selectedAddons.push({ name: aName, price: aPrice });
             });
 
-            let subtotal = basePrice + addonsTotal;
+            let subtotal = finalBasePrice + addonsTotal;
             let deposit = parseInt(depositInput?.value) || 0;
             let promo = parseInt(promoInput?.value) || 0;
 
@@ -2005,9 +2013,10 @@
             if(totalAmountElement) totalAmountElement.textContent = `$${finalTotal.toLocaleString()}`;
             if(subCalcElement) subCalcElement.textContent = `小計 $${subtotal.toLocaleString()} | 折扣 -$${promo.toLocaleString()} | 預付訂金 $${deposit.toLocaleString()} | 尾款應收 $${remainingBalance.toLocaleString()}`;
 
-            let textMsg = `✨ MUMU POCKET 預約報價單 ✨\n- 選擇項目：${styleName} ($${basePrice})`;
+            const fullStyleDisplay = styleName + refillName;
+            let textMsg = `✨ MUMU POCKET 預約報價單 ✨\n- 選擇項目：${fullStyleDisplay} ($${finalBasePrice})`;
             let htmlMsg = `<div style="font-weight:bold; margin-bottom:6px;">✨ 選擇項目明細：</div>`;
-            htmlMsg += `<div>• 款式：${styleName} ($${basePrice})</div>`;
+            htmlMsg += `<div>• 款式：${fullStyleDisplay} ($${finalBasePrice})</div>`;
 
             if (selectedAddons.length > 0) {
                 textMsg += `\n- 附加/卸睫：${selectedAddons.map(a => `${a.name}(+$${a.price})`).join(', ')}`;
@@ -2043,8 +2052,12 @@
         }
 
         window.resetQuote = function() {
-            document.querySelectorAll('input[name="quote-style"]').forEach(r => r.checked = false);
+            document.querySelectorAll('input[name="quote-base-style"]').forEach(r => r.checked = false);
             document.querySelectorAll('input[name="quote-addon"]').forEach(c => c.checked = false);
+            const ref7 = document.getElementById('quote-refill-7');
+            const ref8 = document.getElementById('quote-refill-8');
+            if(ref7) ref7.checked = false;
+            if(ref8) ref8.checked = false;
             if(document.getElementById('quote-deposit-input')) document.getElementById('quote-deposit-input').value = 0;
             if(document.getElementById('quote-promo-input')) document.getElementById('quote-promo-input').value = 0;
             handleStyleChange();
