@@ -18,9 +18,9 @@
             --income-green: #95B46A;
             --expense-red: #E07A5F;
             --birthday-pink: #E6B8A2;
-            --highlight-orange: #D87A60; /* 備註專用顯眼色 */
-            --primary-color: #d4a373;   /* 報價單專用主色 */
-            --price-accent: #bc6c25;    /* 報價金額顏色 */
+            --highlight-orange: #D87A60; 
+            --primary-color: #d4a373;   
+            --price-accent: #bc6c25;    
         }
 
         /* --- 全局樣式 --- */
@@ -636,6 +636,47 @@
             color: var(--price-accent);
             margin-top: 5px;
         }
+        .quote-sub-calc {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+        .quote-input-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .quote-input-box {
+            flex: 1;
+            text-align: left;
+        }
+        .quote-input-box label {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 4px;
+        }
+        .quote-action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-top: 15px;
+        }
+        .btn-quote-action {
+            background-color: var(--pure-white);
+            color: var(--text-dark);
+            border: 1px solid var(--accent-latte);
+            padding: 10px 4px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn-quote-action:hover {
+            background-color: var(--main-butter);
+        }
         .btn-quote-booking {
             display: block;
             width: 100%;
@@ -647,7 +688,7 @@
             font-size: 15px;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 15px;
+            margin-top: 12px;
             transition: background 0.2s;
             text-align: center;
             text-decoration: none;
@@ -655,6 +696,20 @@
         }
         .btn-quote-booking:hover {
             opacity: 0.9;
+        }
+
+        /* 🌟明細彈出視窗樣式 */
+        .detail-modal-body {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-dark);
+            max-height: 300px;
+            overflow-y: auto;
+            background: var(--bg-cream);
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--accent-latte);
+            margin-bottom: 12px;
         }
     </style>
 </head>
@@ -680,7 +735,7 @@
             <button class="nav-btn" onclick="switchPage('all-records-page', this)">2. 總紀錄</button>
             <button class="nav-btn" onclick="switchPage('reports-page', this)">3. 報表</button>
             <button class="nav-btn" onclick="switchPage('customers-page', this)">4. 客戶資料</button>
-            <button class="nav-btn" onclick="switchPage('quote-page', this)">5. 報價單</button>
+            <button class="nav-btn" onclick="switchPage('quote-page', this)">5. 報價</button>
         </nav>
 
         <header class="shop-header">
@@ -832,68 +887,133 @@
             </div>
         </main>
 
-        <!-- 💡 頁面 5: 美睫互動式價目與報價單 -->
+        <!-- 💡 頁面 5: 報價與價目試算（依照圖片與需求更新） -->
         <main id="quote-page" class="page">
             <div class="card-box">
-                <div class="card-title" style="justify-content: center; font-size: 20px;">✨ MUMU 質感美睫價目預算試算 ✨</div>
-                <div class="quote-subtitle">請選擇您想要的嫁接款式與附加服務</div>
+                <div class="card-title" style="justify-content: center; font-size: 20px;">✨ MUMU STUDIO PRICE LIST ✨</div>
+                <div class="quote-subtitle">線上即時報價與預算試算</div>
 
-                <!-- 1. 款式選擇 -->
+                <!-- 1. 極致單根 -->
                 <div class="quote-option-group">
-                    <div class="quote-section-title">1. 選擇嫁接款式</div>
-                    
-                    <label class="quote-option-item">
-                        <input type="radio" name="quote-style" value="1000" data-name="自然裸妝感 (根數適中)" checked onchange="calculateQuoteTotal()">
-                        <span class="quote-option-label">自然裸妝感 (根數適中)</span>
-                        <span class="quote-option-price">$1,000</span>
-                    </label>
-
-                    <label class="quote-option-item">
-                        <input type="radio" name="quote-style" value="1300" data-name="濃密根根分明 (電眼款)" onchange="calculateQuoteTotal()">
-                        <span class="quote-option-label">濃密根根分明 (電眼款)</span>
-                        <span class="quote-option-price">$1,300</span>
-                    </label>
-
-                    <label class="quote-option-item">
-                        <input type="radio" name="quote-style" value="1600" data-name="仙女網紅款 (蓬鬆羽毛)" onchange="calculateQuoteTotal()">
-                        <span class="quote-option-label">仙女網紅款 (蓬鬆羽毛)</span>
-                        <span class="quote-option-price">$1,600</span>
-                    </label>
+                    <div class="quote-section-title">1. 極致單根</div>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="999" data-name="極致單根 - 80根" onchange="calculateQuoteTotal()"><span class="quote-option-label">80根</span><span class="quote-option-price">$999</span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1199" data-name="極致單根 - 100根" onchange="calculateQuoteTotal()"><span class="quote-option-label">100根</span><span class="quote-option-price">$1,199</span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1299" data-name="極致單根 - 120根" onchange="calculateQuoteTotal()"><span class="quote-option-label">120根</span><span class="quote-option-price">$1,299</span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1399" data-name="極致單根 - 150根" onchange="calculateQuoteTotal()"><span class="quote-option-label">150根</span><span class="quote-option-price">$1,399</span></label>
                 </div>
 
-                <!-- 2. 附加服務 -->
+                <!-- 2. 訂製睫毛膏款 -->
                 <div class="quote-option-group">
-                    <div class="quote-section-title">2. 附加服務（可複選）</div>
-                    
-                    <label class="quote-option-item">
-                        <input type="checkbox" name="quote-addon" value="200" data-name="外店卸甲" onchange="calculateQuoteTotal()">
-                        <span class="quote-option-label">外店卸甲</span>
-                        <span class="quote-option-price">+$200</span>
-                    </label>
-
-                    <label class="quote-option-item">
-                        <input type="checkbox" name="quote-addon" value="300" data-name="下睫毛嫁接" onchange="calculateQuoteTotal()">
-                        <span class="quote-option-label">下睫毛嫁接</span>
-                        <span class="quote-option-price">+$300</span>
-                    </label>
-
-                    <label class="quote-option-item">
-                        <input type="checkbox" name="quote-addon" value="150" data-name="精美睫毛梳保養組" onchange="calculateQuoteTotal()">
-                        <span class="quote-option-label">精美睫毛梳保養組</span>
-                        <span class="quote-option-price">+$150</span>
-                    </label>
+                    <div class="quote-section-title">2. 訂製睫毛膏款</div>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1199" data-name="訂製睫毛膏款 - 輕透感" onchange="calculateQuoteTotal()"><span class="quote-option-label">輕透感</span><span class="quote-option-price">$1,199</span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1299" data-name="訂製睫毛膏款 - 濃密款" onchange="calculateQuoteTotal()"><span class="quote-option-label">濃密款</span><span class="quote-option-price">$1,299</span></label>
                 </div>
 
-                <!-- 總金額與預約 -->
+                <!-- 3. 混血兒款 -->
+                <div class="quote-option-group">
+                    <div class="quote-section-title">3. 混血兒款</div>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1299" data-name="混血兒款 - 輕透感" onchange="calculateQuoteTotal()"><span class="quote-option-label">輕透感</span><span class="quote-option-price">$1,299</span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1399" data-name="混血兒款 - 濃密款" onchange="calculateQuoteTotal()"><span class="quote-option-label">濃密款</span><span class="quote-option-price">$1,399</span></label>
+                </div>
+
+                <!-- 4. 6D蓬鬆款 -->
+                <div class="quote-option-group">
+                    <div class="quote-section-title">4. 6D蓬鬆款</div>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1299" data-name="6D蓬鬆款 - 輕透感" onchange="calculateQuoteTotal()"><span class="quote-option-label">輕透感</span><span class="quote-option-price">$1,299</span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1399" data-name="6D蓬鬆款 - 濃密款" onchange="calculateQuoteTotal()"><span class="quote-option-label">濃密款</span><span class="quote-option-price">$1,399</span></label>
+                </div>
+
+                <!-- 5. 設計款 -->
+                <div class="quote-option-group">
+                    <div class="quote-section-title">5. 設計款</div>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1099" data-name="設計款 - 人魚編織款" onchange="calculateQuoteTotal()"><span class="quote-option-label">人魚編織款</span><span class="quote-option-price">$1,099</span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1399" data-name="設計款 - 小紅書造型款" onchange="calculateQuoteTotal()"><span class="quote-option-label">小紅書造型款</span><span class="quote-option-price">$1,399</span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1399" data-name="設計款 - 穿插設計款" onchange="calculateQuoteTotal()"><span class="quote-option-label">穿插設計款</span><span class="quote-option-price">$1,399</span></label>
+                </div>
+
+                <!-- 6. 睫毛管理 & 其他 (第二張圖項目) -->
+                <div class="quote-option-group">
+                    <div class="quote-section-title">6. 睫毛管理與組合價</div>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1000" data-name="睫毛管理 - 上睫毛" onchange="calculateQuoteTotal()"><span class="quote-option-label">睫毛管理：上睫毛</span><span class="quote-option-price">$1,000</span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="699" data-name="睫毛管理 - 下睫毛" onchange="calculateQuoteTotal()"><span class="quote-option-label">睫毛管理：下睫毛</span><span class="quote-option-price">$699</span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="899" data-name="睫毛管理 - 野生眉雕塑" onchange="calculateQuoteTotal()"><span class="quote-option-label">野生眉雕塑</span><span class="quote-option-price">$899</span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1500" data-name="組合價 - 睫毛管理+野生眉" onchange="calculateQuoteTotal()"><span class="quote-option-label">組合價：睫毛管理+野生眉</span><span class="quote-option-price">$1,500</span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="1400" data-name="組合價 - 睫毛管理(上下睫毛)" onchange="calculateQuoteTotal()"><span class="quote-option-label">組合價：睫毛管理(上.下睫毛)</span><span class="quote-option-price">$1,400</span></label>
+                </div>
+
+                <!-- 7. 補睫專區 -->
+                <div class="quote-option-group">
+                    <div class="quote-section-title">7. 補睫（以所選款式打折計算）</div>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="discount_7" data-name="補睫 - 嫁接後兩週內 (7折)" onchange="calculateQuoteTotal()"><span class="quote-option-label">嫁接後兩週內</span><span class="quote-option-price">原價7折</span></label>
+                    <label class="quote-option-item"><input type="radio" name="quote-style" value="discount_8" data-name="補睫 - 嫁接後三週內 (8折)" onchange="calculateQuoteTotal()"><span class="quote-option-label">嫁接後三週內</span><span class="quote-option-price">原價8折</span></label>
+                </div>
+
+                <!-- 8. 卸睫項目（可複選） -->
+                <div class="quote-option-group">
+                    <div class="quote-section-title">8. 卸睫項目（可複選）</div>
+                    <label class="quote-option-item"><input type="checkbox" name="quote-addon" value="300" data-name="他店卸除不續接" onchange="calculateQuoteTotal()"><span class="quote-option-label">他店卸除不續接</span><span class="quote-option-price">+$300</span></label>
+                    <label class="quote-option-item"><input type="checkbox" name="quote-addon" value="200" data-name="他店卸除續接" onchange="calculateQuoteTotal()"><span class="quote-option-label">他店卸除續接</span><span class="quote-option-price">+$200</span></label>
+                    <label class="quote-option-item"><input type="checkbox" name="quote-addon" value="200" data-name="本店卸除不續接" onchange="calculateQuoteTotal()"><span class="quote-option-label">本店卸除不續接</span><span class="quote-option-price">+$200</span></label>
+                    <label class="quote-option-item"><input type="checkbox" name="quote-addon" value="0" data-name="本店卸除續接" onchange="calculateQuoteTotal()"><span class="quote-option-label">本店卸除續接</span><span class="quote-option-price">Free</span></label>
+                </div>
+
+                <!-- 9. 加購項目（可複選） -->
+                <div class="quote-option-group">
+                    <div class="quote-section-title">9. 加購項目（可複選）</div>
+                    <label class="quote-option-item"><input type="checkbox" name="quote-addon" value="150" data-name="加購 - 下睫毛" onchange="calculateQuoteTotal()"><span class="quote-option-label">下睫毛</span><span class="quote-option-price">+$150</span></label>
+                    <label class="quote-option-item"><input type="checkbox" name="quote-addon" value="200" data-name="加購 - 根源矯正" onchange="calculateQuoteTotal()"><span class="quote-option-label">根源矯正</span><span class="quote-option-price">+$200</span></label>
+                    <label class="quote-option-item"><input type="checkbox" name="quote-addon" value="499" data-name="加購 - 野生眉" onchange="calculateQuoteTotal()"><span class="quote-option-label">野生眉</span><span class="quote-option-price">+$499</span></label>
+                    <label class="quote-option-item"><input type="checkbox" name="quote-addon" value="100" data-name="加購 - 深層滋養保濕" onchange="calculateQuoteTotal()"><span class="quote-option-label">深層滋養保濕</span><span class="quote-option-price">+$100</span></label>
+                </div>
+
+                <!-- 訂金與優惠金額輸入區 -->
+                <div class="quote-input-row">
+                    <div class="quote-input-box">
+                        <label>💳 預付訂金 (元)</label>
+                        <input type="number" id="quote-deposit-input" class="input-style" placeholder="輸入訂金" value="0" oninput="calculateQuoteTotal()" inputmode="numeric">
+                    </div>
+                    <div class="quote-input-box">
+                        <label>🎁 優惠活動/折扣 (元)</label>
+                        <input type="number" id="quote-promo-input" class="input-style" placeholder="輸入折扣" value="0" oninput="calculateQuoteTotal()" inputmode="numeric">
+                    </div>
+                </div>
+
+                <!-- 總金額與操作按鈕 -->
                 <div class="quote-total-section">
-                    <div style="font-size: 13px; color: var(--text-muted);">預估總金額</div>
-                    <div class="quote-total-price" id="quoteTotalAmount">$1000</div>
-                    <a href="https://line.me/R/" target="_blank" class="btn-quote-booking" id="lineBookingBtn">立即加 Line 預約諮詢</a>
+                    <div style="font-size: 13px; color: var(--text-muted);">試算應付總金額</div>
+                    <div class="quote-total-price" id="quoteTotalAmount">$0</div>
+                    <div class="quote-sub-calc" id="quoteSubCalcText">已付訂金 $0 | 尾款應收 $0</div>
+
+                    <!-- 操作選單按鈕：重新選擇、複製文字、查看明細 -->
+                    <div class="quote-action-buttons">
+                        <button class="btn-quote-action" onclick="resetQuote()">🔄 重新選擇</button>
+                        <button class="btn-quote-action" onclick="copyQuoteText()">📋 複製文字</button>
+                        <button class="btn-quote-action" onclick="openQuoteDetailModal()">🌟 查看明細</button>
+                    </div>
+
+                    <a href="https://line.me/R/" target="_blank" class="btn-quote-booking" id="lineBookingBtn">💬 傳送明細至 Line 預約</a>
                 </div>
             </div>
         </main>
     </div>
 
+    <!-- 🌟 查看明細彈出視窗 (Modal) -->
+    <div id="quote-detail-modal" class="modal-overlay" onclick="closeQuoteDetailModal(event)">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span>🌟 預約報價明細總覽</span>
+                <span style="cursor:pointer; font-weight:normal; font-size:14px;" onclick="closeQuoteDetailModal()">✕</span>
+            </div>
+            <div id="quote-detail-content" class="detail-modal-body">
+                <!-- 動態填入明細 -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal save" onclick="copyQuoteText(); closeQuoteDetailModal();">複製明細文字</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 編輯紀錄彈出視窗 -->
     <div id="edit-modal" class="modal-overlay" onclick="closeEditModal(event)">
         <div class="modal-box" onclick="event.stopPropagation()">
             <div class="modal-header">
@@ -1482,42 +1602,117 @@
             }
         }
 
-        // 💡 報價單計算與 Line 預約傳送邏輯
+        // 💡 報價單計算與互動邏輯
         window.calculateQuoteTotal = function() {
             const styleRadios = document.querySelectorAll('input[name="quote-style"]');
             const addonCheckboxes = document.querySelectorAll('input[name="quote-addon"]');
             const totalAmountElement = document.getElementById('quoteTotalAmount');
+            const subCalcElement = document.getElementById('quoteSubCalcText');
             const lineBookingBtn = document.getElementById('lineBookingBtn');
+            const depositInput = document.getElementById('quote-deposit-input');
+            const promoInput = document.getElementById('quote-promo-input');
 
-            let total = 0;
-            let selectedStyleName = "";
-            let selectedAddons = [];
+            let basePrice = 0;
+            let styleName = "未選擇款式";
+            let isDiscount = false;
+            let discountRate = 1.0;
 
             styleRadios.forEach(radio => {
                 if (radio.checked) {
-                    total += parseInt(radio.value);
-                    selectedStyleName = radio.getAttribute('data-name');
+                    styleName = radio.getAttribute('data-name');
+                    if (radio.value === 'discount_7') {
+                        isDiscount = true;
+                        discountRate = 0.7;
+                        basePrice = 1200; // 預設補睫基準參考，可依需求調整
+                    } else if (radio.value === 'discount_8') {
+                        isDiscount = true;
+                        discountRate = 0.8;
+                        basePrice = 1200;
+                    } else {
+                        basePrice = parseInt(radio.value);
+                    }
                 }
             });
 
+            if (isDiscount) {
+                basePrice = Math.round(basePrice * discountRate);
+            }
+
+            let addonsTotal = 0;
+            let selectedAddons = [];
             addonCheckboxes.forEach(checkbox => {
                 if (checkbox.checked) {
-                    total += parseInt(checkbox.value);
-                    selectedAddons.push(checkbox.getAttribute('data-name'));
+                    addonsTotal += parseInt(checkbox.value);
+                    selectedAddons.push({ name: checkbox.getAttribute('data-name'), price: parseInt(checkbox.value) });
                 }
             });
 
-            if(totalAmountElement) totalAmountElement.textContent = `$${total}`;
+            let subtotal = basePrice + addonsTotal;
+            let deposit = parseInt(depositInput?.value) || 0;
+            let promo = parseInt(promoInput?.value) || 0;
 
-            let message = `您好，我想預約美睫：\n- 款式：${selectedStyleName}`;
+            let finalTotal = subtotal - promo;
+            if (finalTotal < 0) finalTotal = 0;
+
+            let remainingBalance = finalTotal - deposit;
+            if (remainingBalance < 0) remainingBalance = 0;
+
+            if(totalAmountElement) totalAmountElement.textContent = `$${finalTotal.toLocaleString()}`;
+            if(subCalcElement) subCalcElement.textContent = `小計 $${subtotal.toLocaleString()} | 折扣 -$${promo.toLocaleString()} | 預付訂金 $${deposit.toLocaleString()} | 尾款應收 $${remainingBalance.toLocaleString()}`;
+
+            let message = `✨ MUMU STUDIO 預約報價單 ✨\n- 選擇項目：${styleName} ($${basePrice})`;
             if (selectedAddons.length > 0) {
-                message += `\n- 附加服務：${selectedAddons.join(', ')}`;
+                message += `\n- 加購/卸睫：${selectedAddons.map(a => `${a.name}(+$${a.price})`).join(', ')}`;
             }
-            message += `\n- 預估總計：$${total} 元`;
+            if (promo > 0) message += `\n- 優惠折扣：-$${promo}`;
+            message += `\n- 總計金額：$${finalTotal} 元`;
+            if (deposit > 0) {
+                message += `\n- 已付訂金：$${deposit} 元\n- 尾款應收：$${remainingBalance} 元`;
+            }
             
             if(lineBookingBtn) {
                 lineBookingBtn.href = `https://line.me/R/msg/text/?${encodeURIComponent(message)}`;
             }
+        }
+
+        window.resetQuote = function() {
+            document.querySelectorAll('input[name="quote-style"]').forEach((r, idx) => r.checked = (idx === 0));
+            document.querySelectorAll('input[name="quote-addon"]').forEach(c => c.checked = false);
+            if(document.getElementById('quote-deposit-input')) document.getElementById('quote-deposit-input').value = 0;
+            if(document.getElementById('quote-promo-input')) document.getElementById('quote-promo-input').value = 0;
+            calculateQuoteTotal();
+            alert('已重新選擇！');
+        }
+
+        window.copyQuoteText = function() {
+            const lineBtn = document.getElementById('lineBookingBtn');
+            if (!lineBtn) return;
+            // 從 line href 中解碼出文字
+            const urlParams = new URLSearchParams(lineBtn.href.split('?')[1]);
+            const textToCopy = urlParams.get('text') || '';
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                alert('📋 報價明細文字已成功複製到剪貼簿！');
+            }).catch(err => {
+                alert('複製失敗，請手動複製。');
+            });
+        }
+
+        window.openQuoteDetailModal = function() {
+            const lineBtn = document.getElementById('lineBookingBtn');
+            if (!lineBtn) return;
+            const urlParams = new URLSearchParams(lineBtn.href.split('?')[1]);
+            const textToCopy = urlParams.get('text') || '';
+            
+            const contentBox = document.getElementById('quote-detail-content');
+            if (contentBox) {
+                contentBox.innerHTML = textToCopy.replace(/\n/g, '<br>');
+            }
+            document.getElementById('quote-detail-modal').style.display = 'flex';
+        }
+
+        window.closeQuoteDetailModal = function(event) {
+            document.getElementById('quote-detail-modal').style.display = 'none';
         }
     </script>
 </body>
