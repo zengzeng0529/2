@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> MUMU NOTE | 美睫記帳、報價與進階報表CRM系統</title>
+    <title>MUMU POCKET | 美睫記帳、報價與進階報表CRM系統</title>
     <style>
         /* --- 韓系奶油風 變數設定 --- */
         :root {
@@ -137,22 +137,30 @@
             font-weight: bold;
         }
 
-        /* --- 店名 Header --- */
+        /* --- 品牌 Header --- */
         .shop-header {
             text-align: center;
             margin: 20px 0 15px 0;
+            padding: 0 15px;
         }
         .shop-header h1 {
-            font-size: 22px;
+            font-size: 24px;
             letter-spacing: 2px;
             color: var(--text-dark);
-            font-weight: 600;
+            font-weight: 700;
         }
-        .shop-header p {
+        .shop-header .slogan {
+            font-size: 13px;
+            color: var(--primary-color);
+            margin-top: 4px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .shop-header .concept {
             font-size: 11px;
             color: var(--text-muted);
-            margin-top: 4px;
-            letter-spacing: 1px;
+            margin-top: 2px;
+            letter-spacing: 0.5px;
         }
 
         /* --- 頁面容器切換 --- */
@@ -700,16 +708,17 @@
 
         /* 🌟明細彈出視窗樣式 */
         .detail-modal-body {
-            font-size: 14px;
+            font-size: 13px;
             line-height: 1.6;
             color: var(--text-dark);
-            max-height: 300px;
+            max-height: 320px;
             overflow-y: auto;
             background: var(--bg-cream);
             padding: 12px;
             border-radius: 12px;
             border: 1px solid var(--accent-latte);
             margin-bottom: 12px;
+            text-align: left;
         }
     </style>
 </head>
@@ -717,8 +726,9 @@
 
     <div id="auth-page" class="auth-container">
         <header class="shop-header">
-            <h1>MUMU STUDIO</h1>
-            <p>沐 目 ﹒ 美 睫 記 帳 與 客 戶 管 理</p>
+            <h1>MUMU POCKET</h1>
+            <div class="slogan">Your little beauty business partner.</div>
+            <div class="concept">把預約、客戶、帳務及工作室大小事，通通收進口袋。</div>
         </header>
         <h2>系統登入 / 註冊</h2>
         <input type="email" id="auth-email" class="auth-input" placeholder="請輸入電子信箱 (Email)">
@@ -739,8 +749,9 @@
         </nav>
 
         <header class="shop-header">
-            <h1>MUMU STUDIO</h1>
-            <p>沐 目 ﹒ 美 睫 記 帳 與 客 戶 管 理</p>
+            <h1>MUMU POCKET</h1>
+            <div class="slogan">Your little beauty business partner.</div>
+            <div class="concept">把預約、客戶、帳務及工作室大小事，通通收進口袋。</div>
         </header>
 
         <div class="user-info-bar">
@@ -887,11 +898,11 @@
             </div>
         </main>
 
-        <!-- 💡 頁面 5: 報價與價目試算（依照圖片與需求更新） -->
+        <!-- 💡 頁面 5: 報價與價目試算 -->
         <main id="quote-page" class="page">
             <div class="card-box">
-                <div class="card-title" style="justify-content: center; font-size: 20px;">✨ MUMU STUDIO PRICE LIST ✨</div>
-                <div class="quote-subtitle">線上即時報價與預算試算</div>
+                <div class="card-title" style="justify-content: center; font-size: 18px;">✨ MUMU STUDIO PRICE LIST ✨</div>
+                <div class="quote-subtitle">線上即時報價與金額計算</div>
 
                 <!-- 1. 極致單根 -->
                 <div class="quote-option-group">
@@ -931,7 +942,7 @@
                     <label class="quote-option-item"><input type="radio" name="quote-style" value="1399" data-name="設計款 - 穿插設計款" onchange="calculateQuoteTotal()"><span class="quote-option-label">穿插設計款</span><span class="quote-option-price">$1,399</span></label>
                 </div>
 
-                <!-- 6. 睫毛管理 & 其他 (第二張圖項目) -->
+                <!-- 6. 睫毛管理 & 其他 -->
                 <div class="quote-option-group">
                     <div class="quote-section-title">6. 睫毛管理與組合價</div>
                     <label class="quote-option-item"><input type="radio" name="quote-style" value="1000" data-name="睫毛管理 - 上睫毛" onchange="calculateQuoteTotal()"><span class="quote-option-label">睫毛管理：上睫毛</span><span class="quote-option-price">$1,000</span></label>
@@ -980,9 +991,9 @@
 
                 <!-- 總金額與操作按鈕 -->
                 <div class="quote-total-section">
-                    <div style="font-size: 13px; color: var(--text-muted);">試算應付總金額</div>
+                    <div style="font-size: 13px; color: var(--text-muted);">應付總金額</div>
                     <div class="quote-total-price" id="quoteTotalAmount">$0</div>
-                    <div class="quote-sub-calc" id="quoteSubCalcText">已付訂金 $0 | 尾款應收 $0</div>
+                    <div class="quote-sub-calc" id="quoteSubCalcText">小計 $0 | 折扣 -$0 | 預付訂金 $0 | 尾款應收 $0</div>
 
                     <!-- 操作選單按鈕：重新選擇、複製文字、查看明細 -->
                     <div class="quote-action-buttons">
@@ -1091,6 +1102,9 @@
         const todayStr = formatDateString(new Date());
         let selectedDateStr = todayStr;
         let currentReportDetailFilter = '';
+        
+        // 全域暫存最新報價資料，方便彈出視窗與複製使用
+        let quoteDetailCache = { text: '', html: '' };
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -1493,7 +1507,7 @@
             let sum = {}; targets.forEach(r => { let p = r.project.trim() || '未命名'; sum[p] = (sum[p] || 0) + r.amount; });
             Object.keys(sum).sort((a,b) => sum[b] - sum[a]).forEach(k => {
                 let row = document.createElement('div'); row.classList.add('report-summary-item');
-                row.innerHTML = `<span>${escapeHtml(k)}</span><span style="color:${type==='收入'?'var(--income-green)':'var(--delete-red)'}">${type==='收入'?'+':'-'}$${sum[k].toLocaleString()}</span>`;
+                row.innerHTML = `<span>${escapeHtml(k)}</span><span style="color:${type==='收入'?'var(--income-green)':'var(--delete-red)'}">${type==='收入'+'+':'-'}$${sum[k].toLocaleString()}</span>`;
                 listWrapper.appendChild(row);
             });
         }
@@ -1602,7 +1616,7 @@
             }
         }
 
-        // 💡 報價單計算與互動邏輯
+        // 💡 報價單計算與互動邏輯修正
         window.calculateQuoteTotal = function() {
             const styleRadios = document.querySelectorAll('input[name="quote-style"]');
             const addonCheckboxes = document.querySelectorAll('input[name="quote-addon"]');
@@ -1623,7 +1637,7 @@
                     if (radio.value === 'discount_7') {
                         isDiscount = true;
                         discountRate = 0.7;
-                        basePrice = 1200; // 預設補睫基準參考，可依需求調整
+                        basePrice = 1200; 
                     } else if (radio.value === 'discount_8') {
                         isDiscount = true;
                         discountRate = 0.8;
@@ -1660,18 +1674,41 @@
             if(totalAmountElement) totalAmountElement.textContent = `$${finalTotal.toLocaleString()}`;
             if(subCalcElement) subCalcElement.textContent = `小計 $${subtotal.toLocaleString()} | 折扣 -$${promo.toLocaleString()} | 預付訂金 $${deposit.toLocaleString()} | 尾款應收 $${remainingBalance.toLocaleString()}`;
 
-            let message = `✨ MUMU STUDIO 預約報價單 ✨\n- 選擇項目：${styleName} ($${basePrice})`;
+            // 建立明細文字與 HTML 用於彈出視窗與複製
+            let textMsg = `✨ MUMU POCKET 預約報價單 ✨\n- 選擇項目：${styleName} ($${basePrice})`;
+            let htmlMsg = `<div style="font-weight:bold; margin-bottom:6px;">✨ 選擇項目明細：</div>`;
+            htmlMsg += `<div>• 款式：${styleName} ($${basePrice})</div>`;
+
             if (selectedAddons.length > 0) {
-                message += `\n- 加購/卸睫：${selectedAddons.map(a => `${a.name}(+$${a.price})`).join(', ')}`;
+                textMsg += `\n- 附加/卸睫：${selectedAddons.map(a => `${a.name}(+$${a.price})`).join(', ')}`;
+                selectedAddons.forEach(a => {
+                    htmlMsg += `<div>• 加購/卸睫：${a.name} (+$${a.price})</div>`;
+                });
             }
-            if (promo > 0) message += `\n- 優惠折扣：-$${promo}`;
-            message += `\n- 總計金額：$${finalTotal} 元`;
+            if (promo > 0) {
+                textMsg += `\n- 優惠折扣：-$${promo}`;
+                htmlMsg += `<div>• 優惠折扣：-$${promo}</div>`;
+            }
+            textMsg += `\n- 應付總金額：$${finalTotal} 元`;
             if (deposit > 0) {
-                message += `\n- 已付訂金：$${deposit} 元\n- 尾款應收：$${remainingBalance} 元`;
+                textMsg += `\n- 已付訂金：$${deposit} 元\n- 尾款應收：$${remainingBalance} 元`;
             }
+
+            htmlMsg += `<div style="margin-top:8px; border-top:1px dashed var(--accent-latte); padding-top:8px;">`;
+            htmlMsg += `<div>項目小計：$${subtotal.toLocaleString()}</div>`;
+            if(promo > 0) htmlMsg += `<div>優惠折抵：-$${promo.toLocaleString()}</div>`;
+            htmlMsg += `<div><strong>應付總金額：$${finalTotal.toLocaleString()}</strong></div>`;
+            if(deposit > 0) {
+                htmlMsg += `<div>已付訂金：$${deposit.toLocaleString()}</div>`;
+                htmlMsg += `<div>尾款應收：$${remainingBalance.toLocaleString()}</div>`;
+            }
+            htmlMsg += `</div>`;
+
+            quoteDetailCache.text = textMsg;
+            quoteDetailCache.html = htmlMsg;
             
             if(lineBookingBtn) {
-                lineBookingBtn.href = `https://line.me/R/msg/text/?${encodeURIComponent(message)}`;
+                lineBookingBtn.href = `https://line.me/R/msg/text/?${encodeURIComponent(textMsg)}`;
             }
         }
 
@@ -1685,13 +1722,10 @@
         }
 
         window.copyQuoteText = function() {
-            const lineBtn = document.getElementById('lineBookingBtn');
-            if (!lineBtn) return;
-            // 從 line href 中解碼出文字
-            const urlParams = new URLSearchParams(lineBtn.href.split('?')[1]);
-            const textToCopy = urlParams.get('text') || '';
+            calculateQuoteTotal();
+            if (!quoteDetailCache.text) return;
             
-            navigator.clipboard.writeText(textToCopy).then(() => {
+            navigator.clipboard.writeText(quoteDetailCache.text).then(() => {
                 alert('📋 報價明細文字已成功複製到剪貼簿！');
             }).catch(err => {
                 alert('複製失敗，請手動複製。');
@@ -1699,14 +1733,10 @@
         }
 
         window.openQuoteDetailModal = function() {
-            const lineBtn = document.getElementById('lineBookingBtn');
-            if (!lineBtn) return;
-            const urlParams = new URLSearchParams(lineBtn.href.split('?')[1]);
-            const textToCopy = urlParams.get('text') || '';
-            
+            calculateQuoteTotal();
             const contentBox = document.getElementById('quote-detail-content');
             if (contentBox) {
-                contentBox.innerHTML = textToCopy.replace(/\n/g, '<br>');
+                contentBox.innerHTML = quoteDetailCache.html || '目前尚未選擇任何項目';
             }
             document.getElementById('quote-detail-modal').style.display = 'flex';
         }
