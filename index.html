@@ -23,7 +23,6 @@
             --primary-color: #d4a373;   
             --price-accent: #bc6c25;    
             --blacklist-color: #333333;
-            --warning-color: #e76f51;
         }
 
         * {
@@ -192,23 +191,6 @@
             align-items: center;
         }
 
-        /* 帳戶餘額小卡區 */
-        .wallet-summary-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 6px;
-            margin-bottom: 15px;
-        }
-        .wallet-card {
-            background-color: var(--bg-cream);
-            border: 1px solid var(--accent-latte);
-            border-radius: 12px;
-            padding: 8px 4px;
-            text-align: center;
-        }
-        .wallet-card p { font-size: 10px; color: var(--text-muted); margin-bottom: 2px; }
-        .wallet-card h4 { font-size: 12px; font-weight: bold; color: var(--text-dark); }
-
         /* ==================== 頁面 1: 月曆 ==================== */
         .calendar-header {
             display: flex;
@@ -341,18 +323,6 @@
         }
         .quick-tag:hover { background-color: var(--accent-latte); }
 
-        /* 美睫動態表單區塊 */
-        .lash-subform-box {
-            background-color: #FFF9F5;
-            border: 1px dashed var(--primary-color);
-            border-radius: 12px;
-            padding: 10px;
-            margin-bottom: 10px;
-            grid-column: 1 / -1;
-            display: none;
-        }
-        .lash-subform-title { font-size: 12px; font-weight: bold; color: var(--price-accent); margin-bottom: 6px; }
-
         .btn-submit {
             width: 100%;
             background-color: var(--text-dark);
@@ -393,8 +363,6 @@
         }
         .type-tag.inc { background-color: #E8F0FE; color: #1A73E8; }
         .type-tag.exp { background-color: #FCE8E6; color: var(--delete-red); }
-        .type-tag.work { background-color: var(--main-butter); color: var(--text-dark); }
-        .type-tag.life { background-color: #E2ECE9; color: #2C6B56; }
 
         .record-amount { font-weight: 600; }
         .record-amount.inc { color: var(--income-green); }
@@ -419,71 +387,353 @@
         }
 
         /* ==================== 頁面 3: 財務報表 ==================== */
-        .report-filter-bar { display: flex; gap: 10px; margin-bottom: 15px; }
+        .report-filter-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
         .select-report {
-            flex: 1; padding: 10px; border-radius: 12px; border: 1px solid var(--accent-latte);
-            background-color: var(--pure-white); color: var(--text-dark); font-size: 14px; outline: none; font-weight: 600;
+            flex: 1;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid var(--accent-latte);
+            background-color: var(--pure-white);
+            color: var(--text-dark);
+            font-size: 14px;
+            outline: none;
+            font-weight: 600;
         }
-        .financial-section-title {
-            font-size: 15px; font-weight: bold; border-left: 4px solid var(--primary-color); padding-left: 8px; color: var(--text-dark); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
+        .report-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        
+        .summary-mini-card {
+            background-color: var(--pure-white); padding: 15px; border-radius: 16px; text-align: center;
+            border: 1px solid rgba(227, 213, 202, 0.4); cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 2px 8px var(--shadow-soft);
         }
+        .summary-mini-card:active { transform: scale(0.97); }
+        .summary-mini-card.active-filter {
+            background-color: var(--main-butter);
+            border-color: var(--text-muted);
+        }
+        .summary-mini-card p { font-size: 12px; color: var(--text-muted); margin-bottom: 5px; }
+        .summary-mini-card h3 { font-size: 18px; font-weight: 700; }
+        
+        .stat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 14px; }
+        .progress-bar-bg { background-color: var(--main-butter); height: 6px; border-radius: 3px; width: 100%; margin-top: 4px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background-color: var(--text-muted); width: 0%; transition: width 0.5s ease; }
+
+        .report-detail-title {
+            font-size: 14px; font-weight: bold; color: var(--text-dark); margin-bottom: 12px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        
+        .report-summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 4px;
+            border-bottom: 1px dashed rgba(227, 213, 202, 0.3);
+            font-size: 14px;
+        }
+        .report-summary-item:last-child { border-bottom: none; }
 
         /* ==================== 彈出式視窗 (Modal) ==================== */
         .modal-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.4); display: none; justify-content: center; align-items: center; z-index: 2000; padding: 14px;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.4);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            padding: 14px;
         }
         .modal-box {
-            background-color: var(--pure-white); border-radius: 24px; width: 100%; max-width: 400px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); animation: fadeIn 0.2s ease-out;
+            background-color: var(--pure-white);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            animation: fadeIn 0.2s ease-out;
         }
-        @keyframes fadeIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .modal-header { font-size: 16px; font-weight: bold; margin-bottom: 15px; color: var(--text-dark); display: flex; justify-content: space-between; align-items: center; }
-        .modal-footer { display: flex; gap: 10px; margin-top: 15px; }
-        .btn-modal { flex: 1; padding: 10px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; }
-        .btn-modal.cancel { background-color: var(--main-butter); color: var(--text-dark); }
-        .btn-modal.save { background-color: var(--text-dark); color: var(--pure-white); }
+        @keyframes fadeIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .modal-header {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: var(--text-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .btn-modal {
+            flex: 1;
+            padding: 10px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-modal.cancel {
+            background-color: var(--main-butter);
+            color: var(--text-dark);
+        }
+        .btn-modal.save {
+            background-color: var(--text-dark);
+            color: var(--pure-white);
+        }
 
         /* ==================== 頁面 4: 客戶資料 ==================== */
         .birthday-banner {
-            background-color: #FFF0EB; border: 1px dashed var(--birthday-pink); border-radius: 16px; padding: 12px; margin-bottom: 15px;
+            background-color: #FFF0EB;
+            border: 1px dashed var(--birthday-pink);
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 15px;
         }
-        .birthday-banner-title { font-size: 13px; font-weight: bold; color: #D87A60; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+        .birthday-banner-title {
+            font-size: 13px; font-weight: bold; color: #D87A60; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;
+        }
         .birthday-list { font-size: 12px; color: var(--text-dark); list-style: none; padding-left: 4px;}
         .birthday-list li { margin-bottom: 3px; }
 
         .customer-card {
-            background-color: var(--pure-white); border-radius: 16px; padding: 14px; margin-bottom: 12px; border: 1px solid rgba(227, 213, 202, 0.5); cursor: pointer; transition: background-color 0.2s;
+            background-color: var(--pure-white); border-radius: 16px; padding: 14px; margin-bottom: 12px;
+            border: 1px solid rgba(227, 213, 202, 0.5); cursor: pointer; transition: background-color 0.2s;
         }
         .customer-card:hover { background-color: #F7EFE5; }
-        .tag-badge {
-            font-size: 10px; padding: 2px 6px; border-radius: 6px; font-weight: bold; background-color: var(--main-butter); color: var(--text-dark); margin-left: 4px;
+        .customer-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--accent-latte); padding-bottom: 6px; margin-bottom: 8px; }
+        .customer-name { font-weight: bold; font-size: 15px; }
+        
+        .customer-header-right {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }
-        .tag-badge.vip { background-color: #FFF0EB; color: #D87A60; }
-        .tag-badge.blacklist { background-color: #333; color: #fff; }
+        .customer-total-spent { font-size: 12px; color: var(--income-green); font-weight: 600; }
+        
+        .customer-note-highlight {
+            font-size: 13px;
+            color: var(--highlight-orange) !important;
+            font-weight: bold !important;
+            background-color: #FFF5F2;
+            padding: 4px 8px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-top: 4px;
+            margin-bottom: 4px;
+            border: 1px dashed rgba(216, 122, 96, 0.3);
+        }
+        
+        .customer-detail-row { font-size: 12px; color: var(--text-dark); margin-bottom: 3px; }
+        
+        .customer-expanded-zone {
+            margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(227, 213, 202, 0.4);
+            display: none;
+        }
+        .customer-card.open .customer-expanded-zone { display: block; }
+        .edit-crm-group {
+            background-color: var(--pure-white); padding: 10px; border-radius: 12px;
+            border: 1px solid var(--accent-latte); margin-bottom: 8px;
+        }
+        .edit-crm-title { font-size: 11px; font-weight: bold; color: var(--text-muted); margin-bottom: 6px; }
+        
+        .crm-action-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            gap: 6px;
+        }
+        .btn-mini-save {
+            background-color: var(--text-dark); color: var(--pure-white); border: none;
+            border-radius: 8px; padding: 6px 12px; font-size: 11px; font-weight: 600; cursor: pointer;
+        }
+        .btn-mini-delete {
+            background-color: #FCE8E6; color: var(--delete-red); border: 1px solid rgba(224, 122, 95, 0.4);
+            border-radius: 8px; padding: 5px 10px; font-size: 11px; font-weight: 500; cursor: pointer;
+        }
+        .btn-mini-blacklist {
+            background-color: #333333; color: #FFFFFF; border: none;
+            border-radius: 8px; padding: 5px 10px; font-size: 11px; font-weight: 500; cursor: pointer;
+        }
+        .no-data { text-align: center; color: var(--text-muted); font-size: 14px; padding: 20px 0; }
 
-        /* ==================== 頁面 5: 互動式報價與價目試算 ==================== */
-        .quote-subtitle { text-align: center; font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
-        .quote-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .quote-section-title { font-size: 15px; font-weight: bold; border-left: 4px solid var(--primary-color); padding-left: 8px; color: var(--text-dark); }
-        .btn-add-item { background: var(--main-butter); border: 1px solid var(--accent-latte); color: var(--text-dark); font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; cursor: pointer; }
-        .quote-option-group { margin-bottom: 20px; }
-        .quote-option-item {
-            display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border: 1px solid var(--accent-latte); border-radius: 12px; margin-bottom: 8px; cursor: grab; background-color: var(--pure-white); touch-action: pan-y;
+        /* ==================== 頁面 5: 互動式報價單樣式 ==================== */
+        .quote-subtitle {
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
         }
-        .quote-option-item:active { cursor: grabbing; }
-        .sortable-ghost { opacity: 0.4; background-color: var(--main-butter); }
-        .quote-option-item input[type="radio"], .quote-option-item input[type="checkbox"] { accent-color: var(--primary-color); transform: scale(1.2); margin-right: 8px; }
-        .quote-item-name-text { font-size: 13px; flex-grow: 1; margin-right: 6px; color: var(--text-dark); }
-        .quote-item-price-text { font-size: 13px; font-weight: bold; color: var(--price-accent); margin-right: 8px; }
-        .btn-remove-item { background: none; border: none; color: var(--delete-red); font-size: 14px; cursor: pointer; margin-left: 6px; padding: 2px 4px; }
-        .quote-total-section { background-color: var(--main-butter); padding: 20px; border-radius: 16px; text-align: center; margin-top: 25px; border: 1px solid var(--accent-latte); }
-        .quote-total-price { font-size: 26px; font-weight: bold; color: var(--price-accent); margin-top: 5px; }
-        .quote-sub-calc { font-size: 13px; color: var(--text-muted); margin-top: 8px; }
-        .quote-input-row { display: flex; gap: 10px; margin-top: 15px; }
-        .quote-input-box { flex: 1; text-align: left; }
-        .quote-input-box label { font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px; }
-        .quote-action-buttons { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 15px; }
-        .btn-quote-action { background-color: var(--pure-white); color: var(--text-dark); border: 1px solid var(--accent-latte); padding: 10px 4px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; }
-        .btn-quote-booking { display: block; width: 100%; background-color: var(--text-dark); color: white; border: none; padding: 14px; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 12px; text-align: center; text-decoration: none; }
+        .quote-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .quote-section-title {
+            font-size: 15px;
+            font-weight: bold;
+            border-left: 4px solid var(--primary-color);
+            padding-left: 8px;
+            color: var(--text-dark);
+        }
+        .btn-add-item {
+            background: var(--main-butter);
+            border: 1px solid var(--accent-latte);
+            color: var(--text-dark);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .quote-option-group {
+            margin-bottom: 20px;
+        }
+        .quote-option-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            border: 1px solid var(--accent-latte);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            cursor: grab;
+            transition: all 0.2s ease;
+            background-color: var(--pure-white);
+            touch-action: pan-y;
+        }
+        .quote-option-item:active {
+            cursor: grabbing;
+        }
+        .sortable-ghost {
+            opacity: 0.4;
+            background-color: var(--main-butter);
+        }
+        .quote-option-item input[type="radio"], .quote-option-item input[type="checkbox"] {
+            accent-color: var(--primary-color);
+            transform: scale(1.2);
+            margin-right: 8px;
+        }
+        .quote-item-name-text {
+            font-size: 13px;
+            flex-grow: 1;
+            margin-right: 6px;
+            color: var(--text-dark);
+        }
+        .quote-item-price-text {
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--price-accent);
+            margin-right: 8px;
+        }
+        .btn-remove-item {
+            background: none;
+            border: none;
+            color: var(--delete-red);
+            font-size: 14px;
+            cursor: pointer;
+            margin-left: 6px;
+            padding: 2px 4px;
+        }
+        .quote-total-section {
+            background-color: var(--main-butter);
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            margin-top: 25px;
+            border: 1px solid var(--accent-latte);
+        }
+        .quote-total-price {
+            font-size: 26px;
+            font-weight: bold;
+            color: var(--price-accent);
+            margin-top: 5px;
+        }
+        .quote-sub-calc {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+        .quote-input-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .quote-input-box {
+            flex: 1;
+            text-align: left;
+        }
+        .quote-input-box label {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 4px;
+        }
+        .quote-action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-top: 15px;
+        }
+        .btn-quote-action {
+            background-color: var(--pure-white);
+            color: var(--text-dark);
+            border: 1px solid var(--accent-latte);
+            padding: 10px 4px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn-quote-action:hover { background-color: var(--main-butter); }
+        .btn-quote-booking {
+            display: block;
+            width: 100%;
+            background-color: var(--text-dark);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: background 0.2s;
+            text-align: center;
+            text-decoration: none;
+            box-sizing: border-box;
+        }
+        .btn-quote-booking:hover { opacity: 0.9; }
+
+        .detail-modal-body {
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-dark);
+            max-height: 320px;
+            overflow-y: auto;
+            background: var(--bg-cream);
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--accent-latte);
+            margin-bottom: 12px;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
@@ -509,7 +759,7 @@
             <button class="nav-btn" onclick="switchPage('all-records-page', this)">📊總紀錄</button>
             <button class="nav-btn" onclick="switchPage('reports-page', this)">📈財務報表</button>
             <button class="nav-btn" onclick="switchPage('customers-page', this)">👤客戶資料</button>
-            <button class="nav-btn" onclick="switchPage('quote-page', this)">✨線上報價</button>
+            <button class="nav-btn" onclick="switchPage('quote-page', this)">✨報價</button>
         </nav>
 
         <header class="shop-header">
@@ -520,25 +770,10 @@
 
         <div class="user-info-bar">
             <span id="user-display-email">帳號：loading...</span>
-            <div>
-                <button class="logout-btn" onclick="exportWorkTaxData()" style="margin-right: 12px; color: var(--primary-color); background:none; border:none; font-weight:bold; cursor:pointer;">📥 匯出工作報稅資料</button>
-                <button class="logout-btn" onclick="handleLogout()">登出 ➔</button>
-            </div>
+            <button class="logout-btn" onclick="handleLogout()">登出 ➔</button>
         </div>
 
-        <!-- 📅 頁面 1: 月曆 -->
         <main id="calendar-page" class="page active">
-            <!-- 四大帳戶即時餘額 -->
-            <div class="card-box" style="padding: 12px; margin-bottom: 12px;">
-                <div style="font-size: 12px; font-weight: bold; color: var(--text-muted); margin-bottom: 6px;">💳 收款與支出管道即時餘額</div>
-                <div class="wallet-summary-grid">
-                    <div class="wallet-card"><p>現金</p><h4 id="wallet-cash">$0</h4></div>
-                    <div class="wallet-card"><p>銀行</p><h4 id="wallet-bank">$0</h4></div>
-                    <div class="wallet-card"><p>LINE Pay</p><h4 id="wallet-linepay">$0</h4></div>
-                    <div class="wallet-card"><p>信用卡</p><h4 id="wallet-credit">$0</h4></div>
-                </div>
-            </div>
-
             <div class="card-box">
                 <div class="calendar-header">
                     <button onclick="changeMonth(-1)">❮</button>
@@ -558,6 +793,7 @@
                 <div class="card-title"><span id="selected-date-label">收支紀錄</span></div>
                 <div style="margin-bottom: 18px; padding-bottom: 15px; border-bottom: 1px solid rgba(227, 213, 202, 0.4);">
                     
+                    <!-- 分類：工作開銷與生活開銷各用一組獨立選項 -->
                     <div class="form-group">
                         <select id="add-track-category" class="input-style" onchange="handleTrackCategoryChange()">
                             <option value="工作">💼 工作開銷</option>
@@ -571,39 +807,48 @@
 
                     <div class="form-group">
                         <div id="cust-name-wrapper" class="income-only-field">
-                            <input type="text" id="add-cust-name" class="input-style" placeholder="客戶姓名">
+                            <input type="text" id="add-cust-name" class="input-style" placeholder="客戶姓名" onblur="autofillCustomerData(this.value)">
                         </div>
                         <select id="add-payment-method" class="input-style">
                             <option value="現金">現金</option>
-                            <option value="銀行">銀行</option>
+                            <option value="轉帳">轉帳</option>
                             <option value="LINE Pay">LINE Pay</option>
-                            <option value="信用卡">信用卡</option>
+                            <option value="刷卡">刷卡</option>
                         </select>
                     </div>
 
                     <div class="form-group">
                         <div style="grid-column: 1 / -1;">
                             <div class="quick-tag-wrapper" id="quick-tags-container"></div>
-                            <input type="text" id="add-project" class="input-style" style="margin-top:4px;" placeholder="項目名稱" oninput="checkLashTrigger(this.value)">
+                            <input type="text" id="add-project" class="input-style" style="margin-top:4px;" placeholder="施作項目 或 自行填寫" oninput="checkItemSubform(this.value)">
                         </div>
                     </div>
 
-                    <!-- 美睫專屬詳細表單 (當點選美睫時自動展開) -->
-                    <div id="lash-subform" class="lash-subform-box">
-                        <div class="lash-subform-title">✨ 美睫施作詳細記錄</div>
+                    <!-- 美睫動態表單：款式、卷度與長度、粗度、膠水、備註 -->
+                    <div id="lash-subform" style="display:none; background:var(--bg-cream); padding:10px; border-radius:12px; border:1px solid var(--accent-latte); margin-bottom:10px; grid-column:1/-1;">
+                        <div style="font-size:12px; font-weight:bold; color:var(--price-accent); margin-bottom:6px;">✨ 美睫施作明細</div>
                         <div class="form-group" style="margin-bottom:6px;">
-                            <input type="text" id="lash-style" class="input-style" style="background:#fff;" placeholder="款式 (例: 150根單根)">
-                            <input type="text" id="lash-curl-len" class="input-style" style="background:#fff;" placeholder="卷度與長度 (例: C 10-12)">
+                            <input type="text" id="lash-style" class="input-style" style="background:#fff;" placeholder="款式">
+                            <input type="text" id="lash-curl-len" class="input-style" style="background:#fff;" placeholder="卷度與長度">
                         </div>
                         <div class="form-group" style="margin-bottom:6px;">
-                            <input type="text" id="lash-thickness" class="input-style" style="background:#fff;" placeholder="粗度 (例: 0.10)">
-                            <input type="text" id="lash-glue" class="input-style" style="background:#fff;" placeholder="膠水 (例: 閃電膠)">
+                            <input type="text" id="lash-thickness" class="input-style" style="background:#fff;" placeholder="粗度">
+                            <input type="text" id="lash-glue" class="input-style" style="background:#fff;" placeholder="膠水">
                         </div>
-                        <input type="text" id="lash-note" class="input-style" style="background:#fff;" placeholder="美睫專屬備註">
+                        <input type="text" id="lash-note" class="input-style" style="background:#fff;" placeholder="美睫備註">
+                    </div>
+
+                    <!-- 睫毛管理動態表單：墊片、捲度/尺寸 -->
+                    <div id="brow-subform" style="display:none; background:var(--bg-cream); padding:10px; border-radius:12px; border:1px solid var(--accent-latte); margin-bottom:10px; grid-column:1/-1;">
+                        <div style="font-size:12px; font-weight:bold; color:var(--price-accent); margin-bottom:6px;">✨ 睫毛管理明細</div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <input type="text" id="brow-pad" class="input-style" style="background:#fff;" placeholder="墊片">
+                            <input type="text" id="brow-size" class="input-style" style="background:#fff;" placeholder="捲度/尺寸">
+                        </div>
                     </div>
 
                     <div class="form-group">
-                        <input type="number" id="add-amount" class="input-style" style="grid-column: 1 / -1;" placeholder="本次金額" inputmode="numeric">
+                        <input type="number" id="add-amount" class="input-style" style="grid-column: 1 / -1;" placeholder="本次收支金額" inputmode="numeric">
                     </div>
 
                     <div class="form-group" style="grid-template-columns: 1fr;">
@@ -616,7 +861,6 @@
             </div>
         </main>
 
-        <!-- 📊 頁面 2: 總紀錄 -->
         <main id="all-records-page" class="page">
             <div class="card-box">
                 <div class="card-title">歷史所有明細</div>
@@ -628,7 +872,6 @@
             </div>
         </main>
 
-        <!-- 📈 頁面 3: 財務報表 -->
         <main id="reports-page" class="page">
             <div class="report-filter-bar">
                 <select id="report-year-select" class="select-report" onchange="renderReports()"></select>
@@ -641,148 +884,105 @@
                 </select>
             </div>
 
-            <!-- 工作開銷報表 -->
+            <!-- 財務報表：分兩大點（工作開銷、生活開銷）不共用，可點選後看明細，各自細項現金、銀行、LINE Pay、信用卡餘額 -->
             <div class="card-box">
-                <div class="financial-section-title"><span>💼 工作開銷財務報表</span></div>
-                <div class="form-group" style="margin-bottom: 10px; font-size:13px;">
-                    <div>工作總收入: <strong id="work-rep-inc" style="color:var(--income-green);">$0</strong></div>
-                    <div>工作總支出: <strong id="work-rep-exp" style="color:var(--expense-red);">$0</strong></div>
+                <div class="card-title" style="cursor:pointer;" onclick="toggleReportSection('work')">
+                    <span>💼 工作開銷財務報表 (點擊展開明細)</span>
+                    <span id="work-total-header-amt" style="color:var(--income-green);">$0</span>
                 </div>
-                <div style="font-size:13px; font-weight:bold; margin-bottom:6px;">經營核心指標</div>
-                <div style="font-size:12px; color:var(--text-muted); display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-bottom:12px;">
-                    <div>客單價: <span id="stat-avg-ticket" style="color:var(--price-accent); font-weight:bold;">$0</span></div>
-                    <div>營業日數: <span id="stat-work-days" style="color:var(--text-dark); font-weight:bold;">0 天</span></div>
+                <div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">各支付方式即時餘額：</div>
+                <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:6px; margin-bottom:12px; text-align:center;">
+                    <div style="background:var(--bg-cream); padding:6px; border-radius:8px;"><div style="font-size:10px; color:var(--text-muted)">現金</div><div id="work-bal-cash" style="font-size:12px; font-weight:bold;">$0</div></div>
+                    <div style="background:var(--bg-cream); padding:6px; border-radius:8px;"><div style="font-size:10px; color:var(--text-muted)">轉帳</div><div id="work-bal-bank" style="font-size:12px; font-weight:bold;">$0</div></div>
+                    <div style="background:var(--bg-cream); padding:6px; border-radius:8px;"><div style="font-size:10px; color:var(--text-muted)">LINE Pay</div><div id="work-bal-line" style="font-size:12px; font-weight:bold;">$0</div></div>
+                    <div style="background:var(--bg-cream); padding:6px; border-radius:8px;"><div style="font-size:10px; color:var(--text-muted)">刷卡</div><div id="work-bal-card" style="font-size:12px; font-weight:bold;">$0</div></div>
                 </div>
+                <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
+                    <button class="quick-tag" onclick="exportWorkTaxData()">📥 年底報稅匯出「工作」資料</button>
+                </div>
+                <div id="work-report-detail" style="display:none; margin-top:12px; border-top:1px dashed var(--accent-latte); padding-top:10px;"></div>
             </div>
 
-            <!-- 生活開銷與預算管理 -->
             <div class="card-box">
-                <div class="financial-section-title">
-                    <span>🏠 生活開銷與預算管理</span>
-                    <button class="quick-tag" onclick="openBudgetModal()">⚙️ 設定預算上限</button>
+                <div class="card-title" style="cursor:pointer;" onclick="toggleReportSection('life')">
+                    <span>🏠 生活開銷財務報表 (點擊展開明細)</span>
+                    <span id="life-total-header-amt" style="color:var(--expense-red);">$0</span>
                 </div>
-                <div class="form-group" style="margin-bottom: 10px; font-size:13px;">
-                    <div>生活總收入: <strong id="life-rep-inc" style="color:var(--income-green);">$0</strong></div>
-                    <div>生活總支出: <strong id="life-rep-exp" style="color:var(--expense-red);">$0</strong></div>
+                <div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">各支付方式即時餘額：</div>
+                <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:6px; margin-bottom:12px; text-align:center;">
+                    <div style="background:var(--bg-cream); padding:6px; border-radius:8px;"><div style="font-size:10px; color:var(--text-muted)">現金</div><div id="life-bal-cash" style="font-size:12px; font-weight:bold;">$0</div></div>
+                    <div style="background:var(--bg-cream); padding:6px; border-radius:8px;"><div style="font-size:10px; color:var(--text-muted)">銀行</div><div id="life-bal-bank" style="font-size:12px; font-weight:bold;">$0</div></div>
+                    <div style="background:var(--bg-cream); padding:6px; border-radius:8px;"><div style="font-size:10px; color:var(--text-muted)">LINE Pay</div><div id="life-bal-line" style="font-size:12px; font-weight:bold;">$0</div></div>
+                    <div style="background:var(--bg-cream); padding:6px; border-radius:8px;"><div style="font-size:10px; color:var(--text-muted)">信用卡</div><div id="life-bal-card" style="font-size:12px; font-weight:bold;">$0</div></div>
                 </div>
-                <div id="life-budget-container"></div>
+                <div id="life-report-detail" style="display:none; margin-top:12px; border-top:1px dashed var(--accent-latte); padding-top:10px;"></div>
             </div>
         </main>
 
-        <!-- 👤 頁面 4: 客戶資料 (含詳細美睫履歷與補睫倒數) -->
         <main id="customers-page" class="page">
+            <div id="birthday-alert-box"></div>
             <div class="card-box">
                 <div class="card-title">
                     <span>客戶管理中心 (CRM)</span>
-                    <button class="quick-tag" style="background:var(--text-dark); color:#fff; font-size:12px; padding:6px 12px;" onclick="openAddCustomerModal()">＋ 新增客人</button>
+                    <button class="quick-tag" style="background:var(--text-dark); color:#fff; font-size:12px; padding:6px 12px;" onclick="openAddCustomerModal()">＋ 新增客戶</button>
                 </div>
                 <div class="search-container">
-                    <input type="text" id="cust-search-input" class="search-bar" placeholder="輸入姓名或標籤搜尋...">
+                    <input type="text" id="cust-search-input" class="search-bar" placeholder="輸入姓名或標籤搜尋..." oninput="renderCustomerPage()">
                     <button class="btn-search-icon" onclick="renderCustomerPage()">🔍</button>
                 </div>
                 <div id="customers-container" class="scroll-container"></div>
             </div>
         </main>
 
-        <!-- ✨ 頁面 5: 完整互動式報價單 -->
         <main id="quote-page" class="page">
             <div class="card-box">
                 <div class="card-title" style="justify-content: center; font-size: 18px;">✨ PRICE LIST 線上即時報價 ✨</div>
                 <div class="quote-subtitle">線上即時報價與金額計算（長按細項可上下拖曳排序）</div>
 
-                <!-- 1. 極致單根 -->
-                <div class="quote-option-group" id="group-base-1" data-is-base="true">
+                <div class="quote-option-group" id="group-base-1">
                     <div class="quote-section-header">
                         <div class="quote-section-title">1. 極致單根</div>
-                        <button class="btn-add-item" onclick="promptAddQuoteItem('group-base-1', 'base')">＋ 新增項目</button>
+                        <button class="btn-add-item" onclick="promptAddQuoteItem('group-base-1')">＋ 新增項目</button>
                     </div>
                     <div class="quote-items-container sortable-container">
-                        <label class="quote-option-item"><input type="radio" name="quote-base-style" value="999" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">80根</span><span class="quote-item-price-text">$999</span><input type="hidden" class="q-price-val" value="999"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
-                        <label class="quote-option-item"><input type="radio" name="quote-base-style" value="1399" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">150根</span><span class="quote-item-price-text">$1,399</span><input type="hidden" class="q-price-val" value="1399"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
-                    </div>
-                </div>
-
-                <!-- 2. 訂製睫毛膏款 -->
-                <div class="quote-option-group" id="group-base-2" data-is-base="true">
-                    <div class="quote-section-header">
-                        <div class="quote-section-title">2. 訂製睫毛膏款</div>
-                        <button class="btn-add-item" onclick="promptAddQuoteItem('group-base-2', 'base')">＋ 新增項目</button>
-                    </div>
-                    <div class="quote-items-container sortable-container">
-                        <label class="quote-option-item"><input type="radio" name="quote-base-style" value="1199" data-category="base" onchange="handleStyleChange()"><span class="quote-item-name-text">輕透感</span><span class="quote-item-price-text">$1,199</span><input type="hidden" class="q-price-val" value="1199"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
-                    </div>
-                </div>
-
-                <!-- 3. 補睫專區 -->
-                <div class="quote-option-group">
-                    <div class="quote-section-header">
-                        <div class="quote-section-title">7. 補睫專區（須先勾選上方款式）</div>
-                    </div>
-                    <div class="quote-items-container">
-                        <label class="quote-option-item" id="refill-7-label" style="opacity:0.5;"><input type="checkbox" id="quote-refill-7" value="discount_7" disabled onchange="handleRefillChange(7)"><span class="quote-item-name-text">補睫 - 嫁接後兩週內</span><span style="color:var(--price-accent); font-weight:bold; font-size:12px;">原價7折</span></label>
-                        <label class="quote-option-item" id="refill-8-label" style="opacity:0.5;"><input type="checkbox" id="quote-refill-8" value="discount_8" disabled onchange="handleRefillChange(8)"><span class="quote-item-name-text">補睫 - 嫁接後三週內</span><span style="color:var(--price-accent); font-weight:bold; font-size:12px;">原價8折</span></label>
+                        <label class="quote-option-item"><input type="radio" name="quote-base-style" value="999" onchange="calculateQuoteTotal()"><span class="quote-item-name-text">80根</span><span class="quote-item-price-text">$999</span><input type="hidden" class="q-price-val" value="999"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
+                        <label class="quote-option-item"><input type="radio" name="quote-base-style" value="1399" onchange="calculateQuoteTotal()"><span class="quote-item-name-text">150根</span><span class="quote-item-price-text">$1,399</span><input type="hidden" class="q-price-val" value="1399"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button></label>
                     </div>
                 </div>
 
                 <div class="quote-total-section">
                     <div style="font-size: 13px; color: var(--text-muted);">總金額</div>
                     <div class="quote-total-price" id="quoteTotalAmount">$0</div>
-                    <div class="quote-sub-calc" id="quoteSubCalcText">小計 $0</div>
                     <a href="https://line.me/R/" target="_blank" class="btn-quote-booking" id="lineBookingBtn">💬 傳送明細至 Line 預約</a>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- 👤 客戶詳細頁彈出視窗 (含補睫倒數與美睫履歷) -->
-    <div id="customer-detail-modal" class="modal-overlay" onclick="closeCustomerDetailModal(event)">
-        <div class="modal-box" style="max-width:450px;" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <span id="detail-cust-title">👤 客戶詳細資料</span>
-                <span style="cursor:pointer; font-weight:normal; font-size:14px;" onclick="closeCustomerDetailModal()">✕</span>
-            </div>
-            <div id="detail-cust-body" class="scroll-container" style="max-height:60vh; font-size:13px;"></div>
-            <div class="modal-footer">
-                <button class="btn-modal cancel" onclick="closeCustomerDetailModal()">關閉</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ⚙️ 設定預算彈出視窗 -->
-    <div id="budget-modal" class="modal-overlay" onclick="closeBudgetModal(event)">
+    <!-- 詳細美睫紀錄彈出視窗 -->
+    <div id="record-detail-modal" class="modal-overlay" onclick="closeRecordDetailModal(event)">
         <div class="modal-box" onclick="event.stopPropagation()">
             <div class="modal-header">
-                <span>⚙️ 設定生活分類月預算上限</span>
-                <span style="cursor:pointer; font-weight:normal; font-size:14px;" onclick="closeBudgetModal()">✕</span>
+                <span>📋 施作與美睫紀錄詳情</span>
+                <span style="cursor:pointer;" onclick="closeRecordDetailModal()">✕</span>
             </div>
-            <div style="margin-bottom: 12px;">
-                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">選擇生活分類</label>
-                <select id="budget-category-select" class="input-style" style="background:#fff;">
-                    <option value="餐飲">餐飲</option><option value="房貸">房貸</option><option value="交通">交通</option>
-                    <option value="購物">購物</option><option value="居家">居家</option><option value="娛樂">娛樂</option>
-                    <option value="醫療">醫療</option><option value="社交">社交</option><option value="訂閱">訂閱</option>
-                </select>
-            </div>
-            <div style="margin-bottom: 12px;">
-                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">每月預算上限 (元)</label>
-                <input type="number" id="budget-amount-input" class="input-style" style="background:#fff;" placeholder="例: 10000" inputmode="numeric">
-            </div>
+            <div id="modal-record-content" class="detail-modal-body"></div>
             <div class="modal-footer">
-                <button class="btn-modal cancel" onclick="closeBudgetModal()">取消</button>
-                <button class="btn-modal save" onclick="saveBudgetLimit()">儲存預算</button>
+                <button class="btn-modal cancel" onclick="closeRecordDetailModal()">關閉</button>
             </div>
         </div>
     </div>
 
-    <!-- 👤 新增客戶視窗 -->
+    <!-- 新增客戶彈出視窗 -->
     <div id="add-customer-modal" class="modal-overlay" onclick="closeAddCustomerModal(event)">
         <div class="modal-box" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <span>👤 新增客戶基本資料</span>
-                <span style="cursor:pointer; font-weight:normal; font-size:14px;" onclick="closeAddCustomerModal()">✕</span>
+                <span style="cursor:pointer;" onclick="closeAddCustomerModal()">✕</span>
             </div>
             <div style="margin-bottom: 12px;"><input type="text" id="new-cust-name" class="input-style" style="background:#fff;" placeholder="客戶姓名 (必填)"></div>
-            <div style="margin-bottom: 12px;"><input type="tel" id="new-cust-phone" class="input-style" style="background:#fff;" placeholder="連絡電話"></div>
+            <div style="margin-bottom: 12px;"><input type="tel" id="new-cust-phone" class="input-style" style="background:#fff;" placeholder="電話"></div>
+            <div style="margin-bottom: 12px;"><input type="text" id="new-cust-birth" class="input-style" style="background:#fff;" placeholder="生日 (例: 0520)"></div>
             <div style="margin-bottom: 12px;">
                 <select id="new-cust-tag" class="input-style" style="background:#fff;">
                     <option value="新客">新客</option><option value="熟客">熟客</option><option value="VIP">VIP</option><option value="久未回訪">久未回訪</option><option value="黑名單">黑名單</option>
@@ -795,15 +995,14 @@
         </div>
     </div>
 
-    <!-- 新增報價項目彈窗 -->
+    <!-- 報價項目新增彈窗 -->
     <div id="add-quote-item-modal" class="modal-overlay" onclick="closeAddQuoteItemModal(event)">
         <div class="modal-box" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <span>➕ 新增報價項目</span>
-                <span style="cursor:pointer; font-weight:normal; font-size:14px;" onclick="closeAddQuoteItemModal()">✕</span>
+                <span style="cursor:pointer;" onclick="closeAddQuoteItemModal()">✕</span>
             </div>
             <input type="hidden" id="target-quote-group-id">
-            <input type="hidden" id="target-quote-item-type">
             <div style="margin-bottom: 12px;"><input type="text" id="new-q-name" class="input-style" style="background:#fff;" placeholder="項目名稱"></div>
             <div style="margin-bottom: 12px;"><input type="number" id="new-q-price" class="input-style" style="background:#fff;" placeholder="金額" inputmode="numeric"></div>
             <div class="modal-footer">
@@ -835,7 +1034,6 @@
         let currentUser = null;
         let records = [];
         let customerCRM = {};
-        let budgets = {};
         let currentDate = new Date();
         const todayStr = formatDateString(new Date());
         let selectedDateStr = todayStr;
@@ -854,9 +1052,7 @@
                 renderDayRecords();
                 renderReports();
                 renderCustomerPage();
-                updateWalletBalances();
                 initSortableLists();
-                calculateQuoteTotal();
             } else {
                 currentUser = null;
                 document.getElementById('auth-page').style.display = 'block';
@@ -879,25 +1075,23 @@
             const email = document.getElementById('auth-email').value.trim();
             const password = document.getElementById('auth-password').value;
             try { await createUserWithEmailAndPassword(auth, email, password); alert('註冊成功！'); } catch (e) { alert('註冊失敗：' + e.message); }
-        }
+        };
         window.handleLogin = async function() {
             const email = document.getElementById('auth-email').value.trim();
             const password = document.getElementById('auth-password').value;
             try { await signInWithEmailAndPassword(auth, email, password); } catch (e) { alert('登入失敗'); }
-        }
-        window.handleLogout = function() { if(confirm('確定登出？')) signOut(auth); }
+        };
+        window.handleLogout = function() { if(confirm('確定登出？')) signOut(auth); };
 
         function loadLocalFallback() {
             try {
                 records = JSON.parse(localStorage.getItem('mumu_records')) || [];
                 customerCRM = JSON.parse(localStorage.getItem('mumu_crm')) || {};
-                budgets = JSON.parse(localStorage.getItem('mumu_budgets')) || {};
             } catch(e) {}
         }
         function saveLocalFallback() {
             localStorage.setItem('mumu_records', JSON.stringify(records));
             localStorage.setItem('mumu_crm', JSON.stringify(customerCRM));
-            localStorage.setItem('mumu_budgets', JSON.stringify(budgets));
         }
         async function loadCloudData() {
             loadLocalFallback();
@@ -908,7 +1102,6 @@
                     const data = snap.data();
                     if (data.records) records = data.records;
                     if (data.customerCRM) customerCRM = data.customerCRM;
-                    if (data.budgets) budgets = data.budgets;
                     saveLocalFallback();
                 }
             } catch(e) {}
@@ -917,69 +1110,111 @@
             saveLocalFallback();
             if (!currentUser) return;
             try {
-                await setDoc(doc(db, "users", currentUser.uid), { records, customerCRM, budgets }, { merge: true });
+                await setDoc(doc(db, "users", currentUser.uid), { records, customerCRM }, { merge: true });
             } catch(e) {}
         }
 
         function formatDateString(d) {
             return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
         }
-        function escapeHtml(str) { return str ? str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : ''; }
+        function escapeHtml(str) { return str ? String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : ''; }
 
-        function updateWalletBalances() {
-            let balances = { 現金: 0, 銀行: 0, "LINE Pay": 0, 信用卡: 0 };
-            records.forEach(r => {
-                let m = r.paymentMethod || '現金';
-                if(balances[m] !== undefined) {
-                    if(r.type === '收入') balances[m] += r.amount;
-                    else balances[m] -= r.amount;
-                }
-            });
-            document.getElementById('wallet-cash').innerText = `$${balances.現金.toLocaleString()}`;
-            document.getElementById('wallet-bank').innerText = `$${balances.銀行.toLocaleString()}`;
-            document.getElementById('wallet-linepay').innerText = `$${balances["LINE Pay"].toLocaleString()}`;
-            document.getElementById('wallet-credit').innerText = `$${balances.信用卡.toLocaleString()}`;
-        }
-
+        // 工作與生活分類處理與表單聯動
         window.handleTrackCategoryChange = function() {
             const trackCat = document.getElementById('add-track-category').value;
             const typeSel = document.getElementById('add-type');
             const tagsContainer = document.getElementById('quick-tags-container');
             const custWrapper = document.getElementById('cust-name-wrapper');
-
-            typeSel.innerHTML = `<option value="收入">收入</option><option value="支出">支出</option>`;
+            const paymentSel = document.getElementById('add-payment-method');
 
             if (trackCat === '工作') {
+                typeSel.innerHTML = `<option value="收入">收入</option><option value="支出">支出</option>`;
                 custWrapper.style.display = 'block';
+                paymentSel.innerHTML = `
+                    <option value="現金">現金</option>
+                    <option value="轉帳">轉帳</option>
+                    <option value="LINE Pay">LINE Pay</option>
+                    <option value="刷卡">刷卡</option>
+                `;
                 tagsContainer.innerHTML = `
                     <span class="quick-tag" onclick="quickSelectProject('美睫')">＋美睫</span>
                     <span class="quick-tag" onclick="quickSelectProject('睫毛管理')">＋睫毛管理</span>
                     <span class="quick-tag" onclick="quickSelectProject('工作室支出')">＋工作室支出</span>
                 `;
             } else {
+                typeSel.innerHTML = `<option value="收入">收入</option><option value="支出">支出</option>`;
                 custWrapper.style.display = 'none';
                 document.getElementById('add-cust-name').value = '';
                 document.getElementById('lash-subform').style.display = 'none';
+                document.getElementById('brow-subform').style.display = 'none';
+                paymentSel.innerHTML = `
+                    <option value="現金">現金</option>
+                    <option value="銀行">銀行</option>
+                    <option value="LINE Pay">LINE Pay</option>
+                    <option value="信用卡">信用卡</option>
+                `;
+                handleLifeTypeChange();
+            }
+        };
+
+        window.handleTypeChange = function() {
+            const trackCat = document.getElementById('add-track-category').value;
+            if (trackCat === '生活') {
+                handleLifeTypeChange();
+            }
+        };
+
+        function handleLifeTypeChange() {
+            const type = document.getElementById('add-type').value;
+            const tagsContainer = document.getElementById('quick-tags-container');
+            if (type === '支出') {
                 tagsContainer.innerHTML = `
                     <span class="quick-tag" onclick="quickSelectProject('餐飲')">餐飲</span>
                     <span class="quick-tag" onclick="quickSelectProject('房貸')">房貸</span>
                     <span class="quick-tag" onclick="quickSelectProject('交通')">交通</span>
                     <span class="quick-tag" onclick="quickSelectProject('購物')">購物</span>
+                    <span class="quick-tag" onclick="quickSelectProject('居家')">居家</span>
                     <span class="quick-tag" onclick="quickSelectProject('娛樂')">娛樂</span>
+                    <span class="quick-tag" onclick="quickSelectProject('醫療')">醫療</span>
+                    <span class="quick-tag" onclick="quickSelectProject('社交')">社交</span>
+                    <span class="quick-tag" onclick="quickSelectProject('訂閱')">訂閱</span>
+                `;
+            } else {
+                tagsContainer.innerHTML = `
+                    <span class="quick-tag" onclick="quickSelectProject('薪水')">薪水</span>
+                    <span class="quick-tag" onclick="quickSelectProject('股息')">股息</span>
+                    <span class="quick-tag" onclick="quickSelectProject('獎金')">獎金</span>
+                    <span class="quick-tag" onclick="quickSelectProject('其他')">其他</span>
                 `;
             }
         }
 
         window.quickSelectProject = function(name) {
             document.getElementById('add-project').value = name;
-            checkLashTrigger(name);
-        }
+            checkItemSubform(name);
+        };
 
-        window.checkLashTrigger = function(val) {
-            const box = document.getElementById('lash-subform');
-            if (val.includes('美睫')) box.style.display = 'block';
-            else box.style.display = 'none';
-        }
+        window.checkItemSubform = function(val) {
+            const lashBox = document.getElementById('lash-subform');
+            const browBox = document.getElementById('brow-subform');
+            if (val.includes('美睫')) {
+                lashBox.style.display = 'block';
+                browBox.style.display = 'none';
+            } else if (val.includes('睫毛管理')) {
+                browBox.style.display = 'block';
+                lashBox.style.display = 'none';
+            } else {
+                lashBox.style.display = 'none';
+                browBox.style.display = 'none';
+            }
+        };
+
+        window.autofillCustomerData = function(name) {
+            name = name.trim();
+            if (name && customerCRM[name]) {
+                // 自動帶入或辨識
+            }
+        };
 
         window.addRecord = function() {
             const trackCat = document.getElementById('add-track-category').value;
@@ -992,39 +1227,51 @@
 
             if (isNaN(amount) || amount <= 0) return alert('請輸入有效金額');
 
-            let lashDetails = null;
-            if (trackCat === '工作' && project.includes('美睫')) {
-                lashDetails = {
-                    style: document.getElementById('lash-style').value.trim(),
-                    curlLen: document.getElementById('lash-curl-len').value.trim(),
-                    thickness: document.getElementById('lash-thickness').value.trim(),
-                    glue: document.getElementById('lash-glue').value.trim(),
-                    note: document.getElementById('lash-note').value.trim()
-                };
+            let itemDetails = null;
+            if (trackCat === '工作') {
+                if (project.includes('美睫')) {
+                    itemDetails = {
+                        type: '美睫',
+                        style: document.getElementById('lash-style').value.trim(),
+                        curlLen: document.getElementById('lash-curl-len').value.trim(),
+                        thickness: document.getElementById('lash-thickness').value.trim(),
+                        glue: document.getElementById('lash-glue').value.trim(),
+                        note: document.getElementById('lash-note').value.trim()
+                    };
+                } else if (project.includes('睫毛管理')) {
+                    itemDetails = {
+                        type: '睫毛管理',
+                        pad: document.getElementById('brow-pad').value.trim(),
+                        size: document.getElementById('brow-size').value.trim()
+                    };
+                }
                 if (custName) {
-                    if (!customerCRM[custName]) customerCRM[custName] = { phone: '', birth: '', tag: '熟客', history: [] };
+                    if (!customerCRM[custName]) customerCRM[custName] = { phone: '', birth: '', tag: '新客', isBlacklist: false, history: [] };
                     customerCRM[custName].history.unshift({
-                        date: selectedDateStr, project, amount, lash: lashDetails
+                        id: 'hist_' + Date.now(),
+                        date: selectedDateStr, project, amount, itemDetails
                     });
                 }
             }
 
             records.push({
                 id: 'rec_' + Date.now(),
-                date: selectedDateStr, trackCategory: trackCat, type, custName, paymentMethod, project, amount, note, lashDetails
+                date: selectedDateStr, trackCategory: trackCat, type, custName, paymentMethod, project, amount, note, itemDetails
             });
 
             document.getElementById('add-amount').value = '';
             document.getElementById('add-note').value = '';
             document.getElementById('lash-subform').style.display = 'none';
+            document.getElementById('brow-subform').style.display = 'none';
+            document.getElementById('add-project').value = '';
 
             initCalendar();
             renderDayRecords();
             renderReports();
-            updateWalletBalances();
+            renderCustomerPage();
             saveCloudData();
             alert('成功新增紀錄！');
-        }
+        };
 
         window.exportWorkTaxData = function() {
             let workRecs = records.filter(r => r.trackCategory === '工作');
@@ -1036,7 +1283,7 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-        }
+        };
 
         function buildYearDropdowns() {
             const y = new Date().getFullYear();
@@ -1070,7 +1317,7 @@
             if(pageId === 'reports-page') renderReports();
             if(pageId === 'customers-page') renderCustomerPage();
             if(pageId === 'quote-page') { initSortableLists(); calculateQuoteTotal(); }
-        }
+        };
 
         function initCalendar() {
             const y = parseInt(document.getElementById('select-cal-year').value);
@@ -1101,7 +1348,7 @@
             else if(m < 0) { document.getElementById('select-cal-month').value = 11; document.getElementById('select-cal-year').value--; }
             else { document.getElementById('select-cal-month').value = m; }
             initCalendar();
-        }
+        };
 
         function renderDayRecords() {
             const list = document.getElementById('day-record-list');
@@ -1117,8 +1364,9 @@
                         <div><span class="type-tag ${r.trackCategory === '工作'?'work':'life'}">${r.trackCategory}</span><span style="font-weight:600;">${escapeHtml(r.custName || r.project)}</span></div>
                         <div><span class="record-amount ${isInc?'inc':'exp'}">${isInc?'+':'-'}$${r.amount}</span><button class="btn-delete" onclick="deleteRecord('${r.id}', event)">🗑️</button></div>
                     </div>
-                    <div class="rec-mid">支付: ${r.paymentMethod} | 項目: ${escapeHtml(r.project)}</div>
+                    <div class="rec-mid">分類: ${r.trackCategory} | 支付: ${r.paymentMethod} | 項目: ${escapeHtml(r.project)}</div>
                 `;
+                li.onclick = () => openRecordDetail(r);
                 list.appendChild(li);
             });
         }
@@ -1127,10 +1375,10 @@
             e.stopPropagation();
             if(confirm('確定刪除此紀錄？')) {
                 records = records.filter(r => r.id !== id);
-                initCalendar(); renderDayRecords(); renderReports(); updateWalletBalances();
+                initCalendar(); renderDayRecords(); renderReports(); renderCustomerPage();
                 saveCloudData();
             }
-        }
+        };
 
         window.renderAllRecords = function() {
             const container = document.getElementById('all-records-container');
@@ -1144,14 +1392,33 @@
                 div.innerHTML = `
                     <div class="rec-top">
                         <div><span class="type-tag">${r.date}</span><span style="font-weight:600;">${escapeHtml(r.custName || r.project)}</span></div>
-                        <span class="record-amount ${isInc?'inc':'exp'}">${isInc?'+':'-'}$${r.amount}</span>
+                        <div><span class="record-amount ${isInc?'inc':'exp'}">${isInc?'+':'-'}$${r.amount}</span><button class="btn-delete" onclick="deleteRecord('${r.id}', event)">🗑️</button></div>
                     </div>
                     <div class="rec-mid">[${r.trackCategory}] ${escapeHtml(r.project)} (${r.paymentMethod})</div>
                 `;
+                div.onclick = () => openRecordDetail(r);
                 container.appendChild(div);
             });
-        }
+        };
 
+        window.openRecordDetail = function(r) {
+            let content = `日期：${r.date}<br>分類：${r.trackCategory}<br>類型：${r.type}<br>項目：${escapeHtml(r.project)}<br>金額：$${r.amount}<br>支付方式：${r.paymentMethod}`;
+            if(r.custName) content += `<br>客戶：${escapeHtml(r.custName)}`;
+            if(r.itemDetails) {
+                content += `<br><hr style="margin:6px 0; border-color:var(--accent-latte);"><strong>美睫/項目明細：</strong><br>`;
+                if(r.itemDetails.type === '美睫') {
+                    content += `款式：${escapeHtml(r.itemDetails.style)}<br>卷度與長度：${escapeHtml(r.itemDetails.curlLen)}<br>粗度：${escapeHtml(r.itemDetails.thickness)}<br>膠水：${escapeHtml(r.itemDetails.glue)}<br>備註：${escapeHtml(r.itemDetails.note)}`;
+                } else if(r.itemDetails.type === '睫毛管理') {
+                    content += `墊片：${escapeHtml(r.itemDetails.pad)}<br>捲度/尺寸：${escapeHtml(r.itemDetails.size)}`;
+                }
+            }
+            if(r.note) content += `<br>備註：${escapeHtml(r.note)}`;
+            document.getElementById('modal-record-content').innerHTML = content;
+            document.getElementById('record-detail-modal').style.display = 'flex';
+        };
+        window.closeRecordDetailModal = () => document.getElementById('record-detail-modal').style.display = 'none';
+
+        // 財務報表：分兩大點（工作開銷、生活開銷）不共用，各自細項現金、銀行、LINE Pay、信用卡餘額
         window.renderReports = function() {
             const y = parseInt(document.getElementById('report-year-select').value);
             const mVal = document.getElementById('report-month-select').value;
@@ -1160,129 +1427,223 @@
                 return d.getFullYear() === y && (mVal === 'all' || d.getMonth() === parseInt(mVal));
             });
 
-            let workInc = 0, workExp = 0, lifeInc = 0, lifeExp = 0, workTx = 0;
+            let workTotal = 0, lifeTotal = 0;
+            let workBalances = { 現金: 0, 轉帳: 0, "LINE Pay": 0, 刷卡: 0 };
+            let lifeBalances = { 現金: 0, 銀行: 0, "LINE Pay": 0, 信用卡: 0 };
+
+            let workDetailHtml = '';
+            let lifeDetailHtml = '';
+
             filtered.forEach(r => {
-                if(r.trackCategory === '工作') {
-                    if(r.type === '收入') { workInc += r.amount; workTx++; } else workExp += r.amount;
+                if (r.trackCategory === '工作') {
+                    let amt = r.type === '收入' ? r.amount : -r.amount;
+                    workTotal += amt;
+                    let m = r.paymentMethod;
+                    if (workBalances[m] !== undefined) workBalances[m] += amt;
+
+                    workDetailHtml += `<div class="report-summary-item"><span>${r.date} - ${escapeHtml(r.custName || r.project)} (${r.paymentMethod})</span><span style="color:${r.type==='收入'?'var(--income-green)':'var(--expense-red)'}; font-weight:bold;">${r.type==='收入'?'+':'-'}$${r.amount}</span></div>`;
                 } else {
-                    if(r.type === '收入') lifeInc += r.amount; else lifeExp += r.amount;
+                    let amt = r.type === '收入' ? r.amount : -r.amount;
+                    lifeTotal += amt;
+                    let m = r.paymentMethod;
+                    if (lifeBalances[m] !== undefined) lifeBalances[m] += amt;
+
+                    lifeDetailHtml += `<div class="report-summary-item"><span>${r.date} - ${escapeHtml(r.project)} (${r.paymentMethod})</span><span style="color:${r.type==='收入'?'var(--income-green)':'var(--expense-red)'}; font-weight:bold;">${r.type==='收入'?'+':'-'}$${r.amount}</span></div>`;
                 }
             });
 
-            document.getElementById('work-rep-inc').innerText = `$${workInc.toLocaleString()}`;
-            document.getElementById('work-rep-exp').innerText = `$${workExp.toLocaleString()}`;
-            document.getElementById('life-rep-inc').innerText = `$${lifeInc.toLocaleString()}`;
-            document.getElementById('life-rep-exp').innerText = `$${lifeExp.toLocaleString()}`;
-            document.getElementById('stat-avg-ticket').innerText = `$${workTx > 0 ? Math.round(workInc/workTx) : 0}`;
-            document.getElementById('stat-work-days').innerText = `${new Set(filtered.filter(r=>r.trackCategory==='工作').map(r=>r.date)).size} 天`;
-
-            let lifeExpenses = {};
-            filtered.filter(r => r.trackCategory === '生活' && r.type === '支出').forEach(r => {
-                lifeExpenses[r.project] = (lifeExpenses[r.project] || 0) + r.amount;
+            // 全域累積餘額
+            let gWorkBal = { 現金: 0, 轉帳: 0, "LINE Pay": 0, 刷卡: 0 };
+            let gLifeBal = { 現金: 0, 銀行: 0, "LINE Pay": 0, 信用卡: 0 };
+            records.forEach(r => {
+                let amt = r.type === '收入' ? r.amount : -r.amount;
+                if (r.trackCategory === '工作' && gWorkBal[r.paymentMethod] !== undefined) gWorkBal[r.paymentMethod] += amt;
+                if (r.trackCategory === '生活' && gLifeBal[r.paymentMethod] !== undefined) gLifeBal[r.paymentMethod] += amt;
             });
 
-            let budgetContainer = document.getElementById('life-budget-container');
-            budgetContainer.innerHTML = '';
-            let bKeys = Object.keys(budgets);
-            if(!bKeys.length) { budgetContainer.innerHTML = '<div class="no-data" style="margin-top:10px;">尚未設定生活預算</div>'; return; }
-            bKeys.forEach(cat => {
-                let limit = budgets[cat];
-                let spent = lifeExpenses[cat] || 0;
-                let pct = Math.round((spent / limit) * 100);
-                let isWarning = pct >= 80;
-                budgetContainer.innerHTML += `
-                    <div style="margin-bottom:10px; font-size:13px;">
-                        <div style="display:flex; justify-content:space-between;">
-                            <span>${cat} (預算 $${limit})</span>
-                            <span style="color:${isWarning?'var(--warning-color)':'inherit'}; font-weight:bold;">已花費 $${spent} (${pct}%)</span>
-                        </div>
-                        <div style="background:var(--main-butter); height:6px; border-radius:3px; margin-top:3px; overflow:hidden;">
-                            <div style="background:${isWarning?'var(--warning-color)':'var(--primary-color)'}; width:${Math.min(pct,100)}%; height:100%;"></div>
-                        </div>
-                        ${isWarning ? `<div style="font-size:11px; color:var(--warning-color); margin-top:2px;">⚠️ 警告：已超過預算 80%！</div>`:''}
-                    </div>
-                `;
-            });
-        }
+            document.getElementById('work-total-header-amt').innerText = `$${workTotal.toLocaleString()}`;
+            document.getElementById('work-bal-cash').innerText = `$${gWorkBal.現金.toLocaleString()}`;
+            document.getElementById('work-bal-bank').innerText = `$${gWorkBal.轉帳.toLocaleString()}`;
+            document.getElementById('work-bal-line').innerText = `$${gWorkBal["LINE Pay"].toLocaleString()}`;
+            document.getElementById('work-bal-card').innerText = `$${gWorkBal.刷卡.toLocaleString()}`;
+            document.getElementById('work-report-detail').innerHTML = workDetailHtml || '<div class="no-data">尚無工作明細</div>';
 
-        window.openBudgetModal = () => document.getElementById('budget-modal').style.display = 'flex';
-        window.closeBudgetModal = () => document.getElementById('budget-modal').style.display = 'none';
-        window.saveBudgetLimit = () => {
-            let cat = document.getElementById('budget-category-select').value;
-            let amt = parseInt(document.getElementById('budget-amount-input').value);
-            if(isNaN(amt) || amt <= 0) return alert('請輸入有效預算');
-            budgets[cat] = amt;
-            saveCloudData();
-            closeBudgetModal();
-            renderReports();
-            alert('預算設定成功！');
-        }
+            document.getElementById('life-total-header-amt').innerText = `$${lifeTotal.toLocaleString()}`;
+            document.getElementById('life-bal-cash').innerText = `$${gLifeBal.現金.toLocaleString()}`;
+            document.getElementById('life-bal-bank').innerText = `$${gLifeBal.銀行.toLocaleString()}`;
+            document.getElementById('life-bal-line').innerText = `$${gLifeBal["LINE Pay"].toLocaleString()}`;
+            document.getElementById('life-bal-card').innerText = `$${gLifeBal.信用卡.toLocaleString()}`;
+            document.getElementById('life-report-detail').innerHTML = lifeDetailHtml || '<div class="no-data">尚無生活明細</div>';
+        };
 
+        window.toggleReportSection = function(type) {
+            let el = document.getElementById(type + '-report-detail');
+            if (el.style.display === 'none') {
+                el.style.display = 'block';
+            } else {
+                el.style.display = 'none';
+            }
+        };
+
+        // 客戶資料與補睫倒數
         window.renderCustomerPage = function() {
             const container = document.getElementById('customers-container');
+            const alertBox = document.getElementById('birthday-alert-box');
             container.innerHTML = '';
             let keys = Object.keys(customerCRM);
-            if(!keys.length) { container.innerHTML = '<div class="no-data">尚無客戶資料</div>'; return; }
+            let searchKey = document.getElementById('cust-search-input') ? document.getElementById('cust-search-input').value.trim() : '';
+            
+            if(!keys.length) { 
+                container.innerHTML = '<div class="no-data">尚無客戶資料</div>'; 
+                alertBox.innerHTML = '';
+                return; 
+            }
+
+            let todayMMDD = String(new Date().getMonth()+1).padStart(2,'0') + String(new Date().getDate()).padStart(2,'0');
+            let birthdayHtml = '';
+
             keys.forEach(name => {
                 let c = customerCRM[name];
-                let card = document.createElement('div');
-                card.className = 'customer-card';
-                card.onclick = () => openCustomerDetail(name);
-                card.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <strong>👤 ${escapeHtml(name)}</strong>
-                        <span class="tag-badge ${c.tag==='VIP'?'vip':c.tag==='黑名單'?'blacklist':''}">${c.tag}</span>
+                if(searchKey && !name.includes(searchKey) && !(c.phone && c.phone.includes(searchKey)) && !(c.tag && c.tag.includes(searchKey))) return;
+
+                if(c.birth && c.birth === todayMMDD) {
+                    birthdayHtml += `<li>🎉 今天是 <strong>${escapeHtml(name)}</strong> 的生日！</li>`;
+                }
+
+                let lastDate = c.history && c.history.length ? c.history[0].date : null;
+                let countdownText = '尚無施作紀錄';
+                if (lastDate) {
+                    let diff = Math.floor((new Date() - new Date(lastDate)) / (1000 * 60 * 60 * 24));
+                    let yDays = Math.max(0, 14 - diff);
+                    let zDays = Math.max(0, 21 - diff);
+                    countdownText = `上次施作 ${diff} 天前 (${lastDate})｜7折剩 ${yDays} 天、8折剩 ${zDays} 天`;
+                }
+
+                let historyHtml = c.history && c.history.length ? c.history.map(h => `
+                    <div style="background:var(--bg-cream); padding:8px; border-radius:8px; margin-bottom:6px; border:1px solid var(--accent-latte); cursor:pointer;" onclick="openHistoryDetail('${name}', '${h.id}')">
+                        <div><strong>${h.date}</strong> - ${escapeHtml(h.project)} ($${h.amount})</div>
+                        ${h.itemDetails ? `<div style="font-size:11px; color:var(--price-accent);">點擊查看詳細美睫紀錄表</div>`:''}
                     </div>
-                    <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">電話: ${c.phone||'未填寫'} | 美睫紀錄: ${c.history ? c.history.length : 0} 次</div>
+                `).join('') : '<div class="no-data">尚無消費紀錄</div>';
+
+                let card = document.createElement('div');
+                card.className = `customer-card ${c.isBlacklist?'blacklist-bg':''}`;
+                card.innerHTML = `
+                    <div class="customer-card-header" onclick="toggleCustomerCard(this)">
+                        <div>
+                            <span class="customer-name">👤 ${escapeHtml(name)}</span>
+                            <span class="type-tag ${c.tag==='VIP'?'inc':'work'}">${c.tag}</span>
+                            ${c.isBlacklist?'<span class="type-tag" style="background:#333; color:#fff;">黑名습</span>':''}
+                        </div>
+                        <div class="customer-header-right">
+                            <span class="customer-total-spent">消費紀錄 (${c.history ? c.history.length : 0})</span>
+                        </div>
+                    </div>
+                    <div class="customer-detail-row">電話：${escapeHtml(c.phone || '未填寫')} | 生日：${escapeHtml(c.birth || '未填寫')}</div>
+                    <div class="customer-note-highlight">⏳ 補睫倒數：${countdownText}</div>
+                    <div class="customer-expanded-zone" onclick="event.stopPropagation()">
+                        <div class="edit-crm-group">
+                            <div class="edit-crm-title">編輯客戶資料</div>
+                            <input type="text" id="edit-c-phone-${name}" class="input-style" style="margin-bottom:6px;" value="${escapeHtml(c.phone||'')}" placeholder="電話">
+                            <input type="text" id="edit-c-birth-${name}" class="input-style" style="margin-bottom:6px;" value="${escapeHtml(c.birth||'')}" placeholder="生日 (MMDD)">
+                            <select id="edit-c-tag-${name}" class="input-style" style="margin-bottom:6px;">
+                                <option value="新客" ${c.tag==='新客'?'selected':''}>新客</option>
+                                <option value="熟客" ${c.tag==='熟客'?'selected':''}>熟客</option>
+                                <option value="VIP" ${c.tag==='VIP'?'selected':''}>VIP</option>
+                                <option value="久未回訪" ${c.tag==='久未回訪'?'selected':''}>久未回訪</option>
+                                <option value="黑名單" ${c.tag==='黑名單'?'selected':''}>黑名單</option>
+                            </select>
+                            <div class="crm-action-row">
+                                <button class="btn-mini-save" onclick="updateCustomer('${name}')">儲存修改</button>
+                                <button class="btn-mini-delete" onclick="deleteCustomer('${name}')">刪除客戶</button>
+                            </div>
+                        </div>
+                        <div style="font-weight:bold; font-size:12px; margin-top:10px; margin-bottom:6px;">📋 點選當次消費紀錄即可看到詳細美睫紀錄表：</div>
+                        ${historyHtml}
+                    </div>
                 `;
                 container.appendChild(card);
             });
-        }
 
-        window.openCustomerDetail = function(name) {
-            let c = customerCRM[name];
-            document.getElementById('detail-cust-title').innerText = `👤 ${name} 的詳細履歷`;
-            let body = document.getElementById('detail-cust-body');
-            let lastDate = c.history && c.history.length ? c.history[0].date : null;
-            let countdownHtml = '<div style="color:var(--text-muted); margin-bottom:10px;">尚無施作美睫紀錄</div>';
-            if (lastDate) {
-                let diff = Math.floor((new Date() - new Date(lastDate)) / (1000 * 60 * 60 * 24));
-                countdownHtml = `
-                    <div style="background:#FFF0EB; border:1px dashed var(--birthday-pink); padding:10px; border-radius:12px; margin-bottom:12px;">
-                        <strong>⏳ 補睫倒數提醒：</strong><br>
-                        上次施作在 <strong>${diff} 天前</strong> (${lastDate})<br>
-                        • 7 折優惠 (兩週內): 剩餘 <strong>${Math.max(0, 14 - diff)} 天</strong><br>
-                        • 8 折優惠 (三週內): 剩餘 <strong>${Math.max(0, 21 - diff)} 天</strong>
+            if(birthdayHtml) {
+                alertBox.innerHTML = `
+                    <div class="birthday-banner">
+                        <div class="birthday-banner-title">🎂 今日壽星提醒</div>
+                        <ul class="birthday-list">${birthdayHtml}</ul>
                     </div>
                 `;
+            } else {
+                alertBox.innerHTML = '';
             }
-            let historyHtml = c.history && c.history.length ? c.history.map(h => `
-                <div style="background:var(--bg-cream); padding:8px; border-radius:8px; margin-bottom:6px; border:1px solid var(--accent-latte);">
-                    <div><strong>${h.date}</strong> - ${escapeHtml(h.project)} ($${h.amount})</div>
-                    ${h.lash ? `<div style="font-size:12px; color:var(--price-accent); margin-top:2px;">款式: ${h.lash.style} | 卷度: ${h.lash.curlLen}</div>`:''}
-                </div>
-            `).join('') : '<div class="no-data">無詳細美睫表</div>';
+        };
 
-            body.innerHTML = `${countdownHtml}<div style="font-weight:bold; margin-bottom:6px;">📋 歷史美睫紀錄表</div>${historyHtml}`;
-            document.getElementById('customer-detail-modal').style.display = 'flex';
-        }
-        window.closeCustomerDetailModal = () => document.getElementById('customer-detail-modal').style.display = 'none';
+        window.toggleCustomerCard = function(headerEl) {
+            let card = headerEl.closest('.customer-card');
+            card.classList.toggle('open');
+        };
+
+        window.openHistoryDetail = function(custName, histId) {
+            let h = customerCRM[custName].history.find(x => x.id === histId);
+            if(!h) return;
+            let content = `客戶：${escapeHtml(custName)}<br>日期：${h.date}<br>項目：${escapeHtml(h.project)}<br>金額：$${h.amount}`;
+            if(h.itemDetails) {
+                content += `<br><hr style="margin:6px 0; border-color:var(--accent-latte);"><strong>詳細美睫紀錄表：</strong><br>`;
+                if(h.itemDetails.type === '美睫') {
+                    content += `款式：${escapeHtml(h.itemDetails.style)}<br>卷度與長度：${escapeHtml(h.itemDetails.curlLen)}<br>粗度：${escapeHtml(h.itemDetails.thickness)}<br>膠水：${escapeHtml(h.itemDetails.glue)}<br>備註：${escapeHtml(h.itemDetails.note)}`;
+                } else if(h.itemDetails.type === '睫毛管理') {
+                    content += `墊片：${escapeHtml(h.itemDetails.pad)}<br>捲度/尺寸：${escapeHtml(h.itemDetails.size)}`;
+                }
+            }
+            document.getElementById('modal-record-content').innerHTML = content;
+            document.getElementById('record-detail-modal').style.display = 'flex';
+        };
+
+        window.updateCustomer = function(name) {
+            let phone = document.getElementById(`edit-c-phone-${name}`).value.trim();
+            let birth = document.getElementById(`edit-c-birth-${name}`).value.trim();
+            let tag = document.getElementById(`edit-c-tag-${name}`).value;
+            customerCRM[name].phone = phone;
+            customerCRM[name].birth = birth;
+            customerCRM[name].tag = tag;
+            customerCRM[name].isBlacklist = (tag === '黑名單');
+            saveCloudData();
+            renderCustomerPage();
+            alert('客戶資料已同步更新！');
+        };
+
+        window.deleteCustomer = function(name) {
+            if(confirm(`確定刪除客戶 ${name} 嗎？`)) {
+                delete customerCRM[name];
+                saveCloudData();
+                renderCustomerPage();
+                alert('客戶已刪除並同步更新！');
+            }
+        };
 
         window.openAddCustomerModal = () => document.getElementById('add-customer-modal').style.display = 'flex';
         window.closeAddCustomerModal = () => document.getElementById('add-customer-modal').style.display = 'none';
         window.saveNewCustomer = () => {
             let name = document.getElementById('new-cust-name').value.trim();
-            if(!name) return alert('請輸入姓名');
-            customerCRM[name] = { phone: document.getElementById('new-cust-phone').value.trim(), tag: document.getElementById('new-cust-tag').value, history: [] };
-            saveCloudData(); closeAddCustomerModal(); renderCustomerPage(); alert('新增成功！');
-        }
+            if(!name) return alert('請輸入客戶姓名');
+            let tag = document.getElementById('new-cust-tag').value;
+            customerCRM[name] = {
+                phone: document.getElementById('new-cust-phone').value.trim(),
+                birth: document.getElementById('new-cust-birth').value.trim(),
+                tag: tag,
+                isBlacklist: (tag === '黑名單'),
+                history: []
+            };
+            saveCloudData();
+            closeAddCustomerModal();
+            renderCustomerPage();
+            alert('新客戶新增成功！');
+        };
 
-        // 報價系統與補睫 7/8 折邏輯
-        window.promptAddQuoteItem = (gId, type) => {
+        // 報價單項目管理
+        window.promptAddQuoteItem = (gId) => {
             document.getElementById('target-quote-group-id').value = gId;
-            document.getElementById('target-quote-item-type').value = type;
             document.getElementById('add-quote-item-modal').style.display = 'flex';
-        }
+        };
         window.closeAddQuoteItemModal = () => document.getElementById('add-quote-item-modal').style.display = 'none';
         window.confirmAddQuoteItem = () => {
             let gId = document.getElementById('target-quote-group-id').value;
@@ -1292,52 +1653,18 @@
             let container = document.querySelector(`#${gId} .sortable-container`);
             let label = document.createElement('label');
             label.className = 'quote-option-item';
-            label.innerHTML = `<input type="radio" name="quote-base-style" value="${price}" onchange="handleStyleChange()"><span class="quote-item-name-text">${escapeHtml(name)}</span><span class="quote-item-price-text">$${price}</span><input type="hidden" class="q-price-val" value="${price}"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button>`;
+            label.innerHTML = `<input type="radio" name="quote-base-style" value="${price}" onchange="calculateQuoteTotal()"><span class="quote-item-name-text">${escapeHtml(name)}</span><span class="quote-item-price-text">$${price}</span><input type="hidden" class="q-price-val" value="${price}"><button class="btn-remove-item" onclick="removeQuoteItem(this)">✕</button>`;
             container.appendChild(label);
             closeAddQuoteItemModal();
-            handleStyleChange();
-        }
-        window.removeQuoteItem = (btn) => { btn.closest('.quote-option-item').remove(); handleStyleChange(); }
-
-        window.handleRefillChange = (type) => {
-            let r7 = document.getElementById('quote-refill-7');
-            let r8 = document.getElementById('quote-refill-8');
-            if(type === 7 && r7.checked) r8.checked = false;
-            if(type === 8 && r8.checked) r7.checked = false;
             calculateQuoteTotal();
-        }
-
-        window.handleStyleChange = () => {
-            let selected = document.querySelector('input[name="quote-base-style"]:checked');
-            let r7 = document.getElementById('quote-refill-7');
-            let r8 = document.getElementById('quote-refill-8');
-            let l7 = document.getElementById('refill-7-label');
-            let l8 = document.getElementById('refill-8-label');
-
-            if(selected) {
-                r7.disabled = false; r8.disabled = false;
-                l7.style.opacity = '1'; l8.style.opacity = '1';
-            } else {
-                r7.disabled = true; r8.disabled = true; r7.checked = false; r8.checked = false;
-                l7.style.opacity = '0.5'; l8.style.opacity = '0.5';
-            }
-            calculateQuoteTotal();
-        }
+        };
+        window.removeQuoteItem = (btn) => { btn.closest('.quote-option-item').remove(); calculateQuoteTotal(); };
 
         window.calculateQuoteTotal = () => {
             let selected = document.querySelector('input[name="quote-base-style"]:checked');
-            let base = 0;
-            if(selected) {
-                let val = parseInt(selected.value) || 0;
-                base = val;
-                let r7 = document.getElementById('quote-refill-7');
-                let r8 = document.getElementById('quote-refill-8');
-                if(r7 && r7.checked) base = Math.round(val * 0.7);
-                else if(r8 && r8.checked) base = Math.round(val * 0.8);
-            }
-            document.getElementById('quoteTotalAmount').innerText = `$${base.toLocaleString()}`;
-            document.getElementById('quoteSubCalcText').innerText = `小計 $${base.toLocaleString()}`;
-        }
+            let total = selected ? parseInt(selected.value) : 0;
+            document.getElementById('quoteTotalAmount').innerText = `$${total.toLocaleString()}`;
+        };
     </script>
 </body>
 </html>
