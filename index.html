@@ -279,6 +279,37 @@
             z-index: 3;
         }
 
+        /* 💡 工作收支 vs 生活開銷 雙快捷切換按鈕樣式 */
+        .mode-switch-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed rgba(227, 213, 202, 0.4);
+        }
+        .mode-btn {
+            background-color: var(--bg-cream);
+            border: 1px solid var(--accent-latte);
+            border-radius: 12px;
+            padding: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .mode-btn.active {
+            background-color: var(--text-dark);
+            color: var(--pure-white);
+            border-color: var(--text-dark);
+            box-shadow: 0 2px 8px var(--shadow-soft);
+        }
+
         .form-group {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -756,8 +787,8 @@
 
     <div id="main-app" style="display: none;">
         <nav class="top-toolbar">
-            <button class="nav-btn active" onclick="switchPage('calendar-page', this)">📅月曆</button>
-            <button class="nav-btn" onclick="switchPage('all-records-page', this)">📊總紀錄</button>
+            <button class="nav-btn active" onclick="switchPage('calendar-page', this)">1. 月曆</button>
+            <button class="nav-btn" onclick="switchPage('all-records-page', this)">2. 總紀錄</button>
             <button class="nav-btn" onclick="switchPage('reports-page', this)">3. 帳本</button>
             <button class="nav-btn" onclick="switchPage('customers-page', this)">4. 客戶資料</button>
             <button class="nav-btn" onclick="switchPage('quote-page', this)">5. 報價</button>
@@ -794,7 +825,17 @@
                 <div class="card-title"><span id="selected-date-label">收支紀錄</span></div>
                 <div style="margin-bottom: 18px; padding-bottom: 15px; border-bottom: 1px solid rgba(227, 213, 202, 0.4);">
                     
-                    <div class="form-group">
+                    <!-- 💡 仿照圖片中的雙快捷切換按鈕 (工作收支 vs 生活開銷) -->
+                    <div class="mode-switch-bar">
+                        <button type="button" id="mode-btn-work" class="mode-btn active" onclick="switchRecordMode('工作收支')">
+                            💼 工作收支
+                        </button>
+                        <button type="button" id="mode-btn-life" class="mode-btn" onclick="switchRecordMode('生活開銷')">
+                            🏠 生活開銷
+                        </button>
+                    </div>
+
+                    <div class="form-group" id="type-select-group">
                         <select id="add-type" class="input-style" onchange="handleTypeChange()">
                             <option value="收入">收入 (美睫/儲值)</option>
                             <option value="支出">支出 (店鋪開銷)</option>
@@ -855,7 +896,7 @@
                     <option value="0">1 月</option><option value="1">2 月</option><option value="2">3 月</option>
                     <option value="3">4 月</option><option value="4">5 月</option><option value="5">6 月</option>
                     <option value="6">7 月</option><option value="7">8 月</option><option value="8">9 月</option>
-                    <option value="9">10 月</option><option value="10">11 月</option><option value="11">12 月</option>
+                    <option value="9">10 月</option><option value="10">11 月</option><option value="12">12 月</option>
                 </select>
             </div>
 
@@ -1216,6 +1257,7 @@
         let selectedDateStr = todayStr;
         let currentReportDetailFilter = '';
         let quoteDetailCache = { text: '', html: '' };
+        let currentRecordMode = '工作收支'; // 💡 預設為工作收支模式
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -1230,7 +1272,7 @@
                 buildMonthDropdown();
                 initCalendar();
                 renderDayRecords();
-                handleTypeChange();
+                switchRecordMode('工作收支');
                 renderReports();
                 renderCustomerPage();
                 initSortableLists();
@@ -1351,7 +1393,40 @@
             return type === '課堂數' ? `${val} 堂` : `$${val}`;
         }
 
+        // 💡 模式切換邏輯 (工作收支 vs 生活開銷)
+        window.switchRecordMode = function(mode) {
+            currentRecordMode = mode;
+            const btnWork = document.getElementById('mode-btn-work');
+            const btnLife = document.getElementById('mode-btn-life');
+            const typeSelect = document.getElementById('add-type');
+            const typeGroup = document.getElementById('type-select-group');
+
+            if (mode === '工作收支') {
+                btnWork.classList.add('active');
+                btnLife.classList.remove('active');
+                typeGroup.style.display = 'grid';
+                typeSelect.value = '收入';
+                handleTypeChange();
+            } else {
+                btnWork.classList.remove('active');
+                btnLife.classList.add('active');
+                typeGroup.style.display = 'none'; // 生活開銷直接固定為支出，隱藏收入/支出下拉
+                document.getElementById('add-cust-name').value = '';
+                document.getElementById('add-deposit').value = '';
+                
+                const tagsContainer = document.getElementById('quick-tags-container');
+                tagsContainer.innerHTML = `
+                    <span class="quick-tag" onclick="quickSelectProject('伙食餐飲')">＋伙食餐飲</span>
+                    <span class="quick-tag" onclick="quickSelectProject('交通車資')">＋交通車資</span>
+                    <span class="quick-tag" onclick="quickSelectProject('服飾網購')">＋服飾網購</span>
+                    <span class="quick-tag" onclick="quickSelectProject('生活雜貨')">＋生活雜貨</span>
+                    <span class="quick-tag" onclick="quickSelectProject('娛樂休閒')">＋娛樂休閒</span>
+                `;
+            }
+        }
+
         window.handleTypeChange = function() {
+            if (currentRecordMode === '生活開銷') return;
             const type = document.getElementById('add-type').value;
             const custWrapper = document.getElementById('cust-name-wrapper');
             const depositRow = document.getElementById('deposit-wrapper-row');
@@ -1447,8 +1522,8 @@
             document.getElementById('edit-modal').style.display = 'none';
         }
 
-        // 💡 修復：確保修改紀錄後立即儲存並重新整理所有畫面（含月曆、總紀錄、帳本、客戶資料）
-        window.updateRecordData = async function() {
+        // 💡 修正後即時儲存與重新整理
+        window.updateRecordData = function() {
             const id = document.getElementById('edit-id').value;
             const recIndex = records.findIndex(r => r.id === id);
             if(recIndex === -1) return;
@@ -1474,15 +1549,14 @@
             }
 
             closeEditModal();
-            
-            // 立即全面重新整理所有介面
+            saveLocalFallback(); // 立即寫入本地
             initCalendar(); 
             renderDayRecords(); 
             renderReports(); 
             renderCustomerPage();
             renderAllRecords();
-
-            await saveCloudData();
+            saveCloudData(); // 非同步同步雲端
+            alert('修改紀錄成功！');
         }
 
         function initCalendar() {
@@ -1535,10 +1609,10 @@
             dayRecords.forEach(rec => {
                 const li = document.createElement('li'); li.classList.add('record-item'); li.setAttribute('onclick', `openEditModal('${rec.id}', event)`);
                 const isInc = rec.type === '收入'; const typeClass = isInc ? 'inc' : 'exp';
-                const displayName = isInc ? (rec.custName ? rec.custName : '無名客') : '店鋪';
+                const displayName = isInc ? (rec.custName ? rec.custName : '無名客') : (rec.mode === '生活開銷' ? '生活開銷' : '店鋪');
                 li.innerHTML = `
                     <div class="rec-top">
-                        <div><span class="type-tag ${typeClass}">${rec.type}</span><span style="font-weight:600;">${escapeHtml(displayName)}</span></div>
+                        <div><span class="type-tag ${typeClass}">${rec.mode || rec.type}</span><span style="font-weight:600;">${escapeHtml(displayName)}</span></div>
                         <div><span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span><button class="btn-delete" onclick="deleteRecord('${rec.id}', 'day', event)">🗑️</button></div>
                     </div>
                     <div class="rec-mid">項目: ${escapeHtml(rec.project)}</div>
@@ -1551,11 +1625,13 @@
         }
 
         window.addRecord = function() {
-            const type = document.getElementById('add-type').value;
-            const custName = type === '收入' ? document.getElementById('add-cust-name').value.trim() : '';
-            const depositType = type === '收入' ? document.getElementById('add-deposit-type').value : '儲值金';
-            const depositInput = type === '收入' ? document.getElementById('add-deposit').value.trim() : '';
-            const project = document.getElementById('add-project').value.trim() || (type === '收入' ? '美睫服務' : '日常開銷');
+            const type = currentRecordMode === '生活開銷' ? '支出' : document.getElementById('add-type').value;
+            const custName = (currentRecordMode === '工作收支' && type === '收入') ? document.getElementById('add-cust-name').value.trim() : '';
+            const depositType = (currentRecordMode === '工作收支' && type === '收入') ? document.getElementById('add-deposit-type').value : '儲值金';
+            const depositInput = (currentRecordMode === '工作收支' && type === '收入') ? document.getElementById('add-deposit').value.trim() : '';
+            
+            let defaultProj = currentRecordMode === '生活開銷' ? '生活開銷' : (type === '收入' ? '美睫服務' : '日常開銷');
+            const project = document.getElementById('add-project').value.trim() || defaultProj;
             const amountInput = document.getElementById('add-amount').value.trim();
             const amount = parseInt(amountInput); 
             const note = document.getElementById('add-note').value.trim();
@@ -1564,8 +1640,15 @@
 
             records.push({
                 id: 'id_' + Date.now() + Math.random().toString(36).substr(2, 4),
-                date: selectedDateStr, type: type, custName: custName, project: project, amount: amount,
-                depositType: depositType, deposit: depositInput !== '' ? parseInt(depositInput) : '', note: note
+                date: selectedDateStr, 
+                type: type, 
+                mode: currentRecordMode,
+                custName: custName, 
+                project: project, 
+                amount: amount,
+                depositType: depositType, 
+                deposit: depositInput !== '' ? parseInt(depositInput) : '', 
+                note: note
             });
 
             if (type === '收入' && custName && !customerCRM[custName]) {
@@ -1578,28 +1661,26 @@
             document.getElementById('add-deposit').value = ''; 
             document.getElementById('add-note').value = '';
             
+            saveLocalFallback();
             initCalendar(); 
             renderDayRecords(); 
             renderReports(); 
             renderCustomerPage();
             renderAllRecords();
-
             saveCloudData();
         }
 
-        // 💡 修復：確保刪除紀錄後自動重新整理所有畫面
+        // 💡 修正刪除後立即重新整理畫面
         window.deleteRecord = async function(id, pageSource, event) {
             if(event) event.stopPropagation();
-            if(confirm('❌確定要刪除這筆紀錄嗎？')) {
+            if(confirm('❌ 確定要刪除這筆紀錄嗎？')) {
                 records = records.filter(r => r.id !== id);
-                
-                // 立即全面重新整理所有介面
+                saveLocalFallback();
                 initCalendar(); 
                 renderDayRecords(); 
                 renderReports(); 
                 renderCustomerPage();
                 renderAllRecords();
-
                 await saveCloudData();
             }
         }
@@ -1621,7 +1702,7 @@
                 let isInc = rec.type === '收入'; let typeClass = isInc ? 'inc' : 'exp';
                 item.innerHTML = `
                     <div class="rec-top">
-                        <div><span class="type-tag ${typeClass}">${rec.type}</span><span style="font-weight:600;">${escapeHtml(isInc ? rec.custName : '店鋪')}</span></div>
+                        <div><span class="type-tag ${typeClass}">${rec.mode || rec.type}</span><span style="font-weight:600;">${escapeHtml(isInc ? rec.custName : (rec.mode === '生活開銷' ? '生活開銷' : '店鋪'))}</span></div>
                         <div><span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span><button class="btn-delete" onclick="deleteRecord('${rec.id}', 'all', event)">🗑️</button></div>
                     </div>
                     <div class="rec-mid">項目: ${escapeHtml(rec.project)}</div>`;
