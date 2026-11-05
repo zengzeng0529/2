@@ -825,7 +825,7 @@
                 <div class="card-title"><span id="selected-date-label">收支紀錄</span></div>
                 <div style="margin-bottom: 18px; padding-bottom: 15px; border-bottom: 1px solid rgba(227, 213, 202, 0.4);">
                     
-                    <!-- 💡 仿照圖片中的雙快捷切換按鈕 (工作收支 vs 生活開銷) -->
+                    <!-- 💡 雙快捷切換按鈕 (工作收支 vs 生活開銷) -->
                     <div class="mode-switch-bar">
                         <button type="button" id="mode-btn-work" class="mode-btn active" onclick="switchRecordMode('工作收支')">
                             💼 工作收支
@@ -837,8 +837,8 @@
 
                     <div class="form-group" id="type-select-group">
                         <select id="add-type" class="input-style" onchange="handleTypeChange()">
-                            <option value="收入">收入 (美睫/儲值)</option>
-                            <option value="支出">支出 (店鋪開銷)</option>
+                            <option value="收入">收入</option>
+                            <option value="支出">支出</option>
                         </select>
                         
                         <div id="cust-name-wrapper" class="income-only-field">
@@ -847,9 +847,43 @@
                     </div>
 
                     <div class="form-group">
+                        <select id="add-payment" class="input-style" style="grid-column: 1 / -1;">
+                            <option value="現金">💵 現金</option>
+                            <option value="轉帳">🏦 轉帳</option>
+                            <option value="LINE Pay">💚 LINE Pay</option>
+                            <option value="信用卡">💳 信用卡</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
                         <div style="grid-column: 1 / -1;">
                             <div class="quick-tag-wrapper" id="quick-tags-container"></div>
-                            <input type="text" id="add-project" class="input-style" style="margin-top:4px;" placeholder="施作項目 或 自行填寫">
+                            <input type="text" id="add-project" class="input-style" style="margin-top:4px;" placeholder="施作項目 或 自行填寫" oninput="checkDynamicFields()">
+                        </div>
+                    </div>
+
+                    <!-- 💡 美睫專屬動態欄位 -->
+                    <div id="lash-fields-container" style="display:none; background:var(--bg-cream); padding:10px; border-radius:12px; border:1px solid var(--accent-latte); margin-bottom:10px;">
+                        <div style="font-size:12px; font-weight:bold; color:var(--primary-color); margin-bottom:6px;">✨ 美睫施作記錄欄位</div>
+                        <div class="form-group">
+                            <input type="text" id="lash-style" class="input-style" style="background:#fff;" placeholder="款式 (例: 經典單根)">
+                            <input type="text" id="lash-curl-len" class="input-style" style="background:#fff;" placeholder="卷度與長度 (例: C 9-11)">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" id="lash-thickness" class="input-style" style="background:#fff;" placeholder="粗度 (例: 0.10)">
+                            <input type="text" id="lash-glue" class="input-style" style="background:#fff;" placeholder="膠水 (例: 速乾型)">
+                        </div>
+                        <div class="form-group" style="grid-template-columns: 1fr;">
+                            <input type="text" id="lash-note" class="input-style" style="background:#fff;" placeholder="備註/眼型說明">
+                        </div>
+                    </div>
+
+                    <!-- 💡 睫毛管理專屬動態欄位 -->
+                    <div id="lash-mgmt-fields-container" style="display:none; background:var(--bg-cream); padding:10px; border-radius:12px; border:1px solid var(--accent-latte); margin-bottom:10px;">
+                        <div style="font-size:12px; font-weight:bold; color:var(--primary-color); margin-bottom:6px;">✨ 睫毛管理記錄欄位</div>
+                        <div class="form-group">
+                            <input type="text" id="mgmt-pad" class="input-style" style="background:#fff;" placeholder="墊片 (例: S/M)">
+                            <input type="text" id="mgmt-curl-size" class="input-style" style="background:#fff;" placeholder="捲度/尺寸">
                         </div>
                     </div>
 
@@ -857,6 +891,7 @@
                         <input type="number" id="add-amount" class="input-style" style="grid-column: 1 / -1;" placeholder="本次收支金額" inputmode="numeric">
                     </div>
 
+                    <!-- 💡 儲值金欄位 (僅工作收支且收入時顯示，生活開銷絕對不出現) -->
                     <div class="form-group" id="deposit-wrapper-row">
                         <div id="deposit-wrapper" style="grid-column: 1 / -1; display: grid; grid-template-columns: 110px 1fr; gap: 8px;">
                             <select id="add-deposit-type" class="input-style" style="padding: 9px 8px; font-size: 14px;">
@@ -963,7 +998,7 @@
                 <div class="card-title" style="justify-content: center; font-size: 18px;">✨ PRICE LIST📝 ✨</div>
                 <div class="quote-subtitle">線上即時報價與金額計算（長按細項可上下拖曳排序）</div>
 
-                <!-- 1. 極致單根 (可選補睫，data-is-base="true") -->
+                <!-- 1. 極致單根 -->
                 <div class="quote-option-group" id="group-base-1" data-is-base="true">
                     <div class="quote-section-header">
                         <div class="quote-section-title">1. 極致單根</div>
@@ -977,7 +1012,7 @@
                     </div>
                 </div>
 
-                <!-- 2. 訂製睫毛膏款 (可選補睫，data-is-base="true") -->
+                <!-- 2. 訂製睫毛膏款 -->
                 <div class="quote-option-group" id="group-base-2" data-is-base="true">
                     <div class="quote-section-header">
                         <div class="quote-section-title">2. 訂製睫毛膏款</div>
@@ -989,7 +1024,7 @@
                     </div>
                 </div>
 
-                <!-- 3. 混血兒款 (可選補睫，data-is-base="true") -->
+                <!-- 3. 混血兒款 -->
                 <div class="quote-option-group" id="group-base-3" data-is-base="true">
                     <div class="quote-section-header">
                         <div class="quote-section-title">3. 混血兒款</div>
@@ -1001,7 +1036,7 @@
                     </div>
                 </div>
 
-                <!-- 4. 6D蓬鬆款 (可選補睫，data-is-base="true") -->
+                <!-- 4. 6D蓬鬆款 -->
                 <div class="quote-option-group" id="group-base-4" data-is-base="true">
                     <div class="quote-section-header">
                         <div class="quote-section-title">4. 6D蓬鬆款</div>
@@ -1013,7 +1048,7 @@
                     </div>
                 </div>
 
-                <!-- 5. 設計款 (可選補睫，data-is-base="true") -->
+                <!-- 5. 設計款 -->
                 <div class="quote-option-group" id="group-base-5" data-is-base="true">
                     <div class="quote-section-header">
                         <div class="quote-section-title">5. 設計款</div>
@@ -1026,7 +1061,7 @@
                     </div>
                 </div>
 
-                <!-- 6. 睫毛管理與其他 (不可選補睫，data-is-base="false") -->
+                <!-- 6. 睫毛管理與其他 -->
                 <div class="quote-option-group" id="group-base-6" data-is-base="false">
                     <div class="quote-section-header">
                         <div class="quote-section-title">6. 睫毛管理與其他 (不可選補睫)</div>
@@ -1041,7 +1076,7 @@
                     </div>
                 </div>
 
-                <!-- 7. 補睫專區（須先勾選上方 1~5 款式） -->
+                <!-- 7. 補睫專區 -->
                 <div class="quote-option-group">
                     <div class="quote-section-header">
                         <div class="quote-section-title">7. 補睫專區（須先勾選上方 1~5 款式）</div>
@@ -1052,7 +1087,7 @@
                     </div>
                 </div>
 
-                <!-- 8. 卸睫項目（可複選） -->
+                <!-- 8. 卸睫項目 -->
                 <div class="quote-option-group" id="group-addon-1">
                     <div class="quote-section-header">
                         <div class="quote-section-title">8. 卸睫項目（可複選）</div>
@@ -1066,7 +1101,7 @@
                     </div>
                 </div>
 
-                <!-- 9. 加購項目（可複選） -->
+                <!-- 9. 加購項目 -->
                 <div class="quote-option-group" id="group-addon-2">
                     <div class="quote-section-header">
                         <div class="quote-section-title">9. 加購項目（可複選）</div>
@@ -1257,7 +1292,7 @@
         let selectedDateStr = todayStr;
         let currentReportDetailFilter = '';
         let quoteDetailCache = { text: '', html: '' };
-        let currentRecordMode = '工作收支'; // 💡 預設為工作收支模式
+        let currentRecordMode = '工作收支';
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -1284,7 +1319,6 @@
             }
         });
 
-        // 💡 初始化 SortableJS 拖曳排序功能
         function initSortableLists() {
             document.querySelectorAll('.sortable-container').forEach(container => {
                 if (container.sortableInstance) container.sortableInstance.destroy();
@@ -1410,54 +1444,98 @@
             } else {
                 btnWork.classList.remove('active');
                 btnLife.classList.add('active');
-                typeGroup.style.display = 'none'; // 生活開銷直接固定為支出，隱藏收入/支出下拉
-                document.getElementById('add-cust-name').value = '';
-                document.getElementById('add-deposit').value = '';
-                
-                const tagsContainer = document.getElementById('quick-tags-container');
-                tagsContainer.innerHTML = `
-                    <span class="quick-tag" onclick="quickSelectProject('伙食餐飲')">＋伙食餐飲</span>
-                    <span class="quick-tag" onclick="quickSelectProject('交通車資')">＋交通車資</span>
-                    <span class="quick-tag" onclick="quickSelectProject('服飾網購')">＋服飾網購</span>
-                    <span class="quick-tag" onclick="quickSelectProject('生活雜貨')">＋生活雜貨</span>
-                    <span class="quick-tag" onclick="quickSelectProject('娛樂休閒')">＋娛樂休閒</span>
-                `;
+                typeGroup.style.display = 'grid'; // 允許生活開銷選擇收入或支出
+                typeSelect.value = '支出';
+                handleTypeChange();
             }
         }
 
         window.handleTypeChange = function() {
-            if (currentRecordMode === '生活開銷') return;
             const type = document.getElementById('add-type').value;
             const custWrapper = document.getElementById('cust-name-wrapper');
             const depositRow = document.getElementById('deposit-wrapper-row');
             const tagsContainer = document.getElementById('quick-tags-container');
             
-            if (type === '收入') {
-                custWrapper.style.display = 'block'; 
-                depositRow.style.display = 'grid'; 
-                tagsContainer.innerHTML = `
-                    <span class="quick-tag" onclick="quickSelectProject('美睫')">＋美睫</span>
-                    <span class="quick-tag" onclick="quickSelectProject('睫毛管理')">＋睫毛管理</span>
-                    <span class="quick-tag" onclick="quickSelectProject('睫毛雨衣')">＋睫毛雨衣</span>
-                    <span class="quick-tag" onclick="quickSelectProject('黑雨衣')">＋黑雨衣</span>
-                `;
+            if (currentRecordMode === '工作收支') {
+                if (type === '收入') {
+                    custWrapper.style.display = 'block'; 
+                    depositRow.style.display = 'grid'; 
+                    tagsContainer.innerHTML = `
+                        <span class="quick-tag" onclick="quickSelectProject('+美睫')">＋美睫</span>
+                        <span class="quick-tag" onclick="quickSelectProject('+睫毛管理')">＋睫毛管理</span>
+                        <span class="quick-tag" onclick="quickSelectProject('+睫毛雨衣')">＋睫毛雨衣</span>
+                        <span class="quick-tag" onclick="quickSelectProject('+黑雨衣')">＋黑雨衣</span>
+                    `;
+                } else {
+                    custWrapper.style.display = 'none'; 
+                    depositRow.style.display = 'none';
+                    document.getElementById('add-cust-name').value = ''; 
+                    document.getElementById('add-deposit').value = '';
+                    tagsContainer.innerHTML = `
+                        <span class="quick-tag" onclick="quickSelectProject('+睫毛')">+睫毛</span>
+                        <span class="quick-tag" onclick="quickSelectProject('+膠水')">+膠水</span>
+                        <span class="quick-tag" onclick="quickSelectProject('+鑷子/工具')">+鑷子/工具</span>
+                        <span class="quick-tag" onclick="quickSelectProject('+眼貼')">+眼貼</span>
+                        <span class="quick-tag" onclick="quickSelectProject('+保養品/精華')">+保養品/精華</span>
+                    `;
+                }
             } else {
-                custWrapper.style.display = 'none'; 
+                // 💡 生活開銷模式：不需要出現填寫儲值金
+                custWrapper.style.display = 'none';
                 depositRow.style.display = 'none';
-                document.getElementById('add-cust-name').value = ''; 
+                document.getElementById('add-cust-name').value = '';
                 document.getElementById('add-deposit').value = '';
-                tagsContainer.innerHTML = `
-                    <span class="quick-tag" onclick="quickSelectProject('睫毛')">睫毛</span>
-                    <span class="quick-tag" onclick="quickSelectProject('膠水')">膠水</span>
-                    <span class="quick-tag" onclick="quickSelectProject('工具/鑷子')">工具/鑷子</span>
-                    <span class="quick-tag" onclick="quickSelectProject('眼貼/棉片')">眼貼/棉片</span>
-                    <span class="quick-tag" onclick="quickSelectProject('保養品/精華')">保養品/精華</span>
-                `;
+                
+                if (type === '收入') {
+                    tagsContainer.innerHTML = `
+                        <span class="quick-tag" onclick="quickSelectProject('+薪水')">+薪水</span>
+                        <span class="quick-tag" onclick="quickSelectProject('+股息')">+股息</span>
+                        <span class="quick-tag" onclick="quickSelectProject('+獎金')">+獎金</span>
+                        <span class="quick-tag" onclick="quickSelectProject('+其他')">+其他</span>
+                    `;
+                } else {
+                    tagsContainer.innerHTML = `
+                        <span class="quick-tag" onclick="quickSelectProject('+餐飲')">+餐飲</span>
+                        <span class="quick-tag" onclick="quickSelectProject('+房貸')">+房貸</span>
+                        <span class="quick-tag" onclick="quickSelectProject('+交通')">+交通</span>
+                        <span class="quick-tag" onclick="quickSelectProject('+購物')">+購物</span>
+                        <span class="quick-tag" onclick="quickSelectProject('+居家')">+居家</span>
+                        <span class="quick-tag" onclick="quickSelectProject('+娛樂')">+娛樂</span>
+                        <span class="quick-tag" onclick="quickSelectProject('+醫療')">+醫療</span>
+                        <span class="quick-tag" onclick="quickSelectProject('+社交')">+社交</span>
+                        <span class="quick-tag" onclick="quickSelectProject('+訂閱')">+訂閱</span>
+                    `;
+                }
             }
+            checkDynamicFields();
         }
 
         window.quickSelectProject = function(projectName) {
-            document.getElementById('add-project').value = projectName;
+            document.getElementById('add-project').value = projectName.replace('+', '');
+            checkDynamicFields();
+        }
+
+        // 💡 檢查動態美睫 / 睫毛管理欄位顯示
+        window.checkDynamicFields = function() {
+            const projectVal = document.getElementById('add-project').value.trim();
+            const lashBox = document.getElementById('lash-fields-container');
+            const mgmtBox = document.getElementById('lash-mgmt-fields-container');
+
+            if (currentRecordMode === '工作收支' && document.getElementById('add-type').value === '收入') {
+                if (projectVal.includes('美睫')) {
+                    lashBox.style.display = 'block';
+                    mgmtBox.style.display = 'none';
+                } else if (projectVal.includes('睫毛管理')) {
+                    lashBox.style.display = 'none';
+                    mgmtBox.style.display = 'block';
+                } else {
+                    lashBox.style.display = 'none';
+                    mgmtBox.style.display = 'none';
+                }
+            } else {
+                lashBox.style.display = 'none';
+                mgmtBox.style.display = 'none';
+            }
         }
 
         function buildYearDropdowns() {
@@ -1522,7 +1600,6 @@
             document.getElementById('edit-modal').style.display = 'none';
         }
 
-        // 💡 修正後即時儲存與重新整理
         window.updateRecordData = function() {
             const id = document.getElementById('edit-id').value;
             const recIndex = records.findIndex(r => r.id === id);
@@ -1549,13 +1626,13 @@
             }
 
             closeEditModal();
-            saveLocalFallback(); // 立即寫入本地
+            saveLocalFallback();
             initCalendar(); 
             renderDayRecords(); 
             renderReports(); 
             renderCustomerPage();
             renderAllRecords();
-            saveCloudData(); // 非同步同步雲端
+            saveCloudData();
             alert('修改紀錄成功！');
         }
 
@@ -1625,7 +1702,7 @@
         }
 
         window.addRecord = function() {
-            const type = currentRecordMode === '生活開銷' ? '支出' : document.getElementById('add-type').value;
+            const type = document.getElementById('add-type').value;
             const custName = (currentRecordMode === '工作收支' && type === '收入') ? document.getElementById('add-cust-name').value.trim() : '';
             const depositType = (currentRecordMode === '工作收支' && type === '收入') ? document.getElementById('add-deposit-type').value : '儲值金';
             const depositInput = (currentRecordMode === '工作收支' && type === '收入') ? document.getElementById('add-deposit').value.trim() : '';
@@ -1638,6 +1715,23 @@
             
             if (amountInput === '' || isNaN(amount) || amount < 0) return alert('請輸入有效的金額數字');
 
+            // 抓取美睫或睫毛管理詳細欄位
+            let lashDetails = {};
+            if (project.includes('美睫')) {
+                lashDetails = {
+                    style: document.getElementById('lash-style').value.trim(),
+                    curlLen: document.getElementById('lash-curl-len').value.trim(),
+                    thickness: document.getElementById('lash-thickness').value.trim(),
+                    glue: document.getElementById('lash-glue').value.trim(),
+                    lashNote: document.getElementById('lash-note').value.trim()
+                };
+            } else if (project.includes('睫毛管理')) {
+                lashDetails = {
+                    pad: document.getElementById('mgmt-pad').value.trim(),
+                    curlSize: document.getElementById('mgmt-curl-size').value.trim()
+                };
+            }
+
             records.push({
                 id: 'id_' + Date.now() + Math.random().toString(36).substr(2, 4),
                 date: selectedDateStr, 
@@ -1648,7 +1742,8 @@
                 amount: amount,
                 depositType: depositType, 
                 deposit: depositInput !== '' ? parseInt(depositInput) : '', 
-                note: note
+                note: note,
+                lashDetails: lashDetails
             });
 
             if (type === '收入' && custName && !customerCRM[custName]) {
@@ -1660,6 +1755,14 @@
             document.getElementById('add-amount').value = ''; 
             document.getElementById('add-deposit').value = ''; 
             document.getElementById('add-note').value = '';
+            document.getElementById('lash-style').value = '';
+            document.getElementById('lash-curl-len').value = '';
+            document.getElementById('lash-thickness').value = '';
+            document.getElementById('lash-glue').value = '';
+            document.getElementById('lash-note').value = '';
+            document.getElementById('mgmt-pad').value = '';
+            document.getElementById('mgmt-curl-size').value = '';
+            checkDynamicFields();
             
             saveLocalFallback();
             initCalendar(); 
@@ -1668,9 +1771,9 @@
             renderCustomerPage();
             renderAllRecords();
             saveCloudData();
+            alert('新增紀錄成功！');
         }
 
-        // 💡 修正刪除後立即重新整理畫面
         window.deleteRecord = async function(id, pageSource, event) {
             if(event) event.stopPropagation();
             if(confirm('❌ 確定要刪除這筆紀錄嗎？')) {
