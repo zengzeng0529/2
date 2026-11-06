@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MUMU POCKET | 美睫記帳、報價與進階帳本CRM系統</title>
+    <title>MUMU POCKET | 美睫記帳、報價與進階財務CRM系統</title>
     <!-- 引入 SortableJS 支援長按拖曳排序 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
@@ -279,7 +279,7 @@
             z-index: 3;
         }
 
-        /* 💡 工作收支 vs 生活開銷 雙快捷切換按鈕樣式 */
+        /* 💡 模式切換按鈕樣式 */
         .mode-switch-bar {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -417,7 +417,7 @@
             background-color: var(--main-butter); padding: 2px 8px; border-radius: 6px; display: inline-block;
         }
 
-        /* ==================== 頁面 3: 帳本 ==================== */
+        /* ==================== 頁面 3: 財務報表 ==================== */
         .report-filter-bar {
             display: flex;
             gap: 10px;
@@ -434,39 +434,25 @@
             outline: none;
             font-weight: 600;
         }
-        .report-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        
-        .summary-mini-card {
-            background-color: var(--pure-white); padding: 15px; border-radius: 16px; text-align: center;
-            border: 1px solid rgba(227, 213, 202, 0.4); cursor: pointer; transition: all 0.2s;
-            box-shadow: 0 2px 8px var(--shadow-soft);
+        .account-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 12px;
         }
-        .summary-mini-card:active { transform: scale(0.97); }
-        .summary-mini-card.active-filter {
-            background-color: var(--main-butter);
-            border-color: var(--text-muted);
+        .account-card {
+            background: var(--bg-cream);
+            border: 1px solid var(--accent-latte);
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s;
         }
-        .summary-mini-card p { font-size: 12px; color: var(--text-muted); margin-bottom: 5px; }
-        .summary-mini-card h3 { font-size: 18px; font-weight: 700; }
-        
-        .stat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 14px; }
-        .progress-bar-bg { background-color: var(--main-butter); height: 6px; border-radius: 3px; width: 100%; margin-top: 4px; overflow: hidden; }
-        .progress-bar-fill { height: 100%; background-color: var(--text-muted); width: 0%; transition: width 0.5s ease; }
-
-        .report-detail-title {
-            font-size: 14px; font-weight: bold; color: var(--text-dark); margin-bottom: 12px;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        
-        .report-summary-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 4px;
-            border-bottom: 1px dashed rgba(227, 213, 202, 0.3);
-            font-size: 14px;
-        }
-        .report-summary-item:last-child { border-bottom: none; }
+        .account-card:hover { background: var(--main-butter); }
+        .account-card p { font-size: 11px; color: var(--text-muted); margin-bottom: 3px; }
+        .account-card h4 { font-size: 15px; font-weight: 700; color: var(--text-dark); }
+        .stat-row { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 14px; }
 
         /* ==================== 彈出式視窗 (Modal) ==================== */
         .modal-overlay {
@@ -523,6 +509,10 @@
             background-color: var(--text-dark);
             color: var(--pure-white);
         }
+        .btn-modal.danger {
+            background-color: var(--delete-red);
+            color: var(--pure-white);
+        }
 
         /* ==================== 頁面 4: 客戶資料 ==================== */
         .birthday-banner {
@@ -556,7 +546,7 @@
         .customer-total-spent { font-size: 12px; color: var(--income-green); font-weight: 600; }
         
         .customer-note-highlight {
-            font-size: 13px;
+            font-size: 12px;
             color: var(--highlight-orange) !important;
             font-weight: bold !important;
             background-color: #FFF5F2;
@@ -575,196 +565,66 @@
             display: none;
         }
         .customer-card.open .customer-expanded-zone { display: block; }
-        .edit-crm-group {
-            background-color: var(--pure-white); padding: 10px; border-radius: 12px;
-            border: 1px solid var(--accent-latte); margin-bottom: 8px;
+
+        .tag-badge {
+            font-size: 10px; padding: 2px 6px; border-radius: 6px; font-weight: bold; display: inline-block; margin-left: 6px;
         }
-        .edit-crm-title { font-size: 11px; font-weight: bold; color: var(--text-muted); margin-bottom: 6px; }
-        
-        .crm-action-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 8px;
-            gap: 6px;
-        }
-        .btn-mini-save {
-            background-color: var(--text-dark); color: var(--pure-white); border: none;
-            border-radius: 8px; padding: 6px 12px; font-size: 11px; font-weight: 600; cursor: pointer;
-        }
-        .btn-mini-delete {
-            background-color: #FCE8E6; color: var(--delete-red); border: 1px solid rgba(224, 122, 95, 0.4);
-            border-radius: 8px; padding: 5px 10px; font-size: 11px; font-weight: 500; cursor: pointer;
-        }
-        .btn-mini-blacklist {
-            background-color: #333333; color: #FFFFFF; border: none;
-            border-radius: 8px; padding: 5px 10px; font-size: 11px; font-weight: 500; cursor: pointer;
-        }
+        .tag-vip { background: #FEF3C7; color: #D97706; }
+        .tag-regular { background: #E0E7FF; color: #4338CA; }
+        .tag-new { background: #D1FAE5; color: #065F46; }
+        .tag-inactive { background: #F3F4F6; color: #4B5563; }
         .no-data { text-align: center; color: var(--text-muted); font-size: 14px; padding: 20px 0; }
 
         /* ==================== 頁面 5: 互動式報價單樣式 ==================== */
         .quote-subtitle {
-            text-align: center;
-            font-size: 13px;
-            color: var(--text-muted);
-            margin-bottom: 20px;
+            text-align: center; font-size: 13px; color: var(--text-muted); margin-bottom: 20px;
         }
         .quote-section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
         }
         .quote-section-title {
-            font-size: 15px;
-            font-weight: bold;
-            border-left: 4px solid var(--primary-color);
-            padding-left: 8px;
-            color: var(--text-dark);
+            font-size: 15px; font-weight: bold; border-left: 4px solid var(--primary-color); padding-left: 8px; color: var(--text-dark);
         }
         .btn-add-item {
-            background: var(--main-butter);
-            border: 1px solid var(--accent-latte);
-            color: var(--text-dark);
-            font-size: 11px;
-            font-weight: 600;
-            padding: 3px 8px;
-            border-radius: 6px;
-            cursor: pointer;
+            background: var(--main-butter); border: 1px solid var(--accent-latte); color: var(--text-dark);
+            font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; cursor: pointer;
         }
-        .quote-option-group {
-            margin-bottom: 20px;
-        }
+        .quote-option-group { margin-bottom: 20px; }
         .quote-option-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 12px;
-            border: 1px solid var(--accent-latte);
-            border-radius: 12px;
-            margin-bottom: 8px;
-            cursor: grab;
-            transition: all 0.2s ease;
-            background-color: var(--pure-white);
-            touch-action: pan-y;
+            display: flex; justify-content: space-between; align-items: center; padding: 10px 12px;
+            border: 1px solid var(--accent-latte); border-radius: 12px; margin-bottom: 8px; cursor: grab;
+            transition: all 0.2s ease; background-color: var(--pure-white); touch-action: pan-y;
         }
-        .quote-option-item:active {
-            cursor: grabbing;
-        }
-        .sortable-ghost {
-            opacity: 0.4;
-            background-color: var(--main-butter);
-        }
+        .quote-option-item:active { cursor: grabbing; }
+        .sortable-ghost { opacity: 0.4; background-color: var(--main-butter); }
         .quote-option-item input[type="radio"], .quote-option-item input[type="checkbox"] {
-            accent-color: var(--primary-color);
-            transform: scale(1.2);
-            margin-right: 8px;
+            accent-color: var(--primary-color); transform: scale(1.2); margin-right: 8px;
         }
-        .quote-item-name-text {
-            font-size: 13px;
-            flex-grow: 1;
-            margin-right: 6px;
-            color: var(--text-dark);
-        }
-        .quote-item-price-text {
-            font-size: 13px;
-            font-weight: bold;
-            color: var(--price-accent);
-            margin-right: 8px;
-        }
-        .btn-remove-item {
-            background: none;
-            border: none;
-            color: var(--delete-red);
-            font-size: 14px;
-            cursor: pointer;
-            margin-left: 6px;
-            padding: 2px 4px;
-        }
+        .quote-item-name-text { font-size: 13px; flex-grow: 1; margin-right: 6px; color: var(--text-dark); }
+        .quote-item-price-text { font-size: 13px; font-weight: bold; color: var(--price-accent); margin-right: 8px; }
+        .btn-remove-item { background: none; border: none; color: var(--delete-red); font-size: 14px; cursor: pointer; margin-left: 6px; padding: 2px 4px; }
         .quote-total-section {
-            background-color: var(--main-butter);
-            padding: 20px;
-            border-radius: 16px;
-            text-align: center;
-            margin-top: 25px;
-            border: 1px solid var(--accent-latte);
+            background-color: var(--main-butter); padding: 20px; border-radius: 16px; text-align: center; margin-top: 25px; border: 1px solid var(--accent-latte);
         }
-        .quote-total-price {
-            font-size: 26px;
-            font-weight: bold;
-            color: var(--price-accent);
-            margin-top: 5px;
-        }
-        .quote-sub-calc {
-            font-size: 13px;
-            color: var(--text-muted);
-            margin-top: 8px;
-        }
-        .quote-input-row {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        .quote-input-box {
-            flex: 1;
-            text-align: left;
-        }
-        .quote-input-box label {
-            font-size: 12px;
-            color: var(--text-muted);
-            display: block;
-            margin-bottom: 4px;
-        }
-        .quote-action-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 8px;
-            margin-top: 15px;
-        }
+        .quote-total-price { font-size: 26px; font-weight: bold; color: var(--price-accent); margin-top: 5px; }
+        .quote-sub-calc { font-size: 13px; color: var(--text-muted); margin-top: 8px; }
+        .quote-input-row { display: flex; gap: 10px; margin-top: 15px; }
+        .quote-input-box { flex: 1; text-align: left; }
+        .quote-input-box label { font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px; }
+        .quote-action-buttons { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 15px; }
         .btn-quote-action {
-            background-color: var(--pure-white);
-            color: var(--text-dark);
-            border: 1px solid var(--accent-latte);
-            padding: 10px 4px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: center;
+            background-color: var(--pure-white); color: var(--text-dark); border: 1px solid var(--accent-latte);
+            padding: 10px 4px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center;
         }
         .btn-quote-action:hover { background-color: var(--main-butter); }
         .btn-quote-booking {
-            display: block;
-            width: 100%;
-            background-color: var(--text-dark);
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 12px;
-            transition: background 0.2s;
-            text-align: center;
-            text-decoration: none;
-            box-sizing: border-box;
+            display: block; width: 100%; background-color: var(--text-dark); color: white; border: none;
+            padding: 14px; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 12px;
+            text-align: center; text-decoration: none; box-sizing: border-box;
         }
-        .btn-quote-booking:hover { opacity: 0.9; }
-
         .detail-modal-body {
-            font-size: 13px;
-            line-height: 1.6;
-            color: var(--text-dark);
-            max-height: 320px;
-            overflow-y: auto;
-            background: var(--bg-cream);
-            padding: 12px;
-            border-radius: 12px;
-            border: 1px solid var(--accent-latte);
-            margin-bottom: 12px;
-            text-align: left;
+            font-size: 13px; line-height: 1.6; color: var(--text-dark); max-height: 320px; overflow-y: auto;
+            background: var(--bg-cream); padding: 12px; border-radius: 12px; border: 1px solid var(--accent-latte); margin-bottom: 12px; text-align: left;
         }
     </style>
 </head>
@@ -789,7 +649,7 @@
         <nav class="top-toolbar">
             <button class="nav-btn active" onclick="switchPage('calendar-page', this)">1. 月曆</button>
             <button class="nav-btn" onclick="switchPage('all-records-page', this)">2. 總紀錄</button>
-            <button class="nav-btn" onclick="switchPage('reports-page', this)">3. 帳本</button>
+            <button class="nav-btn" onclick="switchPage('reports-page', this)">3. 財務報表</button>
             <button class="nav-btn" onclick="switchPage('customers-page', this)">4. 客戶資料</button>
             <button class="nav-btn" onclick="switchPage('quote-page', this)">5. 報價</button>
         </nav>
@@ -825,14 +685,9 @@
                 <div class="card-title"><span id="selected-date-label">收支紀錄</span></div>
                 <div style="margin-bottom: 18px; padding-bottom: 15px; border-bottom: 1px solid rgba(227, 213, 202, 0.4);">
                     
-                    <!-- 💡 雙快捷切換按鈕 (工作收支 vs 生活開銷) -->
                     <div class="mode-switch-bar">
-                        <button type="button" id="mode-btn-work" class="mode-btn active" onclick="switchRecordMode('工作收支')">
-                            💼 工作收支
-                        </button>
-                        <button type="button" id="mode-btn-life" class="mode-btn" onclick="switchRecordMode('生活開銷')">
-                            🏠 生活開銷
-                        </button>
+                        <button type="button" id="mode-btn-work" class="mode-btn active" onclick="switchRecordMode('工作收支')">💼 工作收支</button>
+                        <button type="button" id="mode-btn-life" class="mode-btn" onclick="switchRecordMode('生活開銷')">🏠 生活開銷</button>
                     </div>
 
                     <div class="form-group" id="type-select-group">
@@ -891,7 +746,7 @@
                         <input type="number" id="add-amount" class="input-style" style="grid-column: 1 / -1;" placeholder="本次收支金額" inputmode="numeric">
                     </div>
 
-                    <!-- 💡 儲值金欄位 (僅工作收支且收入時顯示，生活開銷絕對不出現) -->
+                    <!-- 💡 工作收支專屬儲值金欄位 (生活開銷不出現) -->
                     <div class="form-group" id="deposit-wrapper-row">
                         <div id="deposit-wrapper" style="grid-column: 1 / -1; display: grid; grid-template-columns: 110px 1fr; gap: 8px;">
                             <select id="add-deposit-type" class="input-style" style="padding: 9px 8px; font-size: 14px;">
@@ -923,6 +778,7 @@
             </div>
         </main>
 
+        <!-- 🌟 財務報表分頁 (分上下兩大點：上方工作開銷、下方生活開銷 + 最底下匯出) -->
         <main id="reports-page" class="page">
             <div class="report-filter-bar">
                 <select id="report-year-select" class="select-report" onchange="renderReports()"></select>
@@ -931,42 +787,37 @@
                     <option value="0">1 月</option><option value="1">2 月</option><option value="2">3 月</option>
                     <option value="3">4 月</option><option value="4">5 月</option><option value="5">6 月</option>
                     <option value="6">7 月</option><option value="7">8 月</option><option value="8">9 月</option>
-                    <option value="9">10 月</option><option value="10">11 月</option><option value="12">12 月</option>
+                    <option value="9">10 月</option><option value="10">11 月</option><option value="11">12 月</option>
                 </select>
             </div>
 
-            <div class="report-summary">
-                <div id="card-inc-trigger" class="summary-mini-card" onclick="toggleReportDetailFilter('收入')">
-                    <p>工作收入 (點擊看項目統計)</p>
-                    <h3 id="rep-total-income" style="color: var(--income-green);">$0</h3>
+            <!-- 上方：工作開銷 -->
+            <div class="card-box" style="padding: 14px; margin-bottom: 15px;">
+                <div class="card-title" style="margin-bottom: 10px; font-size: 15px; border-left: 4px solid var(--primary-color); padding-left: 8px;">💼 工作開銷</div>
+                <div class="account-grid">
+                    <div class="account-card" onclick="openAccountDetailModal('工作開銷', '現金')"><p>💵 現金</p><h4 id="work-acc-cash">$0</h4></div>
+                    <div class="account-card" onclick="openAccountDetailModal('工作開銷', '轉帳')"><p>🏦 轉帳/銀行</p><h4 id="work-acc-bank">$0</h4></div>
+                    <div class="account-card" onclick="openAccountDetailModal('工作開銷', 'LINE Pay')"><p>💚 LINE Pay</p><h4 id="work-acc-linepay">$0</h4></div>
+                    <div class="account-card" onclick="openAccountDetailModal('工作開銷', '信用卡')"><p>💳 信用卡</p><h4 id="work-acc-card">$0</h4></div>
                 </div>
-                <div id="card-exp-trigger" class="summary-mini-card" onclick="toggleReportDetailFilter('支出')">
-                    <p>工作支出 (點擊看項目統計)</p>
-                    <h3 id="rep-total-expense" style="color: var(--expense-red);">$0</h3>
-                </div>
-            </div>
-            
-            <div class="card-box" id="report-detail-box-container" style="display:none; margin-bottom:18px;">
-                <div class="report-detail-title">
-                    <span id="report-detail-type-label">項目統計統整</span>
-                    <span style="font-size:11px; color:var(--text-muted); font-weight:normal; cursor:pointer;" onclick="closeReportDetail()">關閉 ✕</span>
-                </div>
-                <div id="report-detail-list-wrapper" class="scroll-container" style="max-height:280px;"></div>
+                <div class="stat-row" style="margin-top: 10px;"><span>工作營運淨利:</span><strong id="rep-work-net" style="font-size: 15px;">$0</strong></div>
             </div>
 
-            <div class="card-box">
-                <div class="card-title">
-                    <span>帳本效益分析</span>
-                    <span id="report-scope-label" style="font-size:13px; color:var(--text-muted);"></span>
+            <!-- 下方：生活開銷 -->
+            <div class="card-box" style="padding: 14px; margin-bottom: 15px;">
+                <div class="card-title" style="margin-bottom: 10px; font-size: 15px; border-left: 4px solid var(--text-muted); padding-left: 8px;">🏠 生活開銷</div>
+                <div class="account-grid">
+                    <div class="account-card" onclick="openAccountDetailModal('生活開銷', '現金')"><p>💵 現金</p><h4 id="life-acc-cash">$0</h4></div>
+                    <div class="account-card" onclick="openAccountDetailModal('生活開銷', '轉帳')"><p>🏦 轉帳/銀行</p><h4 id="life-acc-bank">$0</h4></div>
+                    <div class="account-card" onclick="openAccountDetailModal('生活開銷', 'LINE Pay')"><p>💚 LINE Pay</p><h4 id="life-acc-linepay">$0</h4></div>
+                    <div class="account-card" onclick="openAccountDetailModal('生活開銷', '信用卡')"><p>💳 信用卡</p><h4 id="life-acc-card">$0</h4></div>
                 </div>
-                <div class="stat-row" style="margin-bottom: 20px;">
-                    <span style="font-weight: bold;">營運淨利:</span>
-                    <span id="rep-net-profit" style="font-size: 18px; font-weight: bold;">$0</span>
-                </div>
-                <div>
-                    <p style="font-size: 14px; font-weight: 600; margin-bottom: 10px;">施作項目排行 (收入分析)</p>
-                    <div id="income-ranking-container"></div>
-                </div>
+                <div class="stat-row" style="margin-top: 10px;"><span>生活收支結餘:</span><strong id="rep-life-net" style="font-size: 15px;">$0</strong></div>
+            </div>
+            
+            <!-- 最底下：匯出報表 (年底報稅單獨匯出工作資料) -->
+            <div class="card-box" style="text-align: center;">
+                <button class="btn-submit" onclick="exportTaxWorkReport()">📥 年底報稅工作資料單獨匯出</button>
             </div>
         </main>
 
@@ -1143,7 +994,7 @@
         </main>
     </div>
 
-    <!-- 🌟 新增項目彈出輸入視窗 -->
+    <!-- 🌟 新增項目彈出視窗 -->
     <div id="add-quote-item-modal" class="modal-overlay" onclick="closeAddQuoteItemModal(event)">
         <div class="modal-box" onclick="event.stopPropagation()">
             <div class="modal-header">
@@ -1153,7 +1004,7 @@
             <input type="hidden" id="target-quote-group-id">
             <input type="hidden" id="target-quote-item-type">
             <div style="margin-bottom: 12px;">
-                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">項目名稱 (例如: 90根、輕透款)</label>
+                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">項目名稱</label>
                 <input type="text" id="new-q-name" class="input-style" style="background:#fff;" placeholder="請輸入項目名稱">
             </div>
             <div style="margin-bottom: 12px;">
@@ -1199,6 +1050,15 @@
             <div style="margin-bottom: 12px;">
                 <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">生日 (4碼數字，例如 0529)</label>
                 <input type="number" id="new-cust-birth" class="input-style" style="background:#fff;" placeholder="MMDD">
+            </div>
+            <div style="margin-bottom: 12px;">
+                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">標籤</label>
+                <select id="new-cust-tag" class="input-style" style="background:#fff;">
+                    <option value="新客">新客</option>
+                    <option value="熟客">熟客</option>
+                    <option value="VIP">VIP</option>
+                    <option value="久未回訪">久未回訪</option>
+                </select>
             </div>
             <div style="margin-bottom: 12px;">
                 <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">備註說明</label>
@@ -1263,6 +1123,34 @@
         </div>
     </div>
 
+    <!-- 🌟 美睫施作詳細記錄表 Modal -->
+    <div id="record-detail-modal" class="modal-overlay" onclick="closeRecordDetailModal(event)">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span>📋 美睫施作詳細紀錄表</span>
+                <span style="cursor:pointer; font-weight:normal; font-size:14px;" onclick="closeRecordDetailModal()">✕</span>
+            </div>
+            <div id="record-detail-content" class="detail-modal-body"></div>
+            <div class="modal-footer">
+                <button class="btn-modal save" onclick="closeRecordDetailModal()">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🌟 帳戶詳細明細 Modal -->
+    <div id="account-detail-modal" class="modal-overlay" onclick="closeAccModal(event)">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span id="acc-modal-title">帳戶明細</span>
+                <span style="cursor:pointer; font-weight:normal; font-size:14px;" onclick="closeAccModal()">✕</span>
+            </div>
+            <div id="acc-detail-content" class="detail-modal-body"></div>
+            <div class="modal-footer">
+                <button class="btn-modal save" onclick="closeAccModal()">關閉</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -1290,8 +1178,6 @@
         let currentDate = new Date();
         const todayStr = formatDateString(new Date());
         let selectedDateStr = todayStr;
-        let currentReportDetailFilter = '';
-        let quoteDetailCache = { text: '', html: '' };
         let currentRecordMode = '工作收支';
 
         onAuthStateChanged(auth, async (user) => {
@@ -1444,7 +1330,7 @@
             } else {
                 btnWork.classList.remove('active');
                 btnLife.classList.add('active');
-                typeGroup.style.display = 'grid'; // 允許生活開銷選擇收入或支出
+                typeGroup.style.display = 'grid';
                 typeSelect.value = '支出';
                 handleTypeChange();
             }
@@ -1465,6 +1351,7 @@
                         <span class="quick-tag" onclick="quickSelectProject('+睫毛管理')">＋睫毛管理</span>
                         <span class="quick-tag" onclick="quickSelectProject('+睫毛雨衣')">＋睫毛雨衣</span>
                         <span class="quick-tag" onclick="quickSelectProject('+黑雨衣')">＋黑雨衣</span>
+                        <span class="quick-tag" onclick="quickSelectProject('+其他')">＋其他</span>
                     `;
                 } else {
                     custWrapper.style.display = 'none'; 
@@ -1477,6 +1364,7 @@
                         <span class="quick-tag" onclick="quickSelectProject('+鑷子/工具')">+鑷子/工具</span>
                         <span class="quick-tag" onclick="quickSelectProject('+眼貼')">+眼貼</span>
                         <span class="quick-tag" onclick="quickSelectProject('+保養品/精華')">+保養品/精華</span>
+                        <span class="quick-tag" onclick="quickSelectProject('+其他耗材')">+其他耗材</span>
                     `;
                 }
             } else {
@@ -1515,7 +1403,6 @@
             checkDynamicFields();
         }
 
-        // 💡 檢查動態美睫 / 睫毛管理欄位顯示
         window.checkDynamicFields = function() {
             const projectVal = document.getElementById('add-project').value.trim();
             const lashBox = document.getElementById('lash-fields-container');
@@ -1568,7 +1455,7 @@
             document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             if (pageId === 'all-records-page') renderAllRecords();
-            if (pageId === 'reports-page') { closeReportDetail(); renderReports(); }
+            if (pageId === 'reports-page') renderReports();
             if (pageId === 'calendar-page') { initCalendar(); renderDayRecords(); }
             if (pageId === 'customers-page') renderCustomerPage();
             if (pageId === 'quote-page') { initSortableLists(); calculateQuoteTotal(); }
@@ -1622,7 +1509,7 @@
                 records[recIndex].custName = custName;
                 records[recIndex].depositType = depositType;
                 records[recIndex].deposit = depositInput !== '' ? parseInt(depositInput) : '';
-                if (custName && !customerCRM[custName]) customerCRM[custName] = { phone: '', birthday: '', note: '' };
+                if (custName && !customerCRM[custName]) customerCRM[custName] = { phone: '', birthday: '', tag: '新客', note: '' };
             }
 
             closeEditModal();
@@ -1692,9 +1579,9 @@
                         <div><span class="type-tag ${typeClass}">${rec.mode || rec.type}</span><span style="font-weight:600;">${escapeHtml(displayName)}</span></div>
                         <div><span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span><button class="btn-delete" onclick="deleteRecord('${rec.id}', 'day', event)">🗑️</button></div>
                     </div>
-                    <div class="rec-mid">項目: ${escapeHtml(rec.project)}</div>
+                    <div class="rec-mid">項目: ${escapeHtml(rec.project)} | 支付方式: ${rec.paymentMethod || '現金'}</div>
                     <div class="rec-bot">
-                        ${isInc ? `<span>${rec.depositType || '儲值金'}餘額: ${formatDepositDisplay(rec.deposit, rec.depositType)}</span>` : ''}
+                        ${isInc && rec.deposit !== undefined && rec.deposit !== '' ? `<span>${rec.depositType || '儲值金'}餘額: ${formatDepositDisplay(rec.deposit, rec.depositType)}</span>` : ''}
                         ${rec.note ? `<span style="margin-left:10px;">📝 ${escapeHtml(rec.note)}</span>` : ''}
                     </div>`;
                 listContainer.appendChild(li);
@@ -1704,6 +1591,7 @@
         window.addRecord = function() {
             const type = document.getElementById('add-type').value;
             const custName = (currentRecordMode === '工作收支' && type === '收入') ? document.getElementById('add-cust-name').value.trim() : '';
+            const paymentMethod = document.getElementById('add-payment').value;
             const depositType = (currentRecordMode === '工作收支' && type === '收入') ? document.getElementById('add-deposit-type').value : '儲值金';
             const depositInput = (currentRecordMode === '工作收支' && type === '收入') ? document.getElementById('add-deposit').value.trim() : '';
             
@@ -1715,7 +1603,6 @@
             
             if (amountInput === '' || isNaN(amount) || amount < 0) return alert('請輸入有效的金額數字');
 
-            // 抓取美睫或睫毛管理詳細欄位
             let lashDetails = {};
             if (project.includes('美睫')) {
                 lashDetails = {
@@ -1738,6 +1625,7 @@
                 type: type, 
                 mode: currentRecordMode,
                 custName: custName, 
+                paymentMethod: paymentMethod,
                 project: project, 
                 amount: amount,
                 depositType: depositType, 
@@ -1747,7 +1635,7 @@
             });
 
             if (type === '收入' && custName && !customerCRM[custName]) {
-                customerCRM[custName] = { phone: '', birthday: '', note: '' };
+                customerCRM[custName] = { phone: '', birthday: '', tag: '新客', note: '' };
             }
             
             document.getElementById('add-cust-name').value = ''; 
@@ -1808,64 +1696,92 @@
                         <div><span class="type-tag ${typeClass}">${rec.mode || rec.type}</span><span style="font-weight:600;">${escapeHtml(isInc ? rec.custName : (rec.mode === '生活開銷' ? '生活開銷' : '店鋪'))}</span></div>
                         <div><span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span><button class="btn-delete" onclick="deleteRecord('${rec.id}', 'all', event)">🗑️</button></div>
                     </div>
-                    <div class="rec-mid">項目: ${escapeHtml(rec.project)}</div>`;
+                    <div class="rec-mid">項目: ${escapeHtml(rec.project)} | 支付: ${rec.paymentMethod || '現金'}</div>`;
                 currentGroupDiv.appendChild(item);
             });
         }
 
+        // 🌟 財務報表 (上下半部設計 + 最下方工作資料匯出)
         window.renderReports = function() {
             const yearSel = document.getElementById('report-year-select'); const monthSel = document.getElementById('report-month-select');
             if(!yearSel || !monthSel) return;
             const selectedYear = parseInt(yearSel.value); const selectedMonthVal = monthSel.value;
-            const scopeLabel = document.getElementById('report-scope-label');
-            if(scopeLabel) scopeLabel.innerText = selectedMonthVal === 'all' ? `${selectedYear} 全年度總覽` : `${selectedYear} 年 ${parseInt(selectedMonthVal) + 1} 月 統計`;
-            const filtered = records.filter(r => { let d = new Date(r.date); return d.getFullYear() === selectedYear && (selectedMonthVal === 'all' || d.getMonth() === parseInt(selectedMonthVal)); });
-            let inc = 0, exp = 0, rank = {};
-            filtered.forEach(r => { if (r.type === '收入') { inc += r.amount; rank[r.project] = (rank[r.project] || 0) + r.amount; } else { exp += r.amount; } });
-            document.getElementById('rep-total-income').innerText = `$${inc.toLocaleString()}`;
-            document.getElementById('rep-total-expense').innerText = `$${exp.toLocaleString()}`;
-            let net = inc - exp; let netEl = document.getElementById('rep-net-profit');
-            if(netEl) { netEl.innerText = `$${net.toLocaleString()}`; netEl.style.color = net >= 0 ? 'var(--income-green)' : 'var(--expense-red)'; }
             
-            let rankingContainer = document.getElementById('income-ranking-container');
-            if(rankingContainer) {
-                rankingContainer.innerHTML = '';
-                let sorted = Object.keys(rank).map(k => ({project: k, amount: rank[k]})).sort((a,b) => b.amount - a.amount);
-                if(!sorted.length) { rankingContainer.innerHTML = '<p class="no-data">此區間尚無收入</p>'; }
-                else {
-                    let max = sorted[0].amount;
-                    sorted.forEach((item, index) => {
-                        let row = document.createElement('div'); row.style.marginBottom = '12px';
-                        row.innerHTML = `<div style="display:flex; justify-content:space-between; font-size:13px;"><span>${index + 1}. ${escapeHtml(item.project)}</span><strong>$${item.amount.toLocaleString()}</strong></div>
-                                         <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${(item.amount/max)*100}%"></div></div>`;
-                        rankingContainer.appendChild(row);
-                    });
+            let workAcc = { '現金': 0, '轉帳': 0, 'LINE Pay': 0, '信用卡': 0 };
+            let lifeAcc = { '現金': 0, '轉帳': 0, 'LINE Pay': 0, '信用卡': 0 };
+            let wInc = 0, wExp = 0;
+            let lInc = 0, lExp = 0;
+
+            records.forEach(r => {
+                let d = new Date(r.date);
+                if (d.getFullYear() === selectedYear && (selectedMonthVal === 'all' || d.getMonth() === parseInt(selectedMonthVal))) {
+                    let pay = r.paymentMethod || '現金';
+                    let amt = r.type === '收入' ? r.amount : -r.amount;
+                    if ((r.mode || '工作收支') === '工作收支') {
+                        if (workAcc[pay] !== undefined) workAcc[pay] += amt;
+                        if (r.type === '收入') wInc += r.amount; else wExp += r.amount;
+                    } else {
+                        if (lifeAcc[pay] !== undefined) lifeAcc[pay] += amt;
+                        if (r.type === '收入') lInc += r.amount; else lExp += r.amount;
+                    }
                 }
-            }
-            if (currentReportDetailFilter) renderReportDetailList(filtered, currentReportDetailFilter);
-        }
-
-        window.toggleReportDetailFilter = function(type) {
-            if (currentReportDetailFilter === type) { closeReportDetail(); return; }
-            currentReportDetailFilter = type; document.getElementById('report-detail-box-container').style.display = 'block';
-            document.getElementById('report-detail-type-label').innerText = `📊 區間【${type}】項目合計統整`;
-            renderReports();
-        }
-
-        window.closeReportDetail = function() {
-            currentReportDetailFilter = ''; let el = document.getElementById('report-detail-box-container'); if(el) el.style.display = 'none';
-        }
-
-        function renderReportDetailList(scopedRecords, type) {
-            const listWrapper = document.getElementById('report-detail-list-wrapper'); if(!listWrapper) return; listWrapper.innerHTML = '';
-            const targets = scopedRecords.filter(r => r.type === type);
-            if (!targets.length) { listWrapper.innerHTML = '<div class="no-data">無數據</div>'; return; }
-            let sum = {}; targets.forEach(r => { let p = r.project.trim() || '未命名'; sum[p] = (sum[p] || 0) + r.amount; });
-            Object.keys(sum).sort((a,b) => sum[b] - sum[a]).forEach(k => {
-                let row = document.createElement('div'); row.classList.add('report-summary-item');
-                row.innerHTML = `<span>${escapeHtml(k)}</span><span style="color:${type==='收入'?'var(--income-green)':'var(--delete-red)'}">${type==='收入'?'+':'-'}$${sum[k].toLocaleString()}</span>`;
-                listWrapper.appendChild(row);
             });
+
+            // 上方：工作開銷帳戶餘額
+            document.getElementById('work-acc-cash').innerText = `$${workAcc['現金'].toLocaleString()}`;
+            document.getElementById('work-acc-bank').innerText = `$${workAcc['轉帳'].toLocaleString()}`;
+            document.getElementById('work-acc-linepay').innerText = `$${workAcc['LINE Pay'].toLocaleString()}`;
+            document.getElementById('work-acc-card').innerText = `$${workAcc['信用卡'].toLocaleString()}`;
+
+            let workNet = wInc - wExp;
+            let workNetEl = document.getElementById('rep-work-net');
+            workNetEl.innerText = `$${workNet.toLocaleString()}`;
+            workNetEl.style.color = workNet >= 0 ? 'var(--income-green)' : 'var(--expense-red)';
+
+            // 下方：生活開銷帳戶餘額
+            document.getElementById('life-acc-cash').innerText = `$${lifeAcc['現金'].toLocaleString()}`;
+            document.getElementById('life-acc-bank').innerText = `$${lifeAcc['轉帳'].toLocaleString()}`;
+            document.getElementById('life-acc-linepay').innerText = `$${lifeAcc['LINE Pay'].toLocaleString()}`;
+            document.getElementById('life-acc-card').innerText = `$${lifeAcc['信用卡'].toLocaleString()}`;
+
+            let lifeNet = lInc - lExp;
+            let lifeNetEl = document.getElementById('rep-life-net');
+            lifeNetEl.innerText = `$${lifeNet.toLocaleString()}`;
+            lifeNetEl.style.color = lifeNet >= 0 ? 'var(--income-green)' : 'var(--expense-red)';
+        }
+
+        window.openAccountDetailModal = function(mode, payMethod) {
+            let title = `${mode} - ${payMethod} 帳戶明細`;
+            let filtered = records.filter(r => (r.mode || '工作收支') === mode && (r.paymentMethod || '現金') === payMethod);
+            filtered.sort((a,b) => new Date(b.date) - new Date(a.date));
+            let html = '';
+            if (!filtered.length) { html = '<div class="no-data">此帳戶尚無明細</div>'; }
+            else {
+                filtered.forEach(r => {
+                    let isInc = r.type === '收入';
+                    html += `<div style="border-bottom:1px dashed var(--accent-latte); padding:8px 0;">
+                        <div><strong>${r.date}</strong> | ${escapeHtml(r.project)} <span style="color:${isInc?'var(--income-green)':'var(--delete-red)'}; font-weight:bold;">${isInc?'+':'-'}$${r.amount}</span></div>
+                        <div style="font-size:11px; color:var(--text-muted);">客戶: ${r.custName || '無'} | 備註: ${r.note || '無'}</div>
+                    </div>`;
+                });
+            }
+            document.getElementById('acc-modal-title').innerText = title;
+            document.getElementById('acc-detail-content').innerHTML = html;
+            document.getElementById('account-detail-modal').style.display = 'flex';
+        }
+        window.closeAccModal = function() { document.getElementById('account-detail-modal').style.display = 'none'; }
+
+        // 年底報稅工作資料單獨匯出
+        window.exportTaxWorkReport = function() {
+            let workRecords = records.filter(r => (r.mode || '工作收支') === '工作收支');
+            let content = "日期,類型,客戶,項目,金額,支付方式,備註\n";
+            workRecords.forEach(r => {
+                content += `${r.date},${r.type},${r.custName || ''},${r.project},${r.amount},${r.paymentMethod || '現金'},${r.note || ''}\n`;
+            });
+            let blob = new Blob(["\ufeff" + content], { type: 'text/csv;charset=utf-8;' });
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement('a'); a.href = url; a.download = `MUMU_工作報稅明細_${new Date().getFullYear()}.csv`;
+            a.click();
         }
 
         window.toggleBlacklistFilter = function() {
@@ -1873,18 +1789,15 @@
             const btn = document.getElementById('blacklist-toggle-btn');
             if (btn) {
                 if (showBlacklistOnly) {
-                    btn.style.background = '#000000';
-                    btn.style.color = '#FFFFFF';
-                    btn.innerText = '🖤 關閉黑名單';
+                    btn.style.background = '#000000'; btn.style.color = '#FFFFFF'; btn.innerText = '🖤 關閉黑名單';
                 } else {
-                    btn.style.background = '#333333';
-                    btn.style.color = '#FFFFFF';
-                    btn.innerText = '🖤 黑名單';
+                    btn.style.background = '#333333'; btn.style.color = '#FFFFFF'; btn.innerText = '🖤 黑名單';
                 }
             }
             renderCustomerPage();
         }
 
+        // 🌟 客戶資料中心與詳細頁
         window.renderCustomerPage = function() {
             const thisMonth = new Date().getMonth() + 1;
             let mTitleEl = document.getElementById('current-month-title'); if(mTitleEl) mTitleEl.innerText = thisMonth;
@@ -1895,7 +1808,7 @@
             records.forEach(r => {
                 if (r.type === '支出' || !r.custName) return;
                 const name = r.custName.trim();
-                let crmData = customerCRM[name] || { phone: '', birthday: '', note: '' };
+                let crmData = customerCRM[name] || { phone: '', birthday: '', tag: '新客', note: '' };
                 
                 if (showBlacklistOnly && !blacklist[name]) return;
 
@@ -1907,7 +1820,7 @@
                 }
 
                 if (!customerMap[name]) {
-                    customerMap[name] = { name: name, phone: crmData.phone||'', birthday: crmData.birthday||'', note: crmData.note||'', visitCount: 0, totalSpent: 0, latestDepositLabel: '剩餘資產', latestDepositValue: '未記錄', latestDepositTime: 0, history: [] };
+                    customerMap[name] = { name: name, phone: crmData.phone||'', birthday: crmData.birthday||'', tag: crmData.tag||'新客', note: crmData.note||'', visitCount: 0, totalSpent: 0, latestDepositLabel: '剩餘資產', latestDepositValue: '未記錄', latestDepositTime: 0, history: [] };
                 }
                 customerMap[name].visitCount++; customerMap[name].totalSpent += r.amount; customerMap[name].history.push(r);
                 let recordTime = new Date(r.date).getTime();
@@ -1926,7 +1839,7 @@
                     if (!matchName && !matchPhone && !matchBirth) return;
                 }
                 if (!customerMap[name]) {
-                    customerMap[name] = { name: name, phone: crmData.phone||'', birthday: crmData.birthday||'', note: crmData.note||'', visitCount: 0, totalSpent: 0, latestDepositLabel: '儲值餘額', latestDepositValue: '未記錄', history: [] };
+                    customerMap[name] = { name: name, phone: crmData.phone||'', birthday: crmData.birthday||'', tag: crmData.tag||'新客', note: crmData.note||'', visitCount: 0, totalSpent: 0, latestDepositLabel: '儲值餘額', latestDepositValue: '未記錄', history: [] };
                 }
             });
 
@@ -1951,34 +1864,65 @@
                 let card = document.createElement('div'); card.classList.add('customer-card');
                 if (blacklist[cust.name]) card.style.border = '1px solid #333';
                 cust.history.sort((a,b) => new Date(b.date) - new Date(a.date));
-                let hHtml = cust.history.map(h => `<div style="border-top:1px dashed rgba(227,213,202,0.3); padding-top:4px; margin-top:4px;"><span style="color:var(--text-muted);">${h.date}</span> | <span>${escapeHtml(h.project)}</span> <strong style="color:${h.type==='收入'?'var(--income-green)':'var(--delete-red)'}">($${h.amount})</strong></div>`).join('');
                 
+                // 💡 計算補睫倒數：「上次施作 X 天前，7 折剩 Y 天、8 折剩 Z 天」
+                let refillInfoHtml = '';
+                if (cust.history.length > 0) {
+                    let lastDate = new Date(cust.history[0].date);
+                    let diffDays = Math.floor((new Date() - lastDate) / (1000 * 60 * 60 * 24));
+                    let d7Rem = 14 - diffDays;
+                    let d8Rem = 21 - diffDays;
+                    if (diffDays <= 28) {
+                        refillInfoHtml = `<div class="customer-note-highlight">✨ 上次施作 ${diffDays} 天前，7 折剩 ${Math.max(0, d7Rem)} 天、8 折剩 ${Math.max(0, d8Rem)} 天</div>`;
+                    }
+                }
+
+                let hHtml = cust.history.map(h => `<div style="border-top:1px dashed rgba(227,213,202,0.3); padding-top:6px; margin-top:6px; display:flex; justify-content:space-between; align-items:center;">
+                    <span>${h.date} - ${escapeHtml(h.project)} ($${h.amount})</span>
+                    <button class="quick-tag" onclick="openCustomerRecordDetail('${h.id}', event)">查看美睫紀錄</button>
+                </div>`).join('');
+                
+                let tagClass = cust.tag === 'VIP' ? 'tag-vip' : (cust.tag === '熟客' ? 'tag-regular' : (cust.tag === '久未回訪' ? 'tag-inactive' : 'tag-new'));
+
                 card.innerHTML = `
                     <div class="customer-card-header" onclick="toggleCard(this.parentNode)">
-                        <span class="customer-name">👤 ${escapeHtml(cust.name)} ${blacklist[cust.name] ? '🖤' : ''}</span>
-                        <div class="customer-header-right"><span class="customer-deposit">${cust.latestDepositLabel}: ${cust.latestDepositValue}</span><span class="customer-total-spent">累積消費: $${cust.totalSpent.toLocaleString()}</span></div>
+                        <div>
+                            <span class="customer-name">👤 ${escapeHtml(cust.name)} ${blacklist[cust.name] ? '🖤' : ''}</span>
+                            <span class="tag-badge ${tagClass}">${cust.tag || '新客'}</span>
+                        </div>
+                        <div class="customer-header-right"><span class="customer-deposit">${cust.latestDepositLabel}: ${cust.latestDepositValue}</span><span class="customer-total-spent">累積: $${cust.totalSpent.toLocaleString()}</span></div>
                     </div>
                     <div onclick="toggleCard(this.parentNode)">
-                        <div class="customer-detail-row">📞 電話: ${cust.phone ? escapeHtml(cust.phone) : '未填寫'}</div>
-                        <div class="customer-detail-row">🎂 生日: ${cust.birthday ? cust.birthday.substring(0,2)+'/'+cust.birthday.substring(2,4) : '未填寫'}</div>
-                        <div class="customer-note-highlight">📝 備註：${cust.note ? escapeHtml(cust.note) : '無備註紀錄'}</div>
+                        <div class="customer-detail-row">📞 電話: ${cust.phone ? escapeHtml(cust.phone) : '未填寫'} | 🎂 生日: ${cust.birthday ? cust.birthday.substring(0,2)+'/'+cust.birthday.substring(2,4) : '未填寫'}</div>
+                        ${refillInfoHtml}
                     </div>
                     <div class="customer-expanded-zone">
                         <div class="edit-crm-group" onclick="event.stopPropagation()">
-                            <div class="edit-crm-title">✏️ 編輯客戶資料</div>
+                            <div class="edit-crm-title">✏️ 編輯客戶基本資料與詳細區塊</div>
                             <input type="text" id="edit-name-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; margin-bottom:6px;" value="${escapeHtml(cust.name)}">
                             <div style="display:flex; gap:6px; margin-bottom:6px;">
                                 <input type="tel" id="edit-phone-${escapeHtml(cust.name)}" class="input-style" style="background:#fff;" value="${escapeHtml(cust.phone)}" placeholder="手機">
                                 <input type="number" id="edit-birth-${escapeHtml(cust.name)}" class="input-style" style="background:#fff;" value="${escapeHtml(cust.birthday)}" placeholder="生日4碼">
                             </div>
+                            <div style="margin-bottom:6px;">
+                                <select id="edit-tag-${escapeHtml(cust.name)}" class="input-style" style="background:#fff;">
+                                    <option value="新客" ${cust.tag==='新客'?'selected':''}>新客</option>
+                                    <option value="熟客" ${cust.tag==='熟客'?'selected':''}>熟客</option>
+                                    <option value="VIP" ${cust.tag==='VIP'?'selected':''}>VIP</option>
+                                    <option value="久未回訪" ${cust.tag==='久未回訪'?'selected':''}>久未回訪</option>
+                                </select>
+                            </div>
                             <input type="text" id="edit-note-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; margin-bottom:6px;" value="${escapeHtml(cust.note)}" placeholder="備註">
                             <div class="crm-action-row">
                                 <button class="btn-mini-delete" onclick="deleteCustomerData('${escapeHtml(cust.name)}')">🗑️ 刪除</button>
                                 <button class="btn-mini-blacklist" onclick="toggleBlacklist('${escapeHtml(cust.name)}')">🖤 ${blacklist[cust.name] ? '解除黑名單' : '黑名單'}</button>
-                                <button class="btn-mini-save" onclick="saveCRMData('${escapeHtml(cust.name)}')">💾 儲存</button>
+                                <button class="btn-mini-save" onclick="saveCRMData('${escapeHtml(cust.name)}')">💾 立即儲存</button>
                             </div>
                         </div>
-                        <div style="max-height:90px; overflow-y:auto; font-size:12px;">${hHtml || '無消費明細'}</div>
+                        <div style="max-height:120px; overflow-y:auto; font-size:12px; margin-top:8px;">
+                            <strong>📋 消費紀錄明細：</strong>
+                            ${hHtml || '<div style="color:var(--text-muted); margin-top:4px;">尚無消費紀錄</div>'}
+                        </div>
                     </div>`;
                 container.appendChild(card);
             });
@@ -1990,6 +1934,31 @@
             if (!isOpen) cardElement.classList.add('open');
         }
 
+        // 💡 點選當次消費紀錄查看詳細的美睫紀錄表
+        window.openCustomerRecordDetail = function(recId, event) {
+            if(event) event.stopPropagation();
+            let r = records.find(item => item.id === recId);
+            if (!r) return;
+            let d = r.lashDetails || {};
+            let html = `
+                <div><strong>日期：</strong>${r.date}</div>
+                <div><strong>客戶：</strong>${r.custName || '一般客人'}</div>
+                <div><strong>項目：</strong>${r.project}</div>
+                <div><strong>金額：</strong>$${r.amount}</div>
+                <hr style="margin:8px 0; border:0; border-top:1px dashed var(--accent-latte);">
+                <div><strong>款式：</strong>${d.style || '未記錄'}</div>
+                <div><strong>卷度與長度：</strong>${d.curlLen || d.curlSize || '未記錄'}</div>
+                <div><strong>粗度：</strong>${d.thickness || '未記錄'}</div>
+                <div><strong>膠水/墊片：</strong>${d.glue || d.pad || '未記錄'}</div>
+                <div><strong>眼型/備註：</strong>${d.lashNote || r.note || '無'}</div>
+            `;
+            document.getElementById('record-detail-content').innerHTML = html;
+            document.getElementById('record-detail-modal').style.display = 'flex';
+        }
+        window.closeRecordDetailModal = function() {
+            document.getElementById('record-detail-modal').style.display = 'none';
+        }
+
         window.toggleBlacklist = async function(name) {
             if (blacklist[name]) {
                 delete blacklist[name];
@@ -1998,8 +1967,9 @@
                 blacklist[name] = true;
                 alert(`已將「${name}」加入黑名單 🖤`);
             }
-            await saveCloudData();
+            saveLocalFallback();
             renderCustomerPage();
+            await saveCloudData();
         }
 
         window.openAddCustomerModal = function() {
@@ -2017,42 +1987,53 @@
             const name = document.getElementById('new-cust-name').value.trim();
             const phone = document.getElementById('new-cust-phone').value.trim();
             const birth = document.getElementById('new-cust-birth').value.trim();
+            const tag = document.getElementById('new-cust-tag').value;
             const note = document.getElementById('new-cust-note').value.trim();
             if (!name) return alert('請輸入客戶姓名');
             if (birth && birth.length !== 4) return alert('生日請輸入4碼數字 (例如 0529)');
 
-            customerCRM[name] = { phone: phone, birthday: birth, note: note };
-            await saveCloudData();
+            customerCRM[name] = { phone: phone, birthday: birth, tag: tag, note: note };
+            saveLocalFallback();
             closeAddCustomerModal();
             renderCustomerPage();
+            await saveCloudData();
             alert(`成功新增客戶「${name}」！`);
         }
 
+        // 💡 點選編輯客戶資料後能立即儲存並同步更新
         window.saveCRMData = async function(oldName) {
             const newName = document.getElementById(`edit-name-${oldName}`).value.trim();
             const phoneVal = document.getElementById(`edit-phone-${oldName}`).value.trim();
             const birthVal = document.getElementById(`edit-birth-${oldName}`).value.trim();
+            const tagVal = document.getElementById(`edit-tag-${oldName}`).value;
             const noteVal = document.getElementById(`edit-note-${oldName}`).value.trim();
             if (!newName) return alert('姓名不能留空');
             if (birthVal && birthVal.length !== 4) return alert('生日請輸入 4 碼數字');
 
             if (oldName !== newName) {
                 records.forEach(r => { if (r.custName && r.custName.trim() === oldName) r.custName = newName; });
-                customerCRM[newName] = { phone: phoneVal, birthday: birthVal, note: noteVal };
+                customerCRM[newName] = { phone: phoneVal, birthday: birthVal, tag: tagVal, note: noteVal };
                 delete customerCRM[oldName];
                 if (blacklist[oldName]) { blacklist[newName] = true; delete blacklist[oldName]; }
             } else {
-                customerCRM[oldName] = { phone: phoneVal, birthday: birthVal, note: noteVal };
+                customerCRM[oldName] = { phone: phoneVal, birthday: birthVal, tag: tagVal, note: noteVal };
             }
+            saveLocalFallback();
+            renderCustomerPage();
+            renderReports();
             await saveCloudData();
-            alert(`資料已成功同步更新！`); renderCustomerPage();
+            alert(`客戶「${newName}」資料已立即儲存並同步更新！`);
         }
 
+        // 💡 刪除客戶時跳出確認視窗：「確定要刪除此顧客?」
         window.deleteCustomerData = async function(name) {
-            if (confirm(`確定要刪除客戶「${name}」的基礎資料嗎？`)) {
+            if (confirm('確定要刪除此顧客?')) {
                 if (customerCRM[name]) delete customerCRM[name];
                 if (blacklist[name]) delete blacklist[name];
-                await saveCloudData(); renderCustomerPage();
+                saveLocalFallback();
+                renderCustomerPage();
+                await saveCloudData();
+                alert('已成功刪除客戶資料');
             }
         }
 
@@ -2209,77 +2190,20 @@
 
             const fullStyleDisplay = styleName + refillName;
             let textMsg = `✨ MUMU POCKET 預約報價單 ✨\n- 選擇項目：${fullStyleDisplay} ($${finalBasePrice})`;
-            let htmlMsg = `<div style="font-weight:bold; margin-bottom:6px;">✨ 選擇項目明細：</div>`;
-            htmlMsg += `<div>• 款式：${fullStyleDisplay} ($${finalBasePrice})</div>`;
-
             if (selectedAddons.length > 0) {
                 textMsg += `\n- 附加/卸睫：${selectedAddons.map(a => `${a.name}(+$${a.price})`).join(', ')}`;
-                selectedAddons.forEach(a => {
-                    htmlMsg += `<div>• 加購/卸睫：${a.name} (+$${a.price})</div>`;
-                });
             }
             if (promo > 0) {
                 textMsg += `\n- 優惠折扣：-$${promo}`;
-                htmlMsg += `<div>• 優惠折扣：-$${promo}</div>`;
             }
             textMsg += `\n- 應付總金額：$${finalTotal} 元`;
             if (deposit > 0) {
                 textMsg += `\n- 已付訂金：$${deposit} 元\n- 尾款應收：$${remainingBalance} 元`;
             }
-
-            htmlMsg += `<div style="margin-top:8px; border-top:1px dashed var(--accent-latte); padding-top:8px;">`;
-            htmlMsg += `<div>項目小計：$${subtotal.toLocaleString()}</div>`;
-            if(promo > 0) htmlMsg += `<div>優惠折抵：-$${promo.toLocaleString()}</div>`;
-            htmlMsg += `<div><strong>應付總金額：$${finalTotal.toLocaleString()}</strong></div>`;
-            if(deposit > 0) {
-                htmlMsg += `<div>已付訂金：$${deposit.toLocaleString()}</div>`;
-                htmlMsg += `<div>尾款應收：$${remainingBalance.toLocaleString()}</div>`;
-            }
-            htmlMsg += `</div>`;
-
-            quoteDetailCache.text = textMsg;
-            quoteDetailCache.html = htmlMsg;
             
             if(lineBookingBtn) {
                 lineBookingBtn.href = `https://line.me/R/msg/text/?${encodeURIComponent(textMsg)}`;
             }
-        }
-
-        window.resetQuote = function() {
-            document.querySelectorAll('input[name="quote-base-style"]').forEach(r => r.checked = false);
-            document.querySelectorAll('input[name="quote-addon"]').forEach(c => c.checked = false);
-            const ref7 = document.getElementById('quote-refill-7');
-            const ref8 = document.getElementById('quote-refill-8');
-            if(ref7) ref7.checked = false;
-            if(ref8) ref8.checked = false;
-            if(document.getElementById('quote-deposit-input')) document.getElementById('quote-deposit-input').value = 0;
-            if(document.getElementById('quote-promo-input')) document.getElementById('quote-promo-input').value = 0;
-            handleStyleChange();
-            alert('已重新選擇！');
-        }
-
-        window.copyQuoteText = function() {
-            calculateQuoteTotal();
-            if (!quoteDetailCache.text) return;
-            
-            navigator.clipboard.writeText(quoteDetailCache.text).then(() => {
-                alert('📋 報價明細文字已成功複製到剪貼簿！');
-            }).catch(err => {
-                alert('複製失敗，請手動複製。');
-            });
-        }
-
-        window.openQuoteDetailModal = function() {
-            calculateQuoteTotal();
-            const contentBox = document.getElementById('quote-detail-content');
-            if (contentBox) {
-                contentBox.innerHTML = quoteDetailCache.html || '目前尚未選擇任何項目';
-            }
-            document.getElementById('quote-detail-modal').style.display = 'flex';
-        }
-
-        window.closeQuoteDetailModal = function(event) {
-            document.getElementById('quote-detail-modal').style.display = 'none';
         }
     </script>
 </body>
