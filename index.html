@@ -279,7 +279,6 @@
             z-index: 3;
         }
 
-        /* 💡 模式切換按鈕樣式 */
         .mode-switch-bar {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -747,11 +746,11 @@
                         </div>
                     </div>
 
-                    <!-- 💡 睫毛管理專屬動態欄位 -->
+                    <!-- 💡 睫毛管理專屬動態欄位 (已將墊片改為款式名稱) -->
                     <div id="lash-mgmt-fields-container" style="display:none; background:var(--bg-cream); padding:10px; border-radius:12px; border:1px solid var(--accent-latte); margin-bottom:10px;">
                         <div style="font-size:12px; font-weight:bold; color:var(--primary-color); margin-bottom:6px;">✨ 睫毛管理記錄欄位</div>
                         <div class="form-group">
-                            <input type="text" id="mgmt-pad" class="input-style" style="background:#fff;" placeholder="墊片 (例: S/M)">
+                            <input type="text" id="mgmt-style-name" class="input-style" style="background:#fff;" placeholder="款式名稱 (例: 角蛋白精靈)">
                             <input type="text" id="mgmt-curl-size" class="input-style" style="background:#fff;" placeholder="捲度/尺寸">
                         </div>
                     </div>
@@ -791,7 +790,7 @@
             </div>
         </main>
 
-        <!-- 🌟 財務報表分頁 (工作開銷、生活開銷各帶有收入、支出、結餘三大統計圖表與詳細細項) -->
+        <!-- 🌟 財務報表分頁 -->
         <main id="reports-page" class="page">
             <div class="report-filter-bar">
                 <select id="report-year-select" class="select-report" onchange="renderReports()"></select>
@@ -804,36 +803,33 @@
                 </select>
             </div>
 
-            <!-- 上方：工作開銷 (含原帳戶卡片 + 收入、支出、結餘三個統計圖表與詳細細項) -->
+            <!-- 上方：工作開銷 (已修正點擊現金/轉帳/LINE Pay/信用卡可顯示明細) -->
             <div class="card-box" style="padding: 14px; margin-bottom: 15px;">
                 <div class="card-title" style="margin-bottom: 10px; font-size: 15px; border-left: 4px solid var(--primary-color); padding-left: 8px;">💼 工作開銷</div>
                 <div class="account-grid">
-                    <div class="account-card" onclick="openAccountDetailModal('工作開銷', '現金')"><p>💵 現金</p><h4 id="work-acc-cash">$0</h4></div>
-                    <div class="account-card" onclick="openAccountDetailModal('工作開銷', '轉帳')"><p>🏦 轉帳/銀行</p><h4 id="work-acc-bank">$0</h4></div>
-                    <div class="account-card" onclick="openAccountDetailModal('工作開銷', 'LINE Pay')"><p>💚 LINE Pay</p><h4 id="work-acc-linepay">$0</h4></div>
-                    <div class="account-card" onclick="openAccountDetailModal('工作開銷', '信用卡')"><p>💳 信用卡</p><h4 id="work-acc-card">$0</h4></div>
+                    <div class="account-card" onclick="openAccountDetailModal('工作收支', '現金')"><p>💵 現金</p><h4 id="work-acc-cash">$0</h4></div>
+                    <div class="account-card" onclick="openAccountDetailModal('工作收支', '轉帳')"><p>🏦 轉帳/銀行</p><h4 id="work-acc-bank">$0</h4></div>
+                    <div class="account-card" onclick="openAccountDetailModal('工作收支', 'LINE Pay')"><p>💚 LINE Pay</p><h4 id="work-acc-linepay">$0</h4></div>
+                    <div class="account-card" onclick="openAccountDetailModal('工作收支', '信用卡')"><p>💳 信用卡</p><h4 id="work-acc-card">$0</h4></div>
                 </div>
 
-                <!-- 1. 工作收入圖表與細項 -->
                 <div class="chart-section-box">
                     <div class="chart-section-title"><span>📈 工作收入統整</span><strong id="work-inc-total" style="color:var(--income-green);">$0</strong></div>
                     <div id="work-inc-breakdown"></div>
                 </div>
 
-                <!-- 2. 工作支出圖表與細項 -->
                 <div class="chart-section-box">
                     <div class="chart-section-title"><span>📉 工作支出統整</span><strong id="work-exp-total" style="color:var(--expense-red);">$0</strong></div>
                     <div id="work-exp-breakdown"></div>
                 </div>
 
-                <!-- 3. 工作結餘圖表與細項 -->
                 <div class="chart-section-box">
                     <div class="chart-section-title"><span>📊 工作營運結餘</span><strong id="work-net-total">$0</strong></div>
                     <div id="work-net-breakdown"></div>
                 </div>
             </div>
 
-            <!-- 下方：生活開銷 (含原帳戶卡片 + 收入、支出、結餘三個統計圖表與詳細細項) -->
+            <!-- 下方：生活開銷 -->
             <div class="card-box" style="padding: 14px; margin-bottom: 15px;">
                 <div class="card-title" style="margin-bottom: 10px; font-size: 15px; border-left: 4px solid var(--text-muted); padding-left: 8px;">🏠 生活開銷</div>
                 <div class="account-grid">
@@ -843,26 +839,22 @@
                     <div class="account-card" onclick="openAccountDetailModal('生活開銷', '信用卡')"><p>💳 信用卡</p><h4 id="life-acc-card">$0</h4></div>
                 </div>
 
-                <!-- 1. 生活收入圖表與細項 -->
                 <div class="chart-section-box">
                     <div class="chart-section-title"><span>📈 生活收入統整</span><strong id="life-inc-total" style="color:var(--income-green);">$0</strong></div>
                     <div id="life-inc-breakdown"></div>
                 </div>
 
-                <!-- 2. 生活支出圖表與細項 -->
                 <div class="chart-section-box">
                     <div class="chart-section-title"><span>📉 生活支出統整</span><strong id="life-exp-total" style="color:var(--expense-red);">$0</strong></div>
                     <div id="life-exp-breakdown"></div>
                 </div>
 
-                <!-- 3. 生活結餘圖表與細項 -->
                 <div class="chart-section-box">
                     <div class="chart-section-title"><span>📊 生活收支結餘</span><strong id="life-net-total">$0</strong></div>
                     <div id="life-net-breakdown"></div>
                 </div>
             </div>
             
-            <!-- 最底下：匯出報表 -->
             <div class="card-box" style="text-align: center;">
                 <button class="btn-submit" onclick="exportTaxWorkReport()">📥 年底報稅工作資料單獨匯出</button>
             </div>
@@ -872,6 +864,12 @@
             <div class="birthday-banner">
                 <div class="birthday-banner-title">🎂 <span id="current-month-title"></span>月壽星提醒專區</div>
                 <ul id="birthday-list-container" class="birthday-list"></ul>
+            </div>
+
+            <!-- 即將到期提醒專區 -->
+            <div class="birthday-banner" style="background-color: #FEF3C7; border-color: #F59E0B;">
+                <div class="birthday-banner-title" style="color: #D97706;">🔔 客戶回訪/補睫優惠即將到期提醒</div>
+                <ul id="expiry-reminder-container" class="birthday-list"></ul>
             </div>
 
             <div class="card-box">
@@ -1174,7 +1172,7 @@
     <div id="record-detail-modal" class="modal-overlay" onclick="closeRecordDetailModal(event)">
         <div class="modal-box" onclick="event.stopPropagation()">
             <div class="modal-header">
-                <span>📋 美睫施作詳細紀錄表</span>
+                <span>📋 美睫/睫毛管理詳細紀錄表</span>
                 <span style="cursor:pointer; font-weight:normal; font-size:14px;" onclick="closeRecordDetailModal()">✕</span>
             </div>
             <div id="record-detail-content" class="detail-modal-body"></div>
@@ -1660,7 +1658,7 @@
                 };
             } else if (project.includes('睫毛管理')) {
                 lashDetails = {
-                    pad: document.getElementById('mgmt-pad').value.trim(),
+                    styleName: document.getElementById('mgmt-style-name').value.trim(),
                     curlSize: document.getElementById('mgmt-curl-size').value.trim()
                 };
             }
@@ -1694,7 +1692,7 @@
             document.getElementById('lash-thickness').value = '';
             document.getElementById('lash-glue').value = '';
             document.getElementById('lash-note').value = '';
-            document.getElementById('mgmt-pad').value = '';
+            document.getElementById('mgmt-style-name').value = '';
             document.getElementById('mgmt-curl-size').value = '';
             checkDynamicFields();
             
@@ -1958,6 +1956,39 @@
                 if(!bCount) birthdayContainer.innerHTML = '<li>本月暫無壽星顧客記錄</li>';
             }
 
+            // 💡 整理即將到期提醒專區 (回訪與補睫倒數)
+            let expiryContainer = document.getElementById('expiry-reminder-container');
+            if (expiryContainer) {
+                expiryContainer.innerHTML = ''; let expCount = 0;
+                customers.forEach(cust => {
+                    if (cust.history.length > 0) {
+                        let lastRec = cust.history[0];
+                        let lastDate = new Date(lastRec.date);
+                        let diffDays = Math.floor((new Date() - lastDate) / (1000 * 60 * 60 * 24));
+                        
+                        if (lastRec.project.includes('美睫')) {
+                            let d7Rem = 14 - diffDays;
+                            let d8Rem = 21 - diffDays;
+                            if (diffDays <= 21 && (d7Rem <= 3 || d8Rem <= 3)) {
+                                expCount++;
+                                let li = document.createElement('li');
+                                li.innerHTML = `⚠️ <strong>${escapeHtml(cust.name)}</strong> (美睫)：上次施作 ${diffDays} 天前，7折剩 ${Math.max(0, d7Rem)} 天、8折剩 ${Math.max(0, d8Rem)} 天`;
+                                expiryContainer.appendChild(li);
+                            }
+                        } else if (lastRec.project.includes('睫毛管理')) {
+                            let returnRem = 45 - diffDays;
+                            if (diffDays <= 45 && returnRem <= 7) {
+                                expCount++;
+                                let li = document.createElement('li');
+                                li.innerHTML = `⚠️ <strong>${escapeHtml(cust.name)}</strong> (睫毛管理)：上次施作 ${diffDays} 天前，88折回訪剩 ${Math.max(0, returnRem)} 天`;
+                                expiryContainer.appendChild(li);
+                            }
+                        }
+                    }
+                });
+                if (!expCount) expiryContainer.innerHTML = '<li>目前沒有即將到期的優惠回訪客戶</li>';
+            }
+
             if (!customers.length) { container.innerHTML = `<div class="no-data">${showBlacklistOnly ? '目前沒有黑名單客戶' : '查無符合條件的客戶資料'}</div>`; return; }
             customers.sort((a,b) => a.name.localeCompare(b.name, 'zh-Hans-CN'));
             
@@ -1966,14 +1997,24 @@
                 if (blacklist[cust.name]) card.style.border = '1px solid #333';
                 cust.history.sort((a,b) => new Date(b.date) - new Date(a.date));
                 
-                let refillInfoHtml = '';
+                // 💡 根據項目動態顯示補睫倒數或回訪倒數
+                let countdownHtml = '';
                 if (cust.history.length > 0) {
-                    let lastDate = new Date(cust.history[0].date);
+                    let lastRec = cust.history[0];
+                    let lastDate = new Date(lastRec.date);
                     let diffDays = Math.floor((new Date() - lastDate) / (1000 * 60 * 60 * 24));
-                    let d7Rem = 14 - diffDays;
-                    let d8Rem = 21 - diffDays;
-                    if (diffDays <= 28) {
-                        refillInfoHtml = `<div class="customer-note-highlight">✨ 上次施作 ${diffDays} 天前，7 折剩 ${Math.max(0, d7Rem)} 天、8 折剩 ${Math.max(0, d8Rem)} 天</div>`;
+                    
+                    if (lastRec.project.includes('美睫')) {
+                        let d7Rem = 14 - diffDays;
+                        let d8Rem = 21 - diffDays;
+                        if (diffDays <= 28) {
+                            countdownHtml = `<div class="customer-note-highlight">✨ 上次施作 ${diffDays} 天前，7 折剩 ${Math.max(0, d7Rem)} 天、8 折剩 ${Math.max(0, d8Rem)} 天</div>`;
+                        }
+                    } else if (lastRec.project.includes('睫毛管理')) {
+                        let returnRem = 45 - diffDays;
+                        if (diffDays <= 45) {
+                            countdownHtml = `<div class="customer-note-highlight">✨ 上次施作 ${diffDays} 天前，88折剩 ${Math.max(0, returnRem)} 天（45天內回訪）</div>`;
+                        }
                     }
                 }
 
@@ -1994,7 +2035,7 @@
                     </div>
                     <div onclick="toggleCard(this.parentNode)">
                         <div class="customer-detail-row">📞 電話: ${cust.phone ? escapeHtml(cust.phone) : '未填寫'} | 🎂 生日: ${cust.birthday ? cust.birthday.substring(0,2)+'/'+cust.birthday.substring(2,4) : '未填寫'}</div>
-                        ${refillInfoHtml}
+                        ${countdownHtml}
                     </div>
                     <div class="customer-expanded-zone">
                         <div class="edit-crm-group" onclick="event.stopPropagation()">
@@ -2045,10 +2086,10 @@
                 <div><strong>項目：</strong>${r.project}</div>
                 <div><strong>金額：</strong>$${r.amount}</div>
                 <hr style="margin:8px 0; border:0; border-top:1px dashed var(--accent-latte);">
-                <div><strong>款式：</strong>${d.style || '未記錄'}</div>
-                <div><strong>卷度與長度：</strong>${d.curlLen || d.curlSize || '未記錄'}</div>
-                <div><strong>粗度：</strong>${d.thickness || '未記錄'}</div>
-                <div><strong>膠水/墊片：</strong>${d.glue || d.pad || '未記錄'}</div>
+                <div><strong>款式/款式名稱：</strong>${d.style || d.styleName || '未記錄'}</div>
+                <div><strong>卷度與長度/尺寸：</strong>${d.curlLen || d.curlSize || '未記錄'}</div>
+                <div><strong>粗度：</strong>${d.thickness || '不適用'}</div>
+                <div><strong>膠水：</strong>${d.glue || '不適用'}</div>
                 <div><strong>眼型/備註：</strong>${d.lashNote || r.note || '無'}</div>
             `;
             document.getElementById('record-detail-content').innerHTML = html;
