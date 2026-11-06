@@ -453,6 +453,24 @@
         .account-card p { font-size: 11px; color: var(--text-muted); margin-bottom: 3px; }
         .account-card h4 { font-size: 15px; font-weight: 700; color: var(--text-dark); }
         .stat-row { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 14px; }
+        
+        .chart-section-box {
+            background: var(--bg-cream);
+            border: 1px solid var(--accent-latte);
+            border-radius: 14px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+        .chart-section-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .progress-bar-bg { background-color: var(--main-butter); height: 6px; border-radius: 3px; width: 100%; margin-top: 4px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background-color: var(--text-muted); width: 0%; transition: width 0.5s ease; }
 
         /* ==================== 彈出式視窗 (Modal) ==================== */
         .modal-overlay {
@@ -507,10 +525,6 @@
         }
         .btn-modal.save {
             background-color: var(--text-dark);
-            color: var(--pure-white);
-        }
-        .btn-modal.danger {
-            background-color: var(--delete-red);
             color: var(--pure-white);
         }
 
@@ -746,7 +760,6 @@
                         <input type="number" id="add-amount" class="input-style" style="grid-column: 1 / -1;" placeholder="本次收支金額" inputmode="numeric">
                     </div>
 
-                    <!-- 💡 工作收支專屬儲值金欄位 (生活開銷不出現) -->
                     <div class="form-group" id="deposit-wrapper-row">
                         <div id="deposit-wrapper" style="grid-column: 1 / -1; display: grid; grid-template-columns: 110px 1fr; gap: 8px;">
                             <select id="add-deposit-type" class="input-style" style="padding: 9px 8px; font-size: 14px;">
@@ -778,7 +791,7 @@
             </div>
         </main>
 
-        <!-- 🌟 財務報表分頁 (分上下兩大點：上方工作開銷、下方生活開銷 + 最底下匯出) -->
+        <!-- 🌟 財務報表分頁 (工作開銷、生活開銷各帶有收入、支出、結餘三大統計圖表與詳細細項) -->
         <main id="reports-page" class="page">
             <div class="report-filter-bar">
                 <select id="report-year-select" class="select-report" onchange="renderReports()"></select>
@@ -791,7 +804,7 @@
                 </select>
             </div>
 
-            <!-- 上方：工作開銷 -->
+            <!-- 上方：工作開銷 (含原帳戶卡片 + 收入、支出、結餘三個統計圖表與詳細細項) -->
             <div class="card-box" style="padding: 14px; margin-bottom: 15px;">
                 <div class="card-title" style="margin-bottom: 10px; font-size: 15px; border-left: 4px solid var(--primary-color); padding-left: 8px;">💼 工作開銷</div>
                 <div class="account-grid">
@@ -800,10 +813,27 @@
                     <div class="account-card" onclick="openAccountDetailModal('工作開銷', 'LINE Pay')"><p>💚 LINE Pay</p><h4 id="work-acc-linepay">$0</h4></div>
                     <div class="account-card" onclick="openAccountDetailModal('工作開銷', '信用卡')"><p>💳 信用卡</p><h4 id="work-acc-card">$0</h4></div>
                 </div>
-                <div class="stat-row" style="margin-top: 10px;"><span>工作營運淨利:</span><strong id="rep-work-net" style="font-size: 15px;">$0</strong></div>
+
+                <!-- 1. 工作收入圖表與細項 -->
+                <div class="chart-section-box">
+                    <div class="chart-section-title"><span>📈 工作收入統整</span><strong id="work-inc-total" style="color:var(--income-green);">$0</strong></div>
+                    <div id="work-inc-breakdown"></div>
+                </div>
+
+                <!-- 2. 工作支出圖表與細項 -->
+                <div class="chart-section-box">
+                    <div class="chart-section-title"><span>📉 工作支出統整</span><strong id="work-exp-total" style="color:var(--expense-red);">$0</strong></div>
+                    <div id="work-exp-breakdown"></div>
+                </div>
+
+                <!-- 3. 工作結餘圖表與細項 -->
+                <div class="chart-section-box">
+                    <div class="chart-section-title"><span>📊 工作營運結餘</span><strong id="work-net-total">$0</strong></div>
+                    <div id="work-net-breakdown"></div>
+                </div>
             </div>
 
-            <!-- 下方：生活開銷 -->
+            <!-- 下方：生活開銷 (含原帳戶卡片 + 收入、支出、結餘三個統計圖表與詳細細項) -->
             <div class="card-box" style="padding: 14px; margin-bottom: 15px;">
                 <div class="card-title" style="margin-bottom: 10px; font-size: 15px; border-left: 4px solid var(--text-muted); padding-left: 8px;">🏠 生活開銷</div>
                 <div class="account-grid">
@@ -812,10 +842,27 @@
                     <div class="account-card" onclick="openAccountDetailModal('生活開銷', 'LINE Pay')"><p>💚 LINE Pay</p><h4 id="life-acc-linepay">$0</h4></div>
                     <div class="account-card" onclick="openAccountDetailModal('生活開銷', '信用卡')"><p>💳 信用卡</p><h4 id="life-acc-card">$0</h4></div>
                 </div>
-                <div class="stat-row" style="margin-top: 10px;"><span>生活收支結餘:</span><strong id="rep-life-net" style="font-size: 15px;">$0</strong></div>
+
+                <!-- 1. 生活收入圖表與細項 -->
+                <div class="chart-section-box">
+                    <div class="chart-section-title"><span>📈 生活收入統整</span><strong id="life-inc-total" style="color:var(--income-green);">$0</strong></div>
+                    <div id="life-inc-breakdown"></div>
+                </div>
+
+                <!-- 2. 生活支出圖表與細項 -->
+                <div class="chart-section-box">
+                    <div class="chart-section-title"><span>📉 生活支出統整</span><strong id="life-exp-total" style="color:var(--expense-red);">$0</strong></div>
+                    <div id="life-exp-breakdown"></div>
+                </div>
+
+                <!-- 3. 生活結餘圖表與細項 -->
+                <div class="chart-section-box">
+                    <div class="chart-section-title"><span>📊 生活收支結餘</span><strong id="life-net-total">$0</strong></div>
+                    <div id="life-net-breakdown"></div>
+                </div>
             </div>
             
-            <!-- 最底下：匯出報表 (年底報稅單獨匯出工作資料) -->
+            <!-- 最底下：匯出報表 -->
             <div class="card-box" style="text-align: center;">
                 <button class="btn-submit" onclick="exportTaxWorkReport()">📥 年底報稅工作資料單獨匯出</button>
             </div>
@@ -983,9 +1030,9 @@
                     <div class="quote-sub-calc" id="quoteSubCalcText">小計 $0 | 折扣 -$0 | 預付訂金 $0 | 尾款應收 $0</div>
 
                     <div class="quote-action-buttons">
-                        <button class="btn-quote-action" onclick="resetQuote()">🔄 重新選擇</button>
-                        <button class="btn-quote-action" onclick="copyQuoteText()">📋 複製文字</button>
-                        <button class="btn-quote-action" onclick="openQuoteDetailModal()">🌟 查看明細</button>
+                        <button class="btn-quote-action" type="button" onclick="resetQuote()">🔄 重新選擇</button>
+                        <button class="btn-quote-action" type="button" onclick="copyQuoteText()">📋 複製文字</button>
+                        <button class="btn-quote-action" type="button" onclick="openQuoteDetailModal()">🌟 查看明細</button>
                     </div>
 
                     <a href="https://line.me/R/" target="_blank" class="btn-quote-booking" id="lineBookingBtn">💬 傳送明細至 Line 預約</a>
@@ -1179,6 +1226,7 @@
         const todayStr = formatDateString(new Date());
         let selectedDateStr = todayStr;
         let currentRecordMode = '工作收支';
+        let quoteDetailCache = { text: '', html: '' };
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -1313,7 +1361,6 @@
             return type === '課堂數' ? `${val} 堂` : `$${val}`;
         }
 
-        // 💡 模式切換邏輯 (工作收支 vs 生活開銷)
         window.switchRecordMode = function(mode) {
             currentRecordMode = mode;
             const btnWork = document.getElementById('mode-btn-work');
@@ -1368,7 +1415,6 @@
                     `;
                 }
             } else {
-                // 💡 生活開銷模式：不需要出現填寫儲值金
                 custWrapper.style.display = 'none';
                 depositRow.style.display = 'none';
                 document.getElementById('add-cust-name').value = '';
@@ -1701,7 +1747,7 @@
             });
         }
 
-        // 🌟 財務報表 (上下半部設計 + 最下方工作資料匯出)
+        // 🌟 財務報表 (工作開銷、生活開銷各帶有收入、支出、結餘三大圖表與細項)
         window.renderReports = function() {
             const yearSel = document.getElementById('report-year-select'); const monthSel = document.getElementById('report-month-select');
             if(!yearSel || !monthSel) return;
@@ -1709,45 +1755,102 @@
             
             let workAcc = { '現金': 0, '轉帳': 0, 'LINE Pay': 0, '信用卡': 0 };
             let lifeAcc = { '現金': 0, '轉帳': 0, 'LINE Pay': 0, '信用卡': 0 };
-            let wInc = 0, wExp = 0;
-            let lInc = 0, lExp = 0;
+            
+            let workIncList = [], workExpList = [];
+            let lifeIncList = [], lifeExpList = [];
 
             records.forEach(r => {
                 let d = new Date(r.date);
                 if (d.getFullYear() === selectedYear && (selectedMonthVal === 'all' || d.getMonth() === parseInt(selectedMonthVal))) {
                     let pay = r.paymentMethod || '現金';
                     let amt = r.type === '收入' ? r.amount : -r.amount;
-                    if ((r.mode || '工作收支') === '工作收支') {
+                    let mode = r.mode || '工作收支';
+                    if (mode === '工作收支') {
                         if (workAcc[pay] !== undefined) workAcc[pay] += amt;
-                        if (r.type === '收入') wInc += r.amount; else wExp += r.amount;
+                        if (r.type === '收入') workIncList.push(r); else workExpList.push(r);
                     } else {
                         if (lifeAcc[pay] !== undefined) lifeAcc[pay] += amt;
-                        if (r.type === '收入') lInc += r.amount; else lExp += r.amount;
+                        if (r.type === '收入') lifeIncList.push(r); else lifeExpList.push(r);
                     }
                 }
             });
 
-            // 上方：工作開銷帳戶餘額
+            // 渲染工作開銷帳戶餘額
             document.getElementById('work-acc-cash').innerText = `$${workAcc['現金'].toLocaleString()}`;
             document.getElementById('work-acc-bank').innerText = `$${workAcc['轉帳'].toLocaleString()}`;
             document.getElementById('work-acc-linepay').innerText = `$${workAcc['LINE Pay'].toLocaleString()}`;
             document.getElementById('work-acc-card').innerText = `$${workAcc['信用卡'].toLocaleString()}`;
 
-            let workNet = wInc - wExp;
-            let workNetEl = document.getElementById('rep-work-net');
-            workNetEl.innerText = `$${workNet.toLocaleString()}`;
-            workNetEl.style.color = workNet >= 0 ? 'var(--income-green)' : 'var(--expense-red)';
-
-            // 下方：生活開銷帳戶餘額
+            // 渲染生活開銷帳戶餘額
             document.getElementById('life-acc-cash').innerText = `$${lifeAcc['現金'].toLocaleString()}`;
             document.getElementById('life-acc-bank').innerText = `$${lifeAcc['轉帳'].toLocaleString()}`;
             document.getElementById('life-acc-linepay').innerText = `$${lifeAcc['LINE Pay'].toLocaleString()}`;
             document.getElementById('life-acc-card').innerText = `$${lifeAcc['信用卡'].toLocaleString()}`;
 
-            let lifeNet = lInc - lExp;
-            let lifeNetEl = document.getElementById('rep-life-net');
-            lifeNetEl.innerText = `$${lifeNet.toLocaleString()}`;
-            lifeNetEl.style.color = lifeNet >= 0 ? 'var(--income-green)' : 'var(--expense-red)';
+            // 渲染工作三大圖表與細項
+            renderCategoryChartAndList('work-inc-total', 'work-inc-breakdown', workIncList, '收入');
+            renderCategoryChartAndList('work-exp-total', 'work-exp-breakdown', workExpList, '支出');
+            renderNetSummary('work-net-total', 'work-net-breakdown', workIncList, workExpList);
+
+            // 渲染生活三大圖表與細項
+            renderCategoryChartAndList('life-inc-total', 'life-inc-breakdown', lifeIncList, '收入');
+            renderCategoryChartAndList('life-exp-total', 'life-exp-breakdown', lifeExpList, '支出');
+            renderNetSummary('life-net-total', 'life-net-breakdown', lifeIncList, lifeExpList);
+        }
+
+        function renderCategoryChartAndList(totalId, containerId, list, type) {
+            let total = list.reduce((sum, item) => sum + item.amount, 0);
+            document.getElementById(totalId).innerText = `$${total.toLocaleString()}`;
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
+
+            let group = {};
+            list.forEach(item => {
+                let p = item.project.trim() || '其他';
+                group[p] = (group[p] || 0) + item.amount;
+            });
+
+            let sorted = Object.keys(group).map(k => ({name: k, amount: group[k]})).sort((a,b) => b.amount - a.amount);
+            if (!sorted.length) {
+                container.innerHTML = '<div style="font-size:12px; color:var(--text-muted); padding:6px 0;">尚無資料</div>';
+                return;
+            }
+
+            let max = sorted[0].amount || 1;
+            let html = '';
+            sorted.forEach(item => {
+                let pct = Math.round((item.amount / (total || 1)) * 100);
+                html += `
+                    <div style="margin-top:6px; font-size:12px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                            <span>${escapeHtml(item.name)} (${pct}%)</span>
+                            <strong>$${item.amount.toLocaleString()}</strong>
+                        </div>
+                        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${(item.amount/max)*100}%; background-color: ${type==='收入'?'var(--income-green)':'var(--expense-red)'};"></div></div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function renderNetSummary(totalId, containerId, incList, expList) {
+            let totalInc = incList.reduce((sum, item) => sum + item.amount, 0);
+            let totalExp = expList.reduce((sum, item) => sum + item.amount, 0);
+            let net = totalInc - totalExp;
+            let el = document.getElementById(totalId);
+            el.innerText = `$${net.toLocaleString()}`;
+            el.style.color = net >= 0 ? 'var(--income-green)' : 'var(--expense-red)';
+
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = `
+                <div style="font-size:12px; margin-top:6px; display:flex; justify-content:space-between;">
+                    <span>總收入：$${totalInc.toLocaleString()}</span>
+                    <span>總支出：$${totalExp.toLocaleString()}</span>
+                </div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">淨利/結餘 = 總收入 - 總支出</div>
+            `;
         }
 
         window.openAccountDetailModal = function(mode, payMethod) {
@@ -1771,7 +1874,6 @@
         }
         window.closeAccModal = function() { document.getElementById('account-detail-modal').style.display = 'none'; }
 
-        // 年底報稅工作資料單獨匯出
         window.exportTaxWorkReport = function() {
             let workRecords = records.filter(r => (r.mode || '工作收支') === '工作收支');
             let content = "日期,類型,客戶,項目,金額,支付方式,備註\n";
@@ -1797,7 +1899,6 @@
             renderCustomerPage();
         }
 
-        // 🌟 客戶資料中心與詳細頁
         window.renderCustomerPage = function() {
             const thisMonth = new Date().getMonth() + 1;
             let mTitleEl = document.getElementById('current-month-title'); if(mTitleEl) mTitleEl.innerText = thisMonth;
@@ -1865,7 +1966,6 @@
                 if (blacklist[cust.name]) card.style.border = '1px solid #333';
                 cust.history.sort((a,b) => new Date(b.date) - new Date(a.date));
                 
-                // 💡 計算補睫倒數：「上次施作 X 天前，7 折剩 Y 天、8 折剩 Z 天」
                 let refillInfoHtml = '';
                 if (cust.history.length > 0) {
                     let lastDate = new Date(cust.history[0].date);
@@ -1934,7 +2034,6 @@
             if (!isOpen) cardElement.classList.add('open');
         }
 
-        // 💡 點選當次消費紀錄查看詳細的美睫紀錄表
         window.openCustomerRecordDetail = function(recId, event) {
             if(event) event.stopPropagation();
             let r = records.find(item => item.id === recId);
@@ -2000,7 +2099,6 @@
             alert(`成功新增客戶「${name}」！`);
         }
 
-        // 💡 點選編輯客戶資料後能立即儲存並同步更新
         window.saveCRMData = async function(oldName) {
             const newName = document.getElementById(`edit-name-${oldName}`).value.trim();
             const phoneVal = document.getElementById(`edit-phone-${oldName}`).value.trim();
@@ -2025,7 +2123,6 @@
             alert(`客戶「${newName}」資料已立即儲存並同步更新！`);
         }
 
-        // 💡 刪除客戶時跳出確認視窗：「確定要刪除此顧客?」
         window.deleteCustomerData = async function(name) {
             if (confirm('確定要刪除此顧客?')) {
                 if (customerCRM[name]) delete customerCRM[name];
@@ -2190,20 +2287,77 @@
 
             const fullStyleDisplay = styleName + refillName;
             let textMsg = `✨ MUMU POCKET 預約報價單 ✨\n- 選擇項目：${fullStyleDisplay} ($${finalBasePrice})`;
+            let htmlMsg = `<div style="font-weight:bold; margin-bottom:6px;">✨ 選擇項目明細：</div>`;
+            htmlMsg += `<div>• 款式：${fullStyleDisplay} ($${finalBasePrice})</div>`;
+
             if (selectedAddons.length > 0) {
                 textMsg += `\n- 附加/卸睫：${selectedAddons.map(a => `${a.name}(+$${a.price})`).join(', ')}`;
+                selectedAddons.forEach(a => {
+                    htmlMsg += `<div>• 加購/卸睫：${a.name} (+$${a.price})</div>`;
+                });
             }
             if (promo > 0) {
                 textMsg += `\n- 優惠折扣：-$${promo}`;
+                htmlMsg += `<div>• 優惠折扣：-$${promo}</div>`;
             }
             textMsg += `\n- 應付總金額：$${finalTotal} 元`;
             if (deposit > 0) {
                 textMsg += `\n- 已付訂金：$${deposit} 元\n- 尾款應收：$${remainingBalance} 元`;
             }
+
+            htmlMsg += `<div style="margin-top:8px; border-top:1px dashed var(--accent-latte); padding-top:8px;">`;
+            htmlMsg += `<div>項目小計：$${subtotal.toLocaleString()}</div>`;
+            if(promo > 0) htmlMsg += `<div>優惠折抵：-$${promo.toLocaleString()}</div>`;
+            htmlMsg += `<div><strong>應付總金額：$${finalTotal.toLocaleString()}</strong></div>`;
+            if(deposit > 0) {
+                htmlMsg += `<div>已付訂金：$${deposit.toLocaleString()}</div>`;
+                htmlMsg += `<div>尾款應收：$${remainingBalance.toLocaleString()}</div>`;
+            }
+            htmlMsg += `</div>`;
+
+            quoteDetailCache.text = textMsg;
+            quoteDetailCache.html = htmlMsg;
             
             if(lineBookingBtn) {
                 lineBookingBtn.href = `https://line.me/R/msg/text/?${encodeURIComponent(textMsg)}`;
             }
+        }
+
+        window.resetQuote = function() {
+            document.querySelectorAll('input[name="quote-base-style"]').forEach(r => r.checked = false);
+            document.querySelectorAll('input[name="quote-addon"]').forEach(c => c.checked = false);
+            const ref7 = document.getElementById('quote-refill-7');
+            const ref8 = document.getElementById('quote-refill-8');
+            if(ref7) ref7.checked = false;
+            if(ref8) ref8.checked = false;
+            if(document.getElementById('quote-deposit-input')) document.getElementById('quote-deposit-input').value = 0;
+            if(document.getElementById('quote-promo-input')) document.getElementById('quote-promo-input').value = 0;
+            handleStyleChange();
+            alert('已重新選擇！');
+        }
+
+        window.copyQuoteText = function() {
+            calculateQuoteTotal();
+            if (!quoteDetailCache.text) return;
+            
+            navigator.clipboard.writeText(quoteDetailCache.text).then(() => {
+                alert('📋 報價明細文字已成功複製到剪貼簿！');
+            }).catch(err => {
+                alert('複製失敗，請手動複製。');
+            });
+        }
+
+        window.openQuoteDetailModal = function() {
+            calculateQuoteTotal();
+            const contentBox = document.getElementById('quote-detail-content');
+            if (contentBox) {
+                contentBox.innerHTML = quoteDetailCache.html || '目前尚未選擇任何項目';
+            }
+            document.getElementById('quote-detail-modal').style.display = 'flex';
+        }
+
+        window.closeQuoteDetailModal = function(event) {
+            document.getElementById('quote-detail-modal').style.display = 'none';
         }
     </script>
 </body>
