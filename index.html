@@ -715,7 +715,7 @@
     </div>
 
     <div id="main-app" style="display: none;">
-        <!-- 💡 更新後的頂部導覽列：1.月曆、2.帳務、3.財報、4.客戶、5.報價、6.庫存 -->
+        <!-- 頂部導覽列：1.月曆、2.帳務、3.財報、4.客戶、5.報價、6.庫存 -->
         <nav class="top-toolbar">
             <button class="nav-btn active" onclick="switchPage('calendar-page', this)">1. 月曆</button>
             <button class="nav-btn" onclick="switchPage('all-records-page', this)">2. 帳務</button>
@@ -1084,7 +1084,7 @@
             </div>
         </main>
 
-        <!-- 💡 6. 庫存管理分頁 -->
+        <!-- 6. 庫存管理分頁 -->
         <main id="inventory-page" class="page">
             <!-- 效期提醒專區 -->
             <div class="birthday-banner">
@@ -1163,7 +1163,7 @@
                 <input type="text" id="inv-name" class="input-style" style="background:#fff;" placeholder="例如: 速乾美睫膠水">
             </div>
             <div style="margin-bottom: 10px;">
-                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">開封日期</label>
+                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">開封日期 (選填)</label>
                 <input type="date" id="inv-open-date" class="input-style" style="background:#fff;">
             </div>
             <div style="margin-bottom: 10px;">
@@ -1333,7 +1333,7 @@
         let records = [];
         let customerCRM = {};
         let blacklist = {}; 
-        let inventory = []; // 💡 新增庫存狀態
+        let inventory = []; 
         let showBlacklistOnly = false; 
         let currentDate = new Date();
         const todayStr = formatDateString(new Date());
@@ -1357,7 +1357,7 @@
                 switchRecordMode('工作收支');
                 renderReports();
                 renderCustomerPage();
-                renderInventoryPage(); // 💡 初始化庫存畫面
+                renderInventoryPage(); 
                 initSortableLists();
                 calculateQuoteTotal();
             } else {
@@ -1413,7 +1413,7 @@
                 const localRec = localStorage.getItem('mumu_pocket_records');
                 const localCrm = localStorage.getItem('mumu_pocket_crm');
                 const localBl = localStorage.getItem('mumu_pocket_blacklist');
-                const localInv = localStorage.getItem('mumu_pocket_inventory'); // 💡 讀取本地庫存
+                const localInv = localStorage.getItem('mumu_pocket_inventory'); 
                 if (localRec) records = JSON.parse(localRec);
                 if (localCrm) customerCRM = JSON.parse(localCrm);
                 if (localBl) blacklist = JSON.parse(localBl);
@@ -1426,7 +1426,7 @@
                 localStorage.setItem('mumu_pocket_records', JSON.stringify(records));
                 localStorage.setItem('mumu_pocket_crm', JSON.stringify(customerCRM));
                 localStorage.setItem('mumu_pocket_blacklist', JSON.stringify(blacklist));
-                localStorage.setItem('mumu_pocket_inventory', JSON.stringify(inventory)); // 💡 儲存本地庫存
+                localStorage.setItem('mumu_pocket_inventory', JSON.stringify(inventory)); 
             } catch(e) { console.error("Local save error", e); }
         }
 
@@ -1441,7 +1441,7 @@
                     if (data.records) records = data.records;
                     if (data.customerCRM) customerCRM = data.customerCRM;
                     if (data.blacklist) blacklist = data.blacklist;
-                    if (data.inventory) inventory = data.inventory; // 💡 讀取雲端庫存
+                    if (data.inventory) inventory = data.inventory; 
                     saveLocalFallback();
                 } else {
                     await saveCloudData();
@@ -1460,7 +1460,7 @@
                     records: records,
                     customerCRM: customerCRM,
                     blacklist: blacklist,
-                    inventory: inventory, // 💡 同步雲端庫存
+                    inventory: inventory, 
                     lastUpdated: new Date().toISOString()
                 }, { merge: true });
             } catch (e) {
@@ -1534,6 +1534,7 @@
                     `;
                 }
             } else {
+                // 💡 生活開銷模式下，無論選收入或支出都不顯示客戶姓名欄位，改成佔滿整行
                 custWrapper.style.display = 'none';
                 depositRow.style.display = 'none';
                 document.getElementById('add-cust-name').value = '';
@@ -1623,7 +1624,7 @@
             if (pageId === 'reports-page') renderReports();
             if (pageId === 'calendar-page') { initCalendar(); renderDayRecords(); }
             if (pageId === 'customers-page') renderCustomerPage();
-            if (pageId === 'inventory-page') renderInventoryPage(); // 💡 切換至庫存頁面時重新渲染
+            if (pageId === 'inventory-page') renderInventoryPage(); 
             if (pageId === 'quote-page') { initSortableLists(); calculateQuoteTotal(); }
         }
 
@@ -1638,7 +1639,7 @@
             document.getElementById('modal-edit-note').value = rec.note || '';
             const nameWrapper = document.getElementById('modal-cust-wrapper');
             const depositWrapper = document.getElementById('modal-deposit-wrapper');
-            if(rec.type === '收入') {
+            if(rec.type === '收入' && (rec.mode || '工作收支') === '工作收支') {
                 nameWrapper.style.display = 'block'; depositWrapper.style.display = 'block';
                 document.getElementById('modal-edit-name').value = rec.custName || '';
                 document.getElementById('modal-edit-deposit-type').value = rec.depositType || '儲值金';
@@ -1668,7 +1669,7 @@
             records[recIndex].amount = amount;
             records[recIndex].note = note;
 
-            if (records[recIndex].type === '收入') {
+            if (records[recIndex].type === '收入' && (records[recIndex].mode || '工作收支') === '工作收支') {
                 const custName = document.getElementById('modal-edit-name').value.trim();
                 const depositType = document.getElementById('modal-edit-deposit-type').value;
                 const depositInput = document.getElementById('modal-edit-deposit').value.trim();
@@ -2290,7 +2291,7 @@
             }
         }
 
-        // ==================== 💡 庫存管理核心邏輯 ====================
+        // ==================== 庫存管理核心邏輯 ====================
         window.renderInventoryPage = function() {
             const container = document.getElementById('inventory-container');
             const expiryListEl = document.getElementById('inventory-expiry-list');
@@ -2307,7 +2308,6 @@
 
             const now = new Date();
 
-            // 依有效日期由近到遠排序（效期快到的排在最上面）
             let sortedInv = [...inventory].sort((a, b) => {
                 if (!a.expiryDate) return 1;
                 if (!b.expiryDate) return -1;
@@ -2352,7 +2352,7 @@
                         </div>
                     </div>
                     <div class="inv-details">
-                        <div>📅 開封日期: ${item.openDate || '未記錄'} | ⏳ 有效日期: ${item.expiryDate || '未記錄'}</div>
+                        <div>📅 開封日期: ${item.openDate || '未開封/無記錄'} | ⏳ 有效日期: ${item.expiryDate || '未記錄'}</div>
                         <div>📊 安全數量: ${item.safetyQty} | 💰 進貨價: $${item.price ? parseInt(item.price).toLocaleString() : '0'}</div>
                         <div class="inv-badges">
                             ${isExpirySoon ? `<span class="badge-tag badge-expiry">⚠️ 90天內到期 (${daysToExpiry}天)</span>` : ''}
@@ -2375,7 +2375,7 @@
         window.openAddInventoryModal = function() {
             document.getElementById('inv-edit-id').value = '';
             document.getElementById('inv-name').value = '';
-            document.getElementById('inv-open-date').value = todayStr;
+            document.getElementById('inv-open-date').value = ''; // 💡 開封日期預設空白（選填）
             document.getElementById('inv-expiry-date').value = '';
             document.getElementById('inv-current-qty').value = '1';
             document.getElementById('inv-safety-qty').value = '2';
@@ -2389,7 +2389,7 @@
             if (!item) return;
             document.getElementById('inv-edit-id').value = item.id;
             document.getElementById('inv-name').value = item.name;
-            document.getElementById('inv-open-date').value = item.openDate || '';
+            document.getElementById('inv-open-date').value = item.openDate || ''; // 💡 支援選填空白
             document.getElementById('inv-expiry-date').value = item.expiryDate || '';
             document.getElementById('inv-current-qty').value = item.currentQty;
             document.getElementById('inv-safety-qty').value = item.safetyQty;
@@ -2405,7 +2405,7 @@
         window.saveInventoryData = async function() {
             const id = document.getElementById('inv-edit-id').value;
             const name = document.getElementById('inv-name').value.trim();
-            const openDate = document.getElementById('inv-open-date').value;
+            const openDate = document.getElementById('inv-open-date').value; // 💡 可為空（選填）
             const expiryDate = document.getElementById('inv-expiry-date').value;
             const currentQty = parseInt(document.getElementById('inv-current-qty').value);
             const safetyQty = parseInt(document.getElementById('inv-safety-qty').value);
