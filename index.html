@@ -1534,7 +1534,6 @@
                     `;
                 }
             } else {
-                // 💡 生活開銷模式下，無論選收入或支出都不顯示客戶姓名欄位，改成佔滿整行
                 custWrapper.style.display = 'none';
                 depositRow.style.display = 'none';
                 document.getElementById('add-cust-name').value = '';
@@ -1740,7 +1739,17 @@
             dayRecords.forEach(rec => {
                 const li = document.createElement('li'); li.classList.add('record-item'); li.setAttribute('onclick', `openEditModal('${rec.id}', event)`);
                 const isInc = rec.type === '收入'; const typeClass = isInc ? 'inc' : 'exp';
-                const displayName = isInc ? (rec.custName ? rec.custName : '無名客') : (rec.mode === '生活開銷' ? '生活開銷' : '店鋪');
+                
+                // 💡 修正：生活開銷模式下不管收入或支出，主標題一律顯示輸入的項目名稱 (rec.project)
+                let displayName = '';
+                if (rec.mode === '生活開銷' || (!rec.mode && !rec.custName)) {
+                    displayName = rec.project;
+                } else if (isInc) {
+                    displayName = rec.custName ? rec.custName : '無名客';
+                } else {
+                    displayName = '店鋪';
+                }
+
                 li.innerHTML = `
                     <div class="rec-top">
                         <div><span class="type-tag ${typeClass}">${rec.mode || rec.type}</span><span style="font-weight:600;">${escapeHtml(displayName)}</span></div>
@@ -1858,9 +1867,20 @@
                 }
                 let item = document.createElement('div'); item.classList.add('record-item'); item.setAttribute('onclick', `openEditModal('${rec.id}', event)`);
                 let isInc = rec.type === '收入'; let typeClass = isInc ? 'inc' : 'exp';
+                
+                // 💡 修正：歷史帳務清單的生活開銷模式下，主標題也顯示項目名稱 (rec.project)
+                let displayName = '';
+                if (rec.mode === '生活開銷' || (!rec.mode && !rec.custName)) {
+                    displayName = rec.project;
+                } else if (isInc) {
+                    displayName = rec.custName ? rec.custName : '無名客';
+                } else {
+                    displayName = '店鋪';
+                }
+
                 item.innerHTML = `
                     <div class="rec-top">
-                        <div><span class="type-tag ${typeClass}">${rec.mode || rec.type}</span><span style="font-weight:600;">${escapeHtml(isInc ? rec.custName : (rec.mode === '生活開銷' ? '生活開銷' : '店鋪'))}</span></div>
+                        <div><span class="type-tag ${typeClass}">${rec.mode || rec.type}</span><span style="font-weight:600;">${escapeHtml(displayName)}</span></div>
                         <div><span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span><button class="btn-delete" onclick="deleteRecord('${rec.id}', 'all', event)">🗑️</button></div>
                     </div>
                     <div class="rec-mid">項目: ${escapeHtml(rec.project)} | 支付: ${rec.paymentMethod || '現金'}</div>`;
@@ -2375,7 +2395,7 @@
         window.openAddInventoryModal = function() {
             document.getElementById('inv-edit-id').value = '';
             document.getElementById('inv-name').value = '';
-            document.getElementById('inv-open-date').value = ''; // 💡 開封日期預設空白（選填）
+            document.getElementById('inv-open-date').value = ''; 
             document.getElementById('inv-expiry-date').value = '';
             document.getElementById('inv-current-qty').value = '1';
             document.getElementById('inv-safety-qty').value = '2';
@@ -2389,7 +2409,7 @@
             if (!item) return;
             document.getElementById('inv-edit-id').value = item.id;
             document.getElementById('inv-name').value = item.name;
-            document.getElementById('inv-open-date').value = item.openDate || ''; // 💡 支援選填空白
+            document.getElementById('inv-open-date').value = item.openDate || ''; 
             document.getElementById('inv-expiry-date').value = item.expiryDate || '';
             document.getElementById('inv-current-qty').value = item.currentQty;
             document.getElementById('inv-safety-qty').value = item.safetyQty;
@@ -2405,7 +2425,7 @@
         window.saveInventoryData = async function() {
             const id = document.getElementById('inv-edit-id').value;
             const name = document.getElementById('inv-name').value.trim();
-            const openDate = document.getElementById('inv-open-date').value; // 💡 可為空（選填）
+            const openDate = document.getElementById('inv-open-date').value; 
             const expiryDate = document.getElementById('inv-expiry-date').value;
             const currentQty = parseInt(document.getElementById('inv-current-qty').value);
             const safetyQty = parseInt(document.getElementById('inv-safety-qty').value);
