@@ -498,6 +498,8 @@
             border-radius: 24px;
             width: 100%;
             max-width: 400px;
+            max-height: 90vh;
+            overflow-y: auto;
             padding: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.15);
             animation: fadeIn 0.2s ease-out;
@@ -1276,7 +1278,35 @@
 
             <div style="margin-bottom: 12px;">
                 <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">項目</label>
-                <input type="text" id="modal-edit-project" class="input-style" style="background:#fff;">
+                <input type="text" id="modal-edit-project" class="input-style" style="background:#fff;" oninput="checkModalDynamicFields()">
+            </div>
+
+            <!-- 修改視窗：美睫施作記錄欄位 -->
+            <div id="modal-lash-fields-container" style="display:none; background:var(--bg-cream); padding:10px; border-radius:12px; border:1px solid var(--accent-latte); margin-bottom:12px;">
+                <div style="font-size:12px; font-weight:bold; color:var(--primary-color); margin-bottom:6px;">✨ 美睫施作記錄欄位</div>
+                <div class="form-group">
+                    <input type="text" id="modal-lash-style" class="input-style" style="background:#fff;" placeholder="款式 (例: 經典單根)">
+                    <input type="text" id="modal-lash-curl-len" class="input-style" style="background:#fff;" placeholder="卷度與長度 (例: C 9-11)">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="modal-lash-thickness" class="input-style" style="background:#fff;" placeholder="粗度 (例: 0.10)">
+                    <input type="text" id="modal-lash-glue" class="input-style" style="background:#fff;" placeholder="膠水 (例: 速乾型)">
+                </div>
+                <div class="form-group" style="grid-template-columns: 1fr; margin-bottom:0;">
+                    <input type="text" id="modal-lash-note" class="input-style" style="background:#fff;" placeholder="備註/眼型說明">
+                </div>
+            </div>
+
+            <!-- 修改視窗：睫毛管理記錄欄位 -->
+            <div id="modal-mgmt-fields-container" style="display:none; background:var(--bg-cream); padding:10px; border-radius:12px; border:1px solid var(--accent-latte); margin-bottom:12px;">
+                <div style="font-size:12px; font-weight:bold; color:var(--primary-color); margin-bottom:6px;">✨ 睫毛管理記錄欄位</div>
+                <div class="form-group">
+                    <input type="text" id="modal-mgmt-style-name" class="input-style" style="background:#fff;" placeholder="款式名稱 (例: 角蛋白精靈)">
+                    <input type="text" id="modal-mgmt-curl-size" class="input-style" style="background:#fff;" placeholder="捲度/尺寸">
+                </div>
+                <div class="form-group" style="grid-template-columns: 1fr; margin-bottom:0;">
+                    <input type="text" id="modal-mgmt-note" class="input-style" style="background:#fff;" placeholder="備註/眼型說明">
+                </div>
             </div>
 
             <div style="margin-bottom: 12px;">
@@ -1672,7 +1702,6 @@
 
         window.quickSelectProject = function(projectName) {
             const cleanName = projectName.replace(/^[+＋]/, '').trim();
-            const type = document.getElementById('add-type').value;
             const projectInput = document.getElementById('add-project');
 
             if (currentRecordMode === '工作收支') {
@@ -1698,6 +1727,23 @@
             const mgmtBox = document.getElementById('lash-mgmt-fields-container');
 
             if (currentRecordMode === '工作收支' && document.getElementById('add-type').value === '收入') {
+                lashBox.style.display = projectVal.includes('美睫') ? 'block' : 'none';
+                mgmtBox.style.display = projectVal.includes('睫毛管理') ? 'block' : 'none';
+            } else {
+                lashBox.style.display = 'none';
+                mgmtBox.style.display = 'none';
+            }
+        }
+
+        window.checkModalDynamicFields = function() {
+            const id = document.getElementById('edit-id').value;
+            const rec = records.find(r => r.id === id);
+            const projectVal = document.getElementById('modal-edit-project').value.trim();
+            const lashBox = document.getElementById('modal-lash-fields-container');
+            const mgmtBox = document.getElementById('modal-mgmt-fields-container');
+
+            const isWorkIncome = rec ? (rec.type === '收入' && (rec.mode || '工作收支') === '工作收支') : true;
+            if (isWorkIncome) {
                 lashBox.style.display = projectVal.includes('美睫') ? 'block' : 'none';
                 mgmtBox.style.display = projectVal.includes('睫毛管理') ? 'block' : 'none';
             } else {
@@ -1757,6 +1803,18 @@
             document.getElementById('modal-edit-project').value = rec.project;
             document.getElementById('modal-edit-amount').value = rec.amount;
             document.getElementById('modal-edit-note').value = rec.note || '';
+
+            const d = rec.lashDetails || {};
+            document.getElementById('modal-lash-style').value = d.style || '';
+            document.getElementById('modal-lash-curl-len').value = d.curlLen || '';
+            document.getElementById('modal-lash-thickness').value = d.thickness || '';
+            document.getElementById('modal-lash-glue').value = d.glue || '';
+            document.getElementById('modal-lash-note').value = d.lashNote || '';
+
+            document.getElementById('modal-mgmt-style-name').value = d.styleName || '';
+            document.getElementById('modal-mgmt-curl-size').value = d.curlSize || '';
+            document.getElementById('modal-mgmt-note').value = d.mgmtNote || '';
+
             const nameWrapper = document.getElementById('modal-cust-wrapper');
             const depositWrapper = document.getElementById('modal-deposit-wrapper');
             if(rec.type === '收入' && (rec.mode || '工作收支') === '工作收支') {
@@ -1767,6 +1825,7 @@
             } else {
                 nameWrapper.style.display = 'none'; depositWrapper.style.display = 'none';
             }
+            checkModalDynamicFields();
             document.getElementById('edit-modal').style.display = 'flex';
         }
 
@@ -1784,10 +1843,30 @@
             const note = document.getElementById('modal-edit-note').value.trim();
             if (!date || isNaN(amount) || amount < 0) return alert('請輸入有效資料');
             
+            const finalProject = project || (records[recIndex].type === '收入' ? '美睫服務' : '日常開銷');
             records[recIndex].date = date;
-            records[recIndex].project = project || (records[recIndex].type === '收入' ? '美睫服務' : '日常開銷');
+            records[recIndex].project = finalProject;
             records[recIndex].amount = amount;
             records[recIndex].note = note;
+
+            const existingDetails = records[recIndex].lashDetails || {};
+            const updatedDetails = { ...existingDetails };
+
+            if (finalProject.includes('美睫')) {
+                updatedDetails.style = document.getElementById('modal-lash-style').value.trim();
+                updatedDetails.curlLen = document.getElementById('modal-lash-curl-len').value.trim();
+                updatedDetails.thickness = document.getElementById('modal-lash-thickness').value.trim();
+                updatedDetails.glue = document.getElementById('modal-lash-glue').value.trim();
+                updatedDetails.lashNote = document.getElementById('modal-lash-note').value.trim();
+            }
+
+            if (finalProject.includes('睫毛管理')) {
+                updatedDetails.styleName = document.getElementById('modal-mgmt-style-name').value.trim();
+                updatedDetails.curlSize = document.getElementById('modal-mgmt-curl-size').value.trim();
+                updatedDetails.mgmtNote = document.getElementById('modal-mgmt-note').value.trim();
+            }
+
+            records[recIndex].lashDetails = updatedDetails;
 
             if (records[recIndex].type === '收入' && (records[recIndex].mode || '工作收支') === '工作收支') {
                 const custName = document.getElementById('modal-edit-name').value.trim();
@@ -1868,12 +1947,17 @@
                     displayName = '店鋪';
                 }
 
+                const d = rec.lashDetails || {};
+                const mgmtSummary = (d.styleName || d.curlSize || d.mgmtNote)
+                    ? ` | 睫毛管理: ${[d.styleName, d.curlSize, d.mgmtNote].filter(Boolean).join(' / ')}`
+                    : '';
+
                 li.innerHTML = `
                     <div class="rec-top">
                         <div><span class="type-tag ${typeClass}">${rec.mode || rec.type}</span><span style="font-weight:600;">${escapeHtml(displayName)}</span></div>
                         <div><span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span><button class="btn-delete" onclick="deleteRecord('${rec.id}', 'day', event)">🗑️</button></div>
                     </div>
-                    <div class="rec-mid">項目: ${escapeHtml(rec.project)} | 支付方式: ${rec.paymentMethod || '現金'}</div>
+                    <div class="rec-mid">項目: ${escapeHtml(rec.project)} | 支付方式: ${rec.paymentMethod || '現金'}${mgmtSummary ? escapeHtml(mgmtSummary) : ''}</div>
                     <div class="rec-bot">
                         ${isInc && rec.deposit !== undefined && rec.deposit !== '' ? `<span>${rec.depositType || '儲值金'}餘額: ${formatDepositDisplay(rec.deposit, rec.depositType)}</span>` : ''}
                         ${rec.note ? `<span style="margin-left:10px;">📝 ${escapeHtml(rec.note)}</span>` : ''}
