@@ -806,7 +806,7 @@
                     <div class="form-group">
                         <div style="grid-column: 1 / -1;">
                             <div class="quick-tag-wrapper" id="quick-tags-container"></div>
-                            <input type="text" id="add-project" class="input-style" style="margin-top:4px;" placeholder="施作項目 或 自行填寫（工作支出可複選）" oninput="syncQuickTagHighlights(); checkDynamicFields();">
+                            <input type="text" id="add-project" class="input-style" style="margin-top:4px;" placeholder="施作項目 或 自行填寫（可點選上方標籤複選）" oninput="syncQuickTagHighlights(); checkDynamicFields();">
                         </div>
                     </div>
 
@@ -1612,13 +1612,13 @@
                 if (type === '收入') {
                     custWrapper.style.display = 'block'; 
                     depositRow.style.display = 'grid'; 
-                    projectInput.placeholder = '施作項目 或 自行填寫';
+                    projectInput.placeholder = '施作項目 或 自行填寫（可複選，如：美睫+睫毛雨衣）';
                     renderQuickTagButtons([
-                        '＋美睫',
-                        '＋睫毛管理',
-                        '＋睫毛雨衣',
-                        '＋黑雨衣',
-                        '＋其他'
+                        '+美睫',
+                        '+睫毛管理',
+                        '+睫毛雨衣',
+                        '+黑雨衣',
+                        '+其他'
                     ]);
                 } else {
                     custWrapper.style.display = 'none'; 
@@ -1675,8 +1675,8 @@
             const type = document.getElementById('add-type').value;
             const projectInput = document.getElementById('add-project');
 
-            if (currentRecordMode === '工作收支' && type === '支出') {
-                const rawParts = projectInput.value.split('+').map(s => s.trim()).filter(Boolean);
+            if (currentRecordMode === '工作收支') {
+                const rawParts = projectInput.value.split(/[+＋]/).map(s => s.trim()).filter(Boolean);
                 const idx = rawParts.indexOf(cleanName);
                 if (idx >= 0) {
                     rawParts.splice(idx, 1);
@@ -1698,16 +1698,8 @@
             const mgmtBox = document.getElementById('lash-mgmt-fields-container');
 
             if (currentRecordMode === '工作收支' && document.getElementById('add-type').value === '收入') {
-                if (projectVal.includes('美睫')) {
-                    lashBox.style.display = 'block';
-                    mgmtBox.style.display = 'none';
-                } else if (projectVal.includes('睫毛管理')) {
-                    lashBox.style.display = 'none';
-                    mgmtBox.style.display = 'block';
-                } else {
-                    lashBox.style.display = 'none';
-                    mgmtBox.style.display = 'none';
-                }
+                lashBox.style.display = projectVal.includes('美睫') ? 'block' : 'none';
+                mgmtBox.style.display = projectVal.includes('睫毛管理') ? 'block' : 'none';
             } else {
                 lashBox.style.display = 'none';
                 mgmtBox.style.display = 'none';
@@ -1907,19 +1899,16 @@
 
             let lashDetails = {};
             if (project.includes('美睫')) {
-                lashDetails = {
-                    style: document.getElementById('lash-style').value.trim(),
-                    curlLen: document.getElementById('lash-curl-len').value.trim(),
-                    thickness: document.getElementById('lash-thickness').value.trim(),
-                    glue: document.getElementById('lash-glue').value.trim(),
-                    lashNote: document.getElementById('lash-note').value.trim()
-                };
-            } else if (project.includes('睫毛管理')) {
-                lashDetails = {
-                    styleName: document.getElementById('mgmt-style-name').value.trim(),
-                    curlSize: document.getElementById('mgmt-curl-size').value.trim(),
-                    mgmtNote: document.getElementById('mgmt-note').value.trim()
-                };
+                lashDetails.style = document.getElementById('lash-style').value.trim();
+                lashDetails.curlLen = document.getElementById('lash-curl-len').value.trim();
+                lashDetails.thickness = document.getElementById('lash-thickness').value.trim();
+                lashDetails.glue = document.getElementById('lash-glue').value.trim();
+                lashDetails.lashNote = document.getElementById('lash-note').value.trim();
+            }
+            if (project.includes('睫毛管理')) {
+                lashDetails.styleName = document.getElementById('mgmt-style-name').value.trim();
+                lashDetails.curlSize = document.getElementById('mgmt-curl-size').value.trim();
+                lashDetails.mgmtNote = document.getElementById('mgmt-note').value.trim();
             }
 
             records.push({
