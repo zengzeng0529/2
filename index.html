@@ -100,16 +100,6 @@
             gap: 10px;
             white-space: nowrap;
         }
-        .sync-btn {
-            background: var(--pure-white);
-            border: 1px solid var(--accent-latte);
-            color: var(--text-dark);
-            border-radius: 8px;
-            padding: 2px 8px;
-            font-size: 11px;
-            cursor: pointer;
-            font-weight: 600;
-        }
         .logout-btn {
             background: none;
             border: none;
@@ -369,6 +359,11 @@
             transition: all 0.2s;
         }
         .quick-tag:hover { background-color: var(--accent-latte); }
+        .quick-tag.selected-tag {
+            background-color: var(--text-dark);
+            color: var(--pure-white);
+            border-color: var(--text-dark);
+        }
 
         .btn-submit {
             width: 100%;
@@ -468,7 +463,6 @@
         .account-card:hover { background: var(--main-butter); }
         .account-card p { font-size: 11px; color: var(--text-muted); margin-bottom: 3px; }
         .account-card h4 { font-size: 15px; font-weight: 700; color: var(--text-dark); }
-        .stat-row { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 14px; }
         
         .chart-section-box {
             background: var(--bg-cream);
@@ -760,7 +754,6 @@
                 <span id="cloud-sync-status" style="margin-left:6px; font-weight:600;"></span>
             </div>
             <div class="user-bar-actions">
-                <button class="sync-btn" onclick="manualSyncCloud()">🔄 同步</button>
                 <button class="logout-btn" onclick="handleLogout()">登出 ➔</button>
             </div>
         </div>
@@ -813,7 +806,7 @@
                     <div class="form-group">
                         <div style="grid-column: 1 / -1;">
                             <div class="quick-tag-wrapper" id="quick-tags-container"></div>
-                            <input type="text" id="add-project" class="input-style" style="margin-top:4px;" placeholder="施作項目 或 自行填寫" oninput="checkDynamicFields()">
+                            <input type="text" id="add-project" class="input-style" style="margin-top:4px;" placeholder="施作項目 或 自行填寫（工作支出可複選）" oninput="syncQuickTagHighlights(); checkDynamicFields();">
                         </div>
                     </div>
 
@@ -839,6 +832,9 @@
                         <div class="form-group">
                             <input type="text" id="mgmt-style-name" class="input-style" style="background:#fff;" placeholder="款式名稱 (例: 角蛋白精靈)">
                             <input type="text" id="mgmt-curl-size" class="input-style" style="background:#fff;" placeholder="捲度/尺寸">
+                        </div>
+                        <div class="form-group" style="grid-template-columns: 1fr;">
+                            <input type="text" id="mgmt-note" class="input-style" style="background:#fff;" placeholder="備註/眼型說明">
                         </div>
                     </div>
 
@@ -1369,6 +1365,7 @@
         let selectedDateStr = todayStr;
         let currentRecordMode = '工作收支';
         let quoteDetailCache = { text: '', html: '' };
+        let syncTimer = null;
 
         function setSyncStatus(text, color = '#4A3E3D') {
             const el = document.getElementById('cloud-sync-status');
@@ -1398,9 +1395,9 @@
                 document.getElementById('user-display-email').innerText = `帳號：${user.email}`;
                 document.getElementById('auth-page').style.display = 'none';
                 document.getElementById('main-app').style.display = 'block';
-                setSyncStatus('⏳ 同步中...', '#8C7A78');
+                setSyncStatus('⏳ 自動同步中...', '#8C7A78');
 
-                await loadCloudData(false);
+                await loadCloudData();
                 refreshAllViews();
             } else {
                 currentUser = null;
@@ -1408,13 +1405,6 @@
                 document.getElementById('main-app').style.display = 'none';
             }
         });
-
-        window.manualSyncCloud = async function() {
-            if (!currentUser) return alert('請先登入帳號');
-            setSyncStatus('⏳ 同步中...', '#8C7A78');
-            await loadCloudData(true);
-            refreshAllViews();
-        }
 
         function initSortableLists() {
             document.querySelectorAll('.sortable-container').forEach(container => {
@@ -1485,7 +1475,7 @@
             } catch(e) { console.error("Local save error", e); }
         }
 
-        async function loadCloudData(showAlertOnSuccess = false) {
+        async function loadCloudData(silent = false) {
             loadLocalFallback();
             if (!currentUser) return;
             try {
@@ -1498,22 +1488,23 @@
                     blacklist = (data.blacklist && typeof data.blacklist === 'object') ? data.blacklist : {};
                     inventory = Array.isArray(data.inventory) ? data.inventory : [];
                     saveLocalFallback();
-                    setSyncStatus('☁️ 已同步', '#5C8A3C');
-                    if (showAlertOnSuccess) alert('已從雲端取得最新資料！');
+                    setSyncStatus('☁️ 自動同步已啟用', '#5C8A3C');
                 } else {
-                    const ok = await saveCloudData(false);
-                    if (ok && showAlertOnSuccess) alert('雲端資料已同步！');
+                    await saveCloudData(false);
                 }
             } catch (e) {
                 console.error("雲端讀取失敗：", e);
-                setSyncStatus('⚠️ 雲端讀取失敗', '#E07A5F');
-                alert(`無法從雲端讀取資料（${e.code || 'Error'}）：${e.message}\n請確認 Firebase Console 已建立 Firestore 資料庫且安全規則允許登入使用者讀寫。`);
+                setSyncStatus('⚠️ 雲端連線異常', '#E07A5F');
+                if (!silent) {
+                    alert(`無法自動從雲端讀取資料（${e.code || 'Error'}）：請確認 Firebase Firestore 規則已按下「發布」。`);
+                }
             }
         }
 
         async function saveCloudData(showAlertOnError = true) {
             saveLocalFallback();
             if (!currentUser) return false;
+            setSyncStatus('⏳ 自動儲存同步中...', '#8C7A78');
             try {
                 const userDocRef = doc(db, "users", currentUser.uid);
                 await setDoc(userDocRef, {
@@ -1523,16 +1514,24 @@
                     inventory: inventory,
                     lastUpdated: new Date().toISOString()
                 }, { merge: true });
-                setSyncStatus('☁️ 已同步', '#5C8A3C');
+                setSyncStatus('☁️ 自動同步已啟用', '#5C8A3C');
                 return true;
             } catch (e) {
-                console.error("同步至雲端失敗：", e);
-                setSyncStatus('⚠️ 僅存本機(同步失敗)', '#E07A5F');
+                console.error("自動同步至雲端失敗：", e);
+                setSyncStatus('⚠️ 雲端同步失敗', '#E07A5F');
                 if (showAlertOnError) {
-                    alert(`資料已暫存於本機，但「同步至雲端」失敗（${e.code || 'Error'}）：${e.message}\n因此手機端目前無法看到此變更。請檢查 Firebase Firestore 權限設定。`);
+                    alert(`資料已存於本機，但自動同步至雲端失敗（${e.code || 'Error'}）：請確認 Firestore「規則」分頁已按下「發布」。`);
                 }
                 return false;
             }
+        }
+
+        function scheduleAutoSave() {
+            saveLocalFallback();
+            if (syncTimer) clearTimeout(syncTimer);
+            syncTimer = setTimeout(() => {
+                saveCloudData(true);
+            }, 250);
         }
 
         function formatDateString(dateObj) {
@@ -1572,69 +1571,124 @@
             }
         }
 
+        function renderQuickTagButtons(tags) {
+            const tagsContainer = document.getElementById('quick-tags-container');
+            tagsContainer.innerHTML = '';
+            tags.forEach(rawLabel => {
+                const cleanName = rawLabel.replace(/^[+＋]/, '');
+                const span = document.createElement('span');
+                span.className = 'quick-tag';
+                span.dataset.itemName = cleanName;
+                span.innerText = rawLabel;
+                span.onclick = () => quickSelectProject(rawLabel);
+                tagsContainer.appendChild(span);
+            });
+            syncQuickTagHighlights();
+        }
+
+        window.syncQuickTagHighlights = function() {
+            const projectInput = document.getElementById('add-project');
+            const tagsContainer = document.getElementById('quick-tags-container');
+            if (!projectInput || !tagsContainer) return;
+            const currentVal = projectInput.value.trim();
+            const parts = currentVal.split(/[+＋、,，]/).map(s => s.trim()).filter(Boolean);
+            tagsContainer.querySelectorAll('.quick-tag').forEach(tagEl => {
+                const name = tagEl.dataset.itemName;
+                if (parts.includes(name)) {
+                    tagEl.classList.add('selected-tag');
+                } else {
+                    tagEl.classList.remove('selected-tag');
+                }
+            });
+        }
+
         window.handleTypeChange = function() {
             const type = document.getElementById('add-type').value;
             const custWrapper = document.getElementById('cust-name-wrapper');
             const depositRow = document.getElementById('deposit-wrapper-row');
-            const tagsContainer = document.getElementById('quick-tags-container');
+            const projectInput = document.getElementById('add-project');
             
             if (currentRecordMode === '工作收支') {
                 if (type === '收入') {
                     custWrapper.style.display = 'block'; 
                     depositRow.style.display = 'grid'; 
-                    tagsContainer.innerHTML = `
-                        <span class="quick-tag" onclick="quickSelectProject('+美睫')">＋美睫</span>
-                        <span class="quick-tag" onclick="quickSelectProject('+睫毛管理')">＋睫毛管理</span>
-                        <span class="quick-tag" onclick="quickSelectProject('+睫毛雨衣')">＋睫毛雨衣</span>
-                        <span class="quick-tag" onclick="quickSelectProject('+黑雨衣')">＋黑雨衣</span>
-                        <span class="quick-tag" onclick="quickSelectProject('+其他')">＋其他</span>
-                    `;
+                    projectInput.placeholder = '施作項目 或 自行填寫';
+                    renderQuickTagButtons([
+                        '＋美睫',
+                        '＋睫毛管理',
+                        '＋睫毛雨衣',
+                        '＋黑雨衣',
+                        '＋其他'
+                    ]);
                 } else {
                     custWrapper.style.display = 'none'; 
                     depositRow.style.display = 'none';
                     document.getElementById('add-cust-name').value = ''; 
                     document.getElementById('add-deposit').value = '';
-                    tagsContainer.innerHTML = `
-                        <span class="quick-tag" onclick="quickSelectProject('+睫毛')">+睫毛</span>
-                        <span class="quick-tag" onclick="quickSelectProject('+膠水')">+膠水</span>
-                        <span class="quick-tag" onclick="quickSelectProject('+鑷子/工具')">+鑷子/工具</span>
-                        <span class="quick-tag" onclick="quickSelectProject('+眼貼')">+眼貼</span>
-                        <span class="quick-tag" onclick="quickSelectProject('+保養品/精華')">+保養品/精華</span>
-                        <span class="quick-tag" onclick="quickSelectProject('+其他耗材')">+其他耗材</span>
-                    `;
+                    projectInput.placeholder = '支出項目（可點選上方標籤複選，如：美睫+睫毛雨衣）';
+                    renderQuickTagButtons([
+                        '+美睫',
+                        '+睫毛管理',
+                        '+睫毛雨衣',
+                        '+黑雨衣',
+                        '+睫毛',
+                        '+膠水',
+                        '+鑷子/工具',
+                        '+眼貼',
+                        '+保養品/精華',
+                        '+其他耗材'
+                    ]);
                 }
             } else {
                 custWrapper.style.display = 'none';
                 depositRow.style.display = 'none';
                 document.getElementById('add-cust-name').value = '';
                 document.getElementById('add-deposit').value = '';
+                projectInput.placeholder = '項目 或 自行填寫';
                 
                 if (type === '收入') {
-                    tagsContainer.innerHTML = `
-                        <span class="quick-tag" onclick="quickSelectProject('+薪水')">+薪水</span>
-                        <span class="quick-tag" onclick="quickSelectProject('+股息')">+股息</span>
-                        <span class="quick-tag" onclick="quickSelectProject('+獎金')">+獎金</span>
-                        <span class="quick-tag" onclick="quickSelectProject('+其他')">+其他</span>
-                    `;
+                    renderQuickTagButtons([
+                        '+薪水',
+                        '+股息',
+                        '+獎金',
+                        '+其他'
+                    ]);
                 } else {
-                    tagsContainer.innerHTML = `
-                        <span class="quick-tag" onclick="quickSelectProject('+餐飲')">+餐飲</span>
-                        <span class="quick-tag" onclick="quickSelectProject('+房貸')">+房貸</span>
-                        <span class="quick-tag" onclick="quickSelectProject('+交通')">+交通</span>
-                        <span class="quick-tag" onclick="quickSelectProject('+購物')">+購物</span>
-                        <span class="quick-tag" onclick="quickSelectProject('+居家')">+居家</span>
-                        <span class="quick-tag" onclick="quickSelectProject('+娛樂')">+娛樂</span>
-                        <span class="quick-tag" onclick="quickSelectProject('+醫療')">+醫療</span>
-                        <span class="quick-tag" onclick="quickSelectProject('+社交')">+社交</span>
-                        <span class="quick-tag" onclick="quickSelectProject('+訂閱')">+訂閱</span>
-                    `;
+                    renderQuickTagButtons([
+                        '+餐飲',
+                        '+房貸',
+                        '+交通',
+                        '+購物',
+                        '+居家',
+                        '+娛樂',
+                        '+醫療',
+                        '+社交',
+                        '+訂閱'
+                    ]);
                 }
             }
             checkDynamicFields();
         }
 
         window.quickSelectProject = function(projectName) {
-            document.getElementById('add-project').value = projectName.replace('+', '');
+            const cleanName = projectName.replace(/^[+＋]/, '').trim();
+            const type = document.getElementById('add-type').value;
+            const projectInput = document.getElementById('add-project');
+
+            if (currentRecordMode === '工作收支' && type === '支出') {
+                const rawParts = projectInput.value.split('+').map(s => s.trim()).filter(Boolean);
+                const idx = rawParts.indexOf(cleanName);
+                if (idx >= 0) {
+                    rawParts.splice(idx, 1);
+                } else {
+                    rawParts.push(cleanName);
+                }
+                projectInput.value = rawParts.join('+');
+            } else {
+                projectInput.value = cleanName;
+            }
+
+            syncQuickTagHighlights();
             checkDynamicFields();
         }
 
@@ -1684,11 +1738,16 @@
             }
         }
 
-        window.switchPage = function(pageId, btnElement) {
+        window.switchPage = async function(pageId, btnElement) {
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             btnElement.classList.add('active');
             document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
+
+            if (currentUser && ['calendar-page', 'all-records-page', 'reports-page', 'customers-page', 'inventory-page'].includes(pageId)) {
+                await loadCloudData(true);
+            }
+
             if (pageId === 'all-records-page') renderAllRecords();
             if (pageId === 'reports-page') renderReports();
             if (pageId === 'calendar-page') { initCalendar(); renderDayRecords(); }
@@ -1723,7 +1782,7 @@
             document.getElementById('edit-modal').style.display = 'none';
         }
 
-        window.updateRecordData = async function() {
+        window.updateRecordData = function() {
             const id = document.getElementById('edit-id').value;
             const recIndex = records.findIndex(r => r.id === id);
             if(recIndex === -1) return;
@@ -1754,8 +1813,7 @@
             renderReports(); 
             renderCustomerPage();
             renderAllRecords();
-            const synced = await saveCloudData();
-            if (synced) alert('修改紀錄成功並已同步雲端！');
+            scheduleAutoSave();
         }
 
         function initCalendar() {
@@ -1832,7 +1890,7 @@
             });
         }
 
-        window.addRecord = async function() {
+        window.addRecord = function() {
             const type = document.getElementById('add-type').value;
             const custName = (currentRecordMode === '工作收支' && type === '收入') ? document.getElementById('add-cust-name').value.trim() : '';
             const paymentMethod = document.getElementById('add-payment').value;
@@ -1859,7 +1917,8 @@
             } else if (project.includes('睫毛管理')) {
                 lashDetails = {
                     styleName: document.getElementById('mgmt-style-name').value.trim(),
-                    curlSize: document.getElementById('mgmt-curl-size').value.trim()
+                    curlSize: document.getElementById('mgmt-curl-size').value.trim(),
+                    mgmtNote: document.getElementById('mgmt-note').value.trim()
                 };
             }
 
@@ -1894,6 +1953,8 @@
             document.getElementById('lash-note').value = '';
             document.getElementById('mgmt-style-name').value = '';
             document.getElementById('mgmt-curl-size').value = '';
+            document.getElementById('mgmt-note').value = '';
+            syncQuickTagHighlights();
             checkDynamicFields();
             
             initCalendar(); 
@@ -1901,11 +1962,10 @@
             renderReports(); 
             renderCustomerPage();
             renderAllRecords();
-            const synced = await saveCloudData();
-            if (synced) alert('新增紀錄成功並已同步雲端！');
+            scheduleAutoSave();
         }
 
-        window.deleteRecord = async function(id, pageSource, event) {
+        window.deleteRecord = function(id, pageSource, event) {
             if(event) event.stopPropagation();
             if(confirm('❌ 確定要刪除這筆紀錄嗎？')) {
                 records = records.filter(r => r.id !== id);
@@ -1914,7 +1974,7 @@
                 renderReports(); 
                 renderCustomerPage();
                 renderAllRecords();
-                await saveCloudData();
+                scheduleAutoSave();
             }
         }
 
@@ -2261,7 +2321,7 @@
                             <div class="crm-action-row">
                                 <button class="btn-mini-delete" onclick="deleteCustomerData(${jsName})">🗑️ 刪除</button>
                                 <button class="btn-mini-blacklist" onclick="toggleBlacklist(${jsName})">🖤 ${blacklist[cust.name] ? '解除黑名單' : '黑名單'}</button>
-                                <button class="btn-mini-save" onclick="saveCRMData(${idx}, ${jsName})">💾 立即儲存</button>
+                                <button class="btn-mini-save" onclick="saveCRMData(${idx}, ${jsName})">💾 儲存變更</button>
                             </div>
                         </div>
                         <div style="max-height:120px; overflow-y:auto; font-size:12px; margin-top:8px;">
@@ -2294,7 +2354,7 @@
                 <div><strong>卷度與長度/尺寸：</strong>${escapeHtml(d.curlLen || d.curlSize || '未記錄')}</div>
                 <div><strong>粗度：</strong>${escapeHtml(d.thickness || '不適用')}</div>
                 <div><strong>膠水：</strong>${escapeHtml(d.glue || '不適用')}</div>
-                <div><strong>眼型/備註：</strong>${escapeHtml(d.lashNote || r.note || '無')}</div>
+                <div><strong>眼型/備註：</strong>${escapeHtml(d.lashNote || d.mgmtNote || r.note || '無')}</div>
             `;
             document.getElementById('record-detail-content').innerHTML = html;
             document.getElementById('record-detail-modal').style.display = 'flex';
@@ -2303,18 +2363,14 @@
             document.getElementById('record-detail-modal').style.display = 'none';
         }
 
-        window.toggleBlacklist = async function(name) {
+        window.toggleBlacklist = function(name) {
             if (blacklist[name]) {
                 delete blacklist[name];
-                renderCustomerPage();
-                const synced = await saveCloudData();
-                if (synced) alert(`已將「${name}」移出黑名單並同步雲端`);
             } else {
                 blacklist[name] = true;
-                renderCustomerPage();
-                const synced = await saveCloudData();
-                if (synced) alert(`已將「${name}」加入黑名單並同步雲端 🖤`);
             }
+            renderCustomerPage();
+            scheduleAutoSave();
         }
 
         window.openAddCustomerModal = function() {
@@ -2328,7 +2384,7 @@
             document.getElementById('add-customer-modal').style.display = 'none';
         }
 
-        window.saveNewCustomer = async function() {
+        window.saveNewCustomer = function() {
             const name = document.getElementById('new-cust-name').value.trim();
             const phone = document.getElementById('new-cust-phone').value.trim();
             const birth = document.getElementById('new-cust-birth').value.trim();
@@ -2340,11 +2396,10 @@
             customerCRM[name] = { phone: phone, birthday: birth, tag: tag, note: note };
             closeAddCustomerModal();
             renderCustomerPage();
-            const synced = await saveCloudData();
-            if (synced) alert(`成功新增客戶「${name}」並同步至雲端！`);
+            scheduleAutoSave();
         }
 
-        window.saveCRMData = async function(idx, oldName) {
+        window.saveCRMData = function(idx, oldName) {
             const newName = document.getElementById(`edit-name-${idx}`).value.trim();
             const phoneVal = document.getElementById(`edit-phone-${idx}`).value.trim();
             const birthVal = document.getElementById(`edit-birth-${idx}`).value.trim();
@@ -2363,17 +2418,15 @@
             }
             renderCustomerPage();
             renderReports();
-            const synced = await saveCloudData();
-            if (synced) alert(`客戶「${newName}」資料已儲存並同步至雲端！`);
+            scheduleAutoSave();
         }
 
-        window.deleteCustomerData = async function(name) {
+        window.deleteCustomerData = function(name) {
             if (confirm('確定要刪除此顧客?')) {
                 if (customerCRM[name]) delete customerCRM[name];
                 if (blacklist[name]) delete blacklist[name];
                 renderCustomerPage();
-                const synced = await saveCloudData();
-                if (synced) alert('已成功刪除客戶資料並同步雲端');
+                scheduleAutoSave();
             }
         }
 
@@ -2488,7 +2541,7 @@
             document.getElementById('inventory-modal').style.display = 'none';
         }
 
-        window.saveInventoryData = async function() {
+        window.saveInventoryData = function() {
             const id = document.getElementById('inv-edit-id').value;
             const name = document.getElementById('inv-name').value.trim();
             const openDate = document.getElementById('inv-open-date').value; 
@@ -2515,23 +2568,22 @@
 
             closeInventoryModal();
             renderInventoryPage();
-            const synced = await saveCloudData();
-            if (synced) alert('庫存資料已儲存並同步雲端！');
+            scheduleAutoSave();
         }
 
-        window.updateInvQty = async function(id, delta) {
+        window.updateInvQty = function(id, delta) {
             let item = inventory.find(i => i.id === id);
             if (!item) return;
             item.currentQty = Math.max(0, parseInt(item.currentQty) + delta);
             renderInventoryPage();
-            await saveCloudData();
+            scheduleAutoSave();
         }
 
-        window.deleteInventoryItem = async function(id) {
+        window.deleteInventoryItem = function(id) {
             if (confirm('確定要刪除這項庫存產品嗎？')) {
                 inventory = inventory.filter(i => i.id !== id);
                 renderInventoryPage();
-                await saveCloudData();
+                scheduleAutoSave();
             }
         }
 
