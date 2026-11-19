@@ -89,9 +89,26 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 8px;
             max-width: 500px;
             margin: -10px auto 15px auto;
             border-radius: 12px;
+        }
+        .user-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+        }
+        .sync-btn {
+            background: var(--pure-white);
+            border: 1px solid var(--accent-latte);
+            color: var(--text-dark);
+            border-radius: 8px;
+            padding: 2px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            font-weight: 600;
         }
         .logout-btn {
             background: none;
@@ -579,6 +596,12 @@
         }
         .customer-card.open .customer-expanded-zone { display: block; }
 
+        .edit-crm-title { font-size: 12px; font-weight: bold; margin-bottom: 6px; color: var(--text-dark); }
+        .crm-action-row { display: flex; gap: 6px; margin-top: 6px; }
+        .btn-mini-delete { flex: 1; background: #FCE8E6; color: var(--delete-red); border: none; border-radius: 8px; padding: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .btn-mini-blacklist { flex: 1; background: #333333; color: #FFFFFF; border: none; border-radius: 8px; padding: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .btn-mini-save { flex: 1.5; background: var(--text-dark); color: #FFFFFF; border: none; border-radius: 8px; padding: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+
         .tag-badge {
             font-size: 10px; padding: 2px 6px; border-radius: 6px; font-weight: bold; display: inline-block; margin-left: 6px;
         }
@@ -732,8 +755,14 @@
         </header>
 
         <div class="user-info-bar">
-            <span id="user-display-email">帳號：loading...</span>
-            <button class="logout-btn" onclick="handleLogout()">登出 ➔</button>
+            <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                <span id="user-display-email">帳號：loading...</span>
+                <span id="cloud-sync-status" style="margin-left:6px; font-weight:600;"></span>
+            </div>
+            <div class="user-bar-actions">
+                <button class="sync-btn" onclick="manualSyncCloud()">🔄 同步</button>
+                <button class="logout-btn" onclick="handleLogout()">登出 ➔</button>
+            </div>
         </div>
 
         <main id="calendar-page" class="page active">
@@ -1341,31 +1370,51 @@
         let currentRecordMode = '工作收支';
         let quoteDetailCache = { text: '', html: '' };
 
+        function setSyncStatus(text, color = '#4A3E3D') {
+            const el = document.getElementById('cloud-sync-status');
+            if (el) {
+                el.innerText = text;
+                el.style.color = color;
+            }
+        }
+
+        function refreshAllViews() {
+            buildYearDropdowns();
+            buildMonthDropdown();
+            initCalendar();
+            renderDayRecords();
+            handleTypeChange();
+            renderReports();
+            renderCustomerPage();
+            renderInventoryPage();
+            renderAllRecords();
+            initSortableLists();
+            calculateQuoteTotal();
+        }
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
                 document.getElementById('user-display-email').innerText = `帳號：${user.email}`;
                 document.getElementById('auth-page').style.display = 'none';
                 document.getElementById('main-app').style.display = 'block';
-                
-                await loadCloudData(); 
+                setSyncStatus('⏳ 同步中...', '#8C7A78');
 
-                buildYearDropdowns();
-                buildMonthDropdown();
-                initCalendar();
-                renderDayRecords();
-                switchRecordMode('工作收支');
-                renderReports();
-                renderCustomerPage();
-                renderInventoryPage(); 
-                initSortableLists();
-                calculateQuoteTotal();
+                await loadCloudData(false);
+                refreshAllViews();
             } else {
                 currentUser = null;
                 document.getElementById('auth-page').style.display = 'block';
                 document.getElementById('main-app').style.display = 'none';
             }
         });
+
+        window.manualSyncCloud = async function() {
+            if (!currentUser) return alert('請先登入帳號');
+            setSyncStatus('⏳ 同步中...', '#8C7A78');
+            await loadCloudData(true);
+            refreshAllViews();
+        }
 
         function initSortableLists() {
             document.querySelectorAll('.sortable-container').forEach(container => {
@@ -1408,12 +1457,17 @@
             if(confirm('確定要登出系統嗎？')) signOut(auth);
         }
 
+        function getStoragePrefix() {
+            return currentUser ? `mumu_pocket_${currentUser.uid}_` : 'mumu_pocket_guest_';
+        }
+
         function loadLocalFallback() {
             try {
-                const localRec = localStorage.getItem('mumu_pocket_records');
-                const localCrm = localStorage.getItem('mumu_pocket_crm');
-                const localBl = localStorage.getItem('mumu_pocket_blacklist');
-                const localInv = localStorage.getItem('mumu_pocket_inventory'); 
+                const p = getStoragePrefix();
+                const localRec = localStorage.getItem(p + 'records') || localStorage.getItem('mumu_pocket_records');
+                const localCrm = localStorage.getItem(p + 'crm') || localStorage.getItem('mumu_pocket_crm');
+                const localBl = localStorage.getItem(p + 'blacklist') || localStorage.getItem('mumu_pocket_blacklist');
+                const localInv = localStorage.getItem(p + 'inventory') || localStorage.getItem('mumu_pocket_inventory');
                 if (localRec) records = JSON.parse(localRec);
                 if (localCrm) customerCRM = JSON.parse(localCrm);
                 if (localBl) blacklist = JSON.parse(localBl);
@@ -1423,48 +1477,61 @@
 
         function saveLocalFallback() {
             try {
-                localStorage.setItem('mumu_pocket_records', JSON.stringify(records));
-                localStorage.setItem('mumu_pocket_crm', JSON.stringify(customerCRM));
-                localStorage.setItem('mumu_pocket_blacklist', JSON.stringify(blacklist));
-                localStorage.setItem('mumu_pocket_inventory', JSON.stringify(inventory)); 
+                const p = getStoragePrefix();
+                localStorage.setItem(p + 'records', JSON.stringify(records));
+                localStorage.setItem(p + 'crm', JSON.stringify(customerCRM));
+                localStorage.setItem(p + 'blacklist', JSON.stringify(blacklist));
+                localStorage.setItem(p + 'inventory', JSON.stringify(inventory));
             } catch(e) { console.error("Local save error", e); }
         }
 
-        async function loadCloudData() {
-            loadLocalFallback(); 
+        async function loadCloudData(showAlertOnSuccess = false) {
+            loadLocalFallback();
             if (!currentUser) return;
             try {
                 const userDocRef = doc(db, "users", currentUser.uid);
                 const docSnap = await getDoc(userDocRef);
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    if (data.records) records = data.records;
-                    if (data.customerCRM) customerCRM = data.customerCRM;
-                    if (data.blacklist) blacklist = data.blacklist;
-                    if (data.inventory) inventory = data.inventory; 
+                    records = Array.isArray(data.records) ? data.records : [];
+                    customerCRM = (data.customerCRM && typeof data.customerCRM === 'object') ? data.customerCRM : {};
+                    blacklist = (data.blacklist && typeof data.blacklist === 'object') ? data.blacklist : {};
+                    inventory = Array.isArray(data.inventory) ? data.inventory : [];
                     saveLocalFallback();
+                    setSyncStatus('☁️ 已同步', '#5C8A3C');
+                    if (showAlertOnSuccess) alert('已從雲端取得最新資料！');
                 } else {
-                    await saveCloudData();
+                    const ok = await saveCloudData(false);
+                    if (ok && showAlertOnSuccess) alert('雲端資料已同步！');
                 }
             } catch (e) {
-                console.warn("雲端讀取失敗：", e);
+                console.error("雲端讀取失敗：", e);
+                setSyncStatus('⚠️ 雲端讀取失敗', '#E07A5F');
+                alert(`無法從雲端讀取資料（${e.code || 'Error'}）：${e.message}\n請確認 Firebase Console 已建立 Firestore 資料庫且安全規則允許登入使用者讀寫。`);
             }
         }
 
-        async function saveCloudData() {
-            saveLocalFallback(); 
-            if (!currentUser) return;
+        async function saveCloudData(showAlertOnError = true) {
+            saveLocalFallback();
+            if (!currentUser) return false;
             try {
                 const userDocRef = doc(db, "users", currentUser.uid);
                 await setDoc(userDocRef, {
                     records: records,
                     customerCRM: customerCRM,
                     blacklist: blacklist,
-                    inventory: inventory, 
+                    inventory: inventory,
                     lastUpdated: new Date().toISOString()
                 }, { merge: true });
+                setSyncStatus('☁️ 已同步', '#5C8A3C');
+                return true;
             } catch (e) {
                 console.error("同步至雲端失敗：", e);
+                setSyncStatus('⚠️ 僅存本機(同步失敗)', '#E07A5F');
+                if (showAlertOnError) {
+                    alert(`資料已暫存於本機，但「同步至雲端」失敗（${e.code || 'Error'}）：${e.message}\n因此手機端目前無法看到此變更。請檢查 Firebase Firestore 權限設定。`);
+                }
+                return false;
             }
         }
 
@@ -1473,7 +1540,10 @@
         }
         function escapeHtml(text) {
             if(!text) return '';
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+            return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+        function toJsAttr(text) {
+            return JSON.stringify(String(text || '')).replace(/"/g, '&quot;');
         }
         function formatDepositDisplay(val, type) {
             if (val === undefined || val === null || val === '') return '未記錄';
@@ -1649,11 +1719,11 @@
             document.getElementById('edit-modal').style.display = 'flex';
         }
 
-        window.closeEditModal = function(event) {
+        window.closeEditModal = function() {
             document.getElementById('edit-modal').style.display = 'none';
         }
 
-        window.updateRecordData = function() {
+        window.updateRecordData = async function() {
             const id = document.getElementById('edit-id').value;
             const recIndex = records.findIndex(r => r.id === id);
             if(recIndex === -1) return;
@@ -1679,14 +1749,13 @@
             }
 
             closeEditModal();
-            saveLocalFallback();
             initCalendar(); 
             renderDayRecords(); 
             renderReports(); 
             renderCustomerPage();
             renderAllRecords();
-            saveCloudData();
-            alert('修改紀錄成功！');
+            const synced = await saveCloudData();
+            if (synced) alert('修改紀錄成功並已同步雲端！');
         }
 
         function initCalendar() {
@@ -1740,7 +1809,6 @@
                 const li = document.createElement('li'); li.classList.add('record-item'); li.setAttribute('onclick', `openEditModal('${rec.id}', event)`);
                 const isInc = rec.type === '收入'; const typeClass = isInc ? 'inc' : 'exp';
                 
-                // 💡 修正：生活開銷模式下不管收入或支出，主標題一律顯示輸入的項目名稱 (rec.project)
                 let displayName = '';
                 if (rec.mode === '生活開銷' || (!rec.mode && !rec.custName)) {
                     displayName = rec.project;
@@ -1764,7 +1832,7 @@
             });
         }
 
-        window.addRecord = function() {
+        window.addRecord = async function() {
             const type = document.getElementById('add-type').value;
             const custName = (currentRecordMode === '工作收支' && type === '收入') ? document.getElementById('add-cust-name').value.trim() : '';
             const paymentMethod = document.getElementById('add-payment').value;
@@ -1828,21 +1896,19 @@
             document.getElementById('mgmt-curl-size').value = '';
             checkDynamicFields();
             
-            saveLocalFallback();
             initCalendar(); 
             renderDayRecords(); 
             renderReports(); 
             renderCustomerPage();
             renderAllRecords();
-            saveCloudData();
-            alert('新增紀錄成功！');
+            const synced = await saveCloudData();
+            if (synced) alert('新增紀錄成功並已同步雲端！');
         }
 
         window.deleteRecord = async function(id, pageSource, event) {
             if(event) event.stopPropagation();
             if(confirm('❌ 確定要刪除這筆紀錄嗎？')) {
                 records = records.filter(r => r.id !== id);
-                saveLocalFallback();
                 initCalendar(); 
                 renderDayRecords(); 
                 renderReports(); 
@@ -1868,7 +1934,6 @@
                 let item = document.createElement('div'); item.classList.add('record-item'); item.setAttribute('onclick', `openEditModal('${rec.id}', event)`);
                 let isInc = rec.type === '收入'; let typeClass = isInc ? 'inc' : 'exp';
                 
-                // 💡 修正：歷史帳務清單的生活開銷模式下，主標題也顯示項目名稱 (rec.project)
                 let displayName = '';
                 if (rec.mode === '生活開銷' || (!rec.mode && !rec.custName)) {
                     displayName = rec.project;
@@ -2000,7 +2065,7 @@
                     let isInc = r.type === '收入';
                     html += `<div style="border-bottom:1px dashed var(--accent-latte); padding:8px 0;">
                         <div><strong>${r.date}</strong> | ${escapeHtml(r.project)} <span style="color:${isInc?'var(--income-green)':'var(--delete-red)'}; font-weight:bold;">${isInc?'+':'-'}$${r.amount}</span></div>
-                        <div style="font-size:11px; color:var(--text-muted);">客戶: ${r.custName || '無'} | 備註: ${r.note || '無'}</div>
+                        <div style="font-size:11px; color:var(--text-muted);">客戶: ${escapeHtml(r.custName || '無')} | 備註: ${escapeHtml(r.note || '無')}</div>
                     </div>`;
                 });
             }
@@ -2099,7 +2164,8 @@
                 expiryContainer.innerHTML = ''; let expCount = 0;
                 customers.forEach(cust => {
                     if (cust.history.length > 0) {
-                        let lastRec = cust.history[0];
+                        let sortedHist = [...cust.history].sort((a,b) => new Date(b.date) - new Date(a.date));
+                        let lastRec = sortedHist[0];
                         let lastDate = new Date(lastRec.date);
                         let diffDays = Math.floor((new Date() - lastDate) / (1000 * 60 * 60 * 24));
                         
@@ -2129,7 +2195,7 @@
             if (!customers.length) { container.innerHTML = `<div class="no-data">${showBlacklistOnly ? '目前沒有黑名單客戶' : '查無符合條件的客戶資料'}</div>`; return; }
             customers.sort((a,b) => a.name.localeCompare(b.name, 'zh-Hans-CN'));
             
-            customers.forEach(cust => {
+            customers.forEach((cust, idx) => {
                 let card = document.createElement('div'); card.classList.add('customer-card');
                 if (blacklist[cust.name]) card.style.border = '1px solid #333';
                 cust.history.sort((a,b) => new Date(b.date) - new Date(a.date));
@@ -2160,40 +2226,42 @@
                 </div>`).join('');
                 
                 let tagClass = cust.tag === 'VIP' ? 'tag-vip' : (cust.tag === '熟客' ? 'tag-regular' : (cust.tag === '久未回訪' ? 'tag-inactive' : 'tag-new'));
+                const jsName = toJsAttr(cust.name);
 
                 card.innerHTML = `
                     <div class="customer-card-header" onclick="toggleCard(this.parentNode)">
                         <div>
                             <span class="customer-name">👤 ${escapeHtml(cust.name)} ${blacklist[cust.name] ? '🖤' : ''}</span>
-                            <span class="tag-badge ${tagClass}">${cust.tag || '新客'}</span>
+                            <span class="tag-badge ${tagClass}">${escapeHtml(cust.tag || '新客')}</span>
                         </div>
-                        <div class="customer-header-right"><span class="customer-deposit">${cust.latestDepositLabel}: ${cust.latestDepositValue}</span><span class="customer-total-spent">累積: $${cust.totalSpent.toLocaleString()}</span></div>
+                        <div class="customer-header-right"><span class="customer-deposit">${escapeHtml(cust.latestDepositLabel)}: ${cust.latestDepositValue}</span><span class="customer-total-spent">累積: $${cust.totalSpent.toLocaleString()}</span></div>
                     </div>
                     <div onclick="toggleCard(this.parentNode)">
                         <div class="customer-detail-row">📞 電話: ${cust.phone ? escapeHtml(cust.phone) : '未填寫'} | 🎂 生日: ${cust.birthday ? cust.birthday.substring(0,2)+'/'+cust.birthday.substring(2,4) : '未填寫'}</div>
+                        ${cust.note ? `<div class="customer-detail-row">📝 備註: ${escapeHtml(cust.note)}</div>` : ''}
                         ${countdownHtml}
                     </div>
                     <div class="customer-expanded-zone">
                         <div class="edit-crm-group" onclick="event.stopPropagation()">
                             <div class="edit-crm-title">✏️ 編輯客戶基本資料與詳細區塊</div>
-                            <input type="text" id="edit-name-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; margin-bottom:6px;" value="${escapeHtml(cust.name)}">
+                            <input type="text" id="edit-name-${idx}" class="input-style" style="background:#fff; margin-bottom:6px;" value="${escapeHtml(cust.name)}">
                             <div style="display:flex; gap:6px; margin-bottom:6px;">
-                                <input type="tel" id="edit-phone-${escapeHtml(cust.name)}" class="input-style" style="background:#fff;" value="${escapeHtml(cust.phone)}" placeholder="手機">
-                                <input type="number" id="edit-birth-${escapeHtml(cust.name)}" class="input-style" style="background:#fff;" value="${escapeHtml(cust.birthday)}" placeholder="生日4碼">
+                                <input type="tel" id="edit-phone-${idx}" class="input-style" style="background:#fff;" value="${escapeHtml(cust.phone)}" placeholder="手機">
+                                <input type="number" id="edit-birth-${idx}" class="input-style" style="background:#fff;" value="${escapeHtml(cust.birthday)}" placeholder="生日4碼">
                             </div>
                             <div style="margin-bottom:6px;">
-                                <select id="edit-tag-${escapeHtml(cust.name)}" class="input-style" style="background:#fff;">
+                                <select id="edit-tag-${idx}" class="input-style" style="background:#fff;">
                                     <option value="新客" ${cust.tag==='新客'?'selected':''}>新客</option>
                                     <option value="熟客" ${cust.tag==='熟客'?'selected':''}>熟客</option>
                                     <option value="VIP" ${cust.tag==='VIP'?'selected':''}>VIP</option>
                                     <option value="久未回訪" ${cust.tag==='久未回訪'?'selected':''}>久未回訪</option>
                                 </select>
                             </div>
-                            <input type="text" id="edit-note-${escapeHtml(cust.name)}" class="input-style" style="background:#fff; margin-bottom:6px;" value="${escapeHtml(cust.note)}" placeholder="備註">
+                            <input type="text" id="edit-note-${idx}" class="input-style" style="background:#fff; margin-bottom:6px;" value="${escapeHtml(cust.note)}" placeholder="備註">
                             <div class="crm-action-row">
-                                <button class="btn-mini-delete" onclick="deleteCustomerData('${escapeHtml(cust.name)}')">🗑️ 刪除</button>
-                                <button class="btn-mini-blacklist" onclick="toggleBlacklist('${escapeHtml(cust.name)}')">🖤 ${blacklist[cust.name] ? '解除黑名單' : '黑名單'}</button>
-                                <button class="btn-mini-save" onclick="saveCRMData('${escapeHtml(cust.name)}')">💾 立即儲存</button>
+                                <button class="btn-mini-delete" onclick="deleteCustomerData(${jsName})">🗑️ 刪除</button>
+                                <button class="btn-mini-blacklist" onclick="toggleBlacklist(${jsName})">🖤 ${blacklist[cust.name] ? '解除黑名單' : '黑名單'}</button>
+                                <button class="btn-mini-save" onclick="saveCRMData(${idx}, ${jsName})">💾 立即儲存</button>
                             </div>
                         </div>
                         <div style="max-height:120px; overflow-y:auto; font-size:12px; margin-top:8px;">
@@ -2218,15 +2286,15 @@
             let d = r.lashDetails || {};
             let html = `
                 <div><strong>日期：</strong>${r.date}</div>
-                <div><strong>客戶：</strong>${r.custName || '一般客人'}</div>
-                <div><strong>項目：</strong>${r.project}</div>
+                <div><strong>客戶：</strong>${escapeHtml(r.custName || '一般客人')}</div>
+                <div><strong>項目：</strong>${escapeHtml(r.project)}</div>
                 <div><strong>金額：</strong>$${r.amount}</div>
                 <hr style="margin:8px 0; border:0; border-top:1px dashed var(--accent-latte);">
-                <div><strong>款式/款式名稱：</strong>${d.style || d.styleName || '未記錄'}</div>
-                <div><strong>卷度與長度/尺寸：</strong>${d.curlLen || d.curlSize || '未記錄'}</div>
-                <div><strong>粗度：</strong>${d.thickness || '不適用'}</div>
-                <div><strong>膠水：</strong>${d.glue || '不適用'}</div>
-                <div><strong>眼型/備註：</strong>${d.lashNote || r.note || '無'}</div>
+                <div><strong>款式/款式名稱：</strong>${escapeHtml(d.style || d.styleName || '未記錄')}</div>
+                <div><strong>卷度與長度/尺寸：</strong>${escapeHtml(d.curlLen || d.curlSize || '未記錄')}</div>
+                <div><strong>粗度：</strong>${escapeHtml(d.thickness || '不適用')}</div>
+                <div><strong>膠水：</strong>${escapeHtml(d.glue || '不適用')}</div>
+                <div><strong>眼型/備註：</strong>${escapeHtml(d.lashNote || r.note || '無')}</div>
             `;
             document.getElementById('record-detail-content').innerHTML = html;
             document.getElementById('record-detail-modal').style.display = 'flex';
@@ -2238,14 +2306,15 @@
         window.toggleBlacklist = async function(name) {
             if (blacklist[name]) {
                 delete blacklist[name];
-                alert(`已將「${name}」移出黑名單`);
+                renderCustomerPage();
+                const synced = await saveCloudData();
+                if (synced) alert(`已將「${name}」移出黑名單並同步雲端`);
             } else {
                 blacklist[name] = true;
-                alert(`已將「${name}」加入黑名單 🖤`);
+                renderCustomerPage();
+                const synced = await saveCloudData();
+                if (synced) alert(`已將「${name}」加入黑名單並同步雲端 🖤`);
             }
-            saveLocalFallback();
-            renderCustomerPage();
-            await saveCloudData();
         }
 
         window.openAddCustomerModal = function() {
@@ -2269,19 +2338,18 @@
             if (birth && birth.length !== 4) return alert('生日請輸入4碼數字 (例如 0529)');
 
             customerCRM[name] = { phone: phone, birthday: birth, tag: tag, note: note };
-            saveLocalFallback();
             closeAddCustomerModal();
             renderCustomerPage();
-            await saveCloudData();
-            alert(`成功新增客戶「${name}」！`);
+            const synced = await saveCloudData();
+            if (synced) alert(`成功新增客戶「${name}」並同步至雲端！`);
         }
 
-        window.saveCRMData = async function(oldName) {
-            const newName = document.getElementById(`edit-name-${oldName}`).value.trim();
-            const phoneVal = document.getElementById(`edit-phone-${oldName}`).value.trim();
-            const birthVal = document.getElementById(`edit-birth-${oldName}`).value.trim();
-            const tagVal = document.getElementById(`edit-tag-${oldName}`).value;
-            const noteVal = document.getElementById(`edit-note-${oldName}`).value.trim();
+        window.saveCRMData = async function(idx, oldName) {
+            const newName = document.getElementById(`edit-name-${idx}`).value.trim();
+            const phoneVal = document.getElementById(`edit-phone-${idx}`).value.trim();
+            const birthVal = document.getElementById(`edit-birth-${idx}`).value.trim();
+            const tagVal = document.getElementById(`edit-tag-${idx}`).value;
+            const noteVal = document.getElementById(`edit-note-${idx}`).value.trim();
             if (!newName) return alert('姓名不能留空');
             if (birthVal && birthVal.length !== 4) return alert('生日請輸入 4 碼數字');
 
@@ -2293,21 +2361,19 @@
             } else {
                 customerCRM[oldName] = { phone: phoneVal, birthday: birthVal, tag: tagVal, note: noteVal };
             }
-            saveLocalFallback();
             renderCustomerPage();
             renderReports();
-            await saveCloudData();
-            alert(`客戶「${newName}」資料已立即儲存並同步更新！`);
+            const synced = await saveCloudData();
+            if (synced) alert(`客戶「${newName}」資料已儲存並同步至雲端！`);
         }
 
         window.deleteCustomerData = async function(name) {
             if (confirm('確定要刪除此顧客?')) {
                 if (customerCRM[name]) delete customerCRM[name];
                 if (blacklist[name]) delete blacklist[name];
-                saveLocalFallback();
                 renderCustomerPage();
-                await saveCloudData();
-                alert('已成功刪除客戶資料');
+                const synced = await saveCloudData();
+                if (synced) alert('已成功刪除客戶資料並同步雲端');
             }
         }
 
@@ -2418,7 +2484,7 @@
             document.getElementById('inventory-modal').style.display = 'flex';
         }
 
-        window.closeInventoryModal = function(event) {
+        window.closeInventoryModal = function() {
             document.getElementById('inventory-modal').style.display = 'none';
         }
 
@@ -2448,17 +2514,15 @@
             }
 
             closeInventoryModal();
-            saveLocalFallback();
             renderInventoryPage();
-            await saveCloudData();
-            alert('庫存資料已成功儲存！');
+            const synced = await saveCloudData();
+            if (synced) alert('庫存資料已儲存並同步雲端！');
         }
 
         window.updateInvQty = async function(id, delta) {
             let item = inventory.find(i => i.id === id);
             if (!item) return;
             item.currentQty = Math.max(0, parseInt(item.currentQty) + delta);
-            saveLocalFallback();
             renderInventoryPage();
             await saveCloudData();
         }
@@ -2466,7 +2530,6 @@
         window.deleteInventoryItem = async function(id) {
             if (confirm('確定要刪除這項庫存產品嗎？')) {
                 inventory = inventory.filter(i => i.id !== id);
-                saveLocalFallback();
                 renderInventoryPage();
                 await saveCloudData();
             }
@@ -2481,7 +2544,7 @@
             document.getElementById('add-quote-item-modal').style.display = 'flex';
         }
 
-        window.closeAddQuoteItemModal = function(event) {
+        window.closeAddQuoteItemModal = function() {
             document.getElementById('add-quote-item-modal').style.display = 'none';
         }
 
@@ -2680,7 +2743,7 @@
             
             navigator.clipboard.writeText(quoteDetailCache.text).then(() => {
                 alert('📋 報價明細文字已成功複製到剪貼簿！');
-            }).catch(err => {
+            }).catch(() => {
                 alert('複製失敗，請手動複製。');
             });
         }
@@ -2694,7 +2757,7 @@
             document.getElementById('quote-detail-modal').style.display = 'flex';
         }
 
-        window.closeQuoteDetailModal = function(event) {
+        window.closeQuoteDetailModal = function() {
             document.getElementById('quote-detail-modal').style.display = 'none';
         }
     </script>
