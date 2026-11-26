@@ -1589,10 +1589,7 @@
         }
         function formatDiscountDisplay(val) {
             if (!val) return '';
-            const trimmed = String(val).trim();
-            if (!trimmed) return '';
-            if (trimmed.includes('折')) return trimmed;
-            return `${trimmed}折`;
+            return String(val).trim();
         }
 
         function refreshCustomerDatalist() {
@@ -2602,13 +2599,13 @@
                 <div><strong>客戶：</strong>${escapeHtml(r.custName || '一般客人')}</div>
                 <div><strong>項目：</strong>${escapeHtml(r.project)}</div>
                 <div><strong>金額：</strong>$${r.amount}${r.discount ? `（折數：${escapeHtml(formatDiscountDisplay(r.discount))}）` : ''}</div>
+                <div><strong>當次備註📝：</strong>${escapeHtml(currentRecordNote)}</div>
                 <hr style="margin:8px 0; border:0; border-top:1px dashed var(--accent-latte);">
                 <div><strong>款式/款式名稱：</strong>${escapeHtml(d.style || d.styleName || '未記錄')}</div>
                 <div><strong>卷度與長度/尺寸：</strong>${escapeHtml(d.curlLen || d.curlSize || '未記錄')}</div>
                 <div><strong>粗度：</strong>${escapeHtml(d.thickness || '不適用')}</div>
                 <div><strong>膠水：</strong>${escapeHtml(d.glue || '不適用')}</div>
-                <div><strong>眼型/睫毛備註：</strong>${escapeHtml(lashOrMgmtNote)}</div>
-                <div><strong>當次備註：</strong>${escapeHtml(currentRecordNote)}</div>
+                <div><strong>眼型/備註：</strong>${escapeHtml(lashOrMgmtNote)}</div>
             `;
             document.getElementById('record-detail-content').innerHTML = html;
             document.getElementById('record-detail-modal').style.display = 'flex';
