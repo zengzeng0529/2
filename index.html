@@ -792,7 +792,8 @@
                         </select>
                         
                         <div id="cust-name-wrapper" class="income-only-field">
-                            <input type="text" id="add-cust-name" class="input-style" placeholder="客戶姓名">
+                            <input type="text" id="add-cust-name" class="input-style" list="existing-customers-datalist" placeholder="客戶姓名 (自動帶入上次紀錄)" oninput="autoFillFromCustomer()" onchange="autoFillFromCustomer()">
+                            <datalist id="existing-customers-datalist"></datalist>
                         </div>
                     </div>
 
@@ -1403,6 +1404,7 @@
         let currentRecordMode = '工作收支';
         let quoteDetailCache = { text: '', html: '' };
         let syncTimer = null;
+        let lastAutoFilledCustomer = '';
 
         function setSyncStatus(text, color = '#4A3E3D') {
             const el = document.getElementById('cloud-sync-status');
@@ -1593,6 +1595,113 @@
             return `${trimmed}折`;
         }
 
+        function refreshCustomerDatalist() {
+            const datalist = document.getElementById('existing-customers-datalist');
+            if (!datalist) return;
+            const namesSet = new Set();
+            records.forEach(r => {
+                if (r.type === '收入' && r.custName && r.custName.trim()) {
+                    namesSet.add(r.custName.trim());
+                }
+            });
+            Object.keys(customerCRM).forEach(name => {
+                if (name && name.trim()) namesSet.add(name.trim());
+            });
+            const sortedNames = Array.from(namesSet).sort((a, b) => a.localeCompare(b, 'zh-Hant'));
+            datalist.innerHTML = sortedNames.map(name => `<option value="${escapeHtml(name)}"></option>`).join('');
+        }
+
+        function getLatestCustomerIncomeRecord(custName) {
+            const target = (custName || '').trim();
+            if (!target) return null;
+            const matches = records.filter(r =>
+                r.type === '收入' &&
+                (r.mode || '工作收支') === '工作收支' &&
+                r.custName &&
+                r.custName.trim() === target
+            );
+            if (!matches.length) return null;
+            matches.sort((a, b) => {
+                const dateDiff = new Date(b.date).getTime() - new Date(a.date).getTime();
+                if (dateDiff !== 0) return dateDiff;
+                const idA = parseInt(String(a.id).replace(/\D/g, ''), 10) || 0;
+                const idB = parseInt(String(b.id).replace(/\D/g, ''), 10) || 0;
+                return idB - idA;
+            });
+            return matches[0];
+        }
+
+        function setIfEmpty(el, val) {
+            if (!el || val === undefined || val === null || String(val).trim() === '') return;
+            if (!el.value || !el.value.trim()) {
+                el.value = String(val);
+            }
+        }
+
+        window.autoFillFromCustomer = function() {
+            if (currentRecordMode !== '工作收支' || document.getElementById('add-type').value !== '收入') return;
+            const nameInput = document.getElementById('add-cust-name');
+            const name = nameInput ? nameInput.value.trim() : '';
+            if (!name) {
+                lastAutoFilledCustomer = '';
+                return;
+            }
+            const lastRec = getLatestCustomerIncomeRecord(name);
+            if (!lastRec) return;
+
+            const isNewCustomerSelection = lastAutoFilledCustomer !== name;
+            lastAutoFilledCustomer = name;
+
+            const projectEl = document.getElementById('add-project');
+            const paymentEl = document.getElementById('add-payment');
+            const discountEl = document.getElementById('add-discount');
+            const depositTypeEl = document.getElementById('add-deposit-type');
+            const depositEl = document.getElementById('add-deposit');
+            const noteEl = document.getElementById('add-note');
+
+            if (isNewCustomerSelection) {
+                if (lastRec.project) projectEl.value = lastRec.project;
+                if (lastRec.paymentMethod) paymentEl.value = lastRec.paymentMethod;
+                if (lastRec.discount !== undefined) discountEl.value = lastRec.discount || '';
+                if (lastRec.depositType) depositTypeEl.value = lastRec.depositType;
+                depositEl.value = (lastRec.deposit !== undefined && lastRec.deposit !== '') ? lastRec.deposit : '';
+                noteEl.value = lastRec.note || '';
+            } else {
+                setIfEmpty(projectEl, lastRec.project);
+                if (lastRec.paymentMethod) paymentEl.value = lastRec.paymentMethod;
+                setIfEmpty(discountEl, lastRec.discount);
+                if (lastRec.depositType) depositTypeEl.value = lastRec.depositType;
+                setIfEmpty(depositEl, (lastRec.deposit !== undefined && lastRec.deposit !== '') ? lastRec.deposit : '');
+                setIfEmpty(noteEl, lastRec.note);
+            }
+
+            syncQuickTagHighlights();
+            checkDynamicFields();
+
+            const d = lastRec.lashDetails || {};
+            if (isNewCustomerSelection) {
+                document.getElementById('lash-style').value = d.style || '';
+                document.getElementById('lash-curl-len').value = d.curlLen || '';
+                document.getElementById('lash-thickness').value = d.thickness || '';
+                document.getElementById('lash-glue').value = d.glue || '';
+                document.getElementById('lash-note').value = d.lashNote || '';
+
+                document.getElementById('mgmt-style-name').value = d.styleName || '';
+                document.getElementById('mgmt-curl-size').value = d.curlSize || '';
+                document.getElementById('mgmt-note').value = d.mgmtNote || '';
+            } else {
+                setIfEmpty(document.getElementById('lash-style'), d.style);
+                setIfEmpty(document.getElementById('lash-curl-len'), d.curlLen);
+                setIfEmpty(document.getElementById('lash-thickness'), d.thickness);
+                setIfEmpty(document.getElementById('lash-glue'), d.glue);
+                setIfEmpty(document.getElementById('lash-note'), d.lashNote);
+
+                setIfEmpty(document.getElementById('mgmt-style-name'), d.styleName);
+                setIfEmpty(document.getElementById('mgmt-curl-size'), d.curlSize);
+                setIfEmpty(document.getElementById('mgmt-note'), d.mgmtNote);
+            }
+        }
+
         function syncDiscountFieldVisibility() {
             const amountEl = document.getElementById('add-amount');
             const discountEl = document.getElementById('add-discount');
@@ -1626,6 +1735,7 @@
                 btnLife.classList.add('active');
                 typeGroup.style.display = 'grid';
                 typeSelect.value = '支出';
+                lastAutoFilledCustomer = '';
                 syncDiscountFieldVisibility();
                 handleTypeChange();
             }
@@ -1668,6 +1778,7 @@
             const depositRow = document.getElementById('deposit-wrapper-row');
             const projectInput = document.getElementById('add-project');
             syncDiscountFieldVisibility();
+            refreshCustomerDatalist();
             
             if (currentRecordMode === '工作收支') {
                 if (type === '收入') {
@@ -1681,7 +1792,9 @@
                         '+黑雨衣',
                         '+其他'
                     ]);
+                    autoFillFromCustomer();
                 } else {
+                    lastAutoFilledCustomer = '';
                     custWrapper.style.display = 'none'; 
                     depositRow.style.display = 'none';
                     document.getElementById('add-cust-name').value = ''; 
@@ -1701,6 +1814,7 @@
                     ]);
                 }
             } else {
+                lastAutoFilledCustomer = '';
                 custWrapper.style.display = 'none';
                 depositRow.style.display = 'none';
                 document.getElementById('add-cust-name').value = '';
@@ -1724,7 +1838,8 @@
                         '+娛樂',
                         '+醫療',
                         '+社交',
-                        '+訂閱'
+                        '+訂閱',
+                        '+股票'
                     ]);
                 }
             }
@@ -1819,7 +1934,7 @@
 
             if (pageId === 'all-records-page') renderAllRecords();
             if (pageId === 'reports-page') renderReports();
-            if (pageId === 'calendar-page') { initCalendar(); renderDayRecords(); }
+            if (pageId === 'calendar-page') { refreshCustomerDatalist(); initCalendar(); renderDayRecords(); }
             if (pageId === 'customers-page') renderCustomerPage();
             if (pageId === 'inventory-page') renderInventoryPage(); 
             if (pageId === 'quote-page') { initSortableLists(); calculateQuoteTotal(); }
@@ -1927,6 +2042,7 @@
             }
 
             closeEditModal();
+            refreshCustomerDatalist();
             initCalendar(); 
             renderDayRecords(); 
             renderReports(); 
@@ -2067,6 +2183,7 @@
                 customerCRM[custName] = { phone: '', birthday: '', tag: '新客', note: '' };
             }
             
+            lastAutoFilledCustomer = '';
             document.getElementById('add-cust-name').value = ''; 
             document.getElementById('add-project').value = '';
             document.getElementById('add-amount').value = ''; 
@@ -2083,6 +2200,7 @@
             document.getElementById('mgmt-note').value = '';
             syncQuickTagHighlights();
             checkDynamicFields();
+            refreshCustomerDatalist();
             
             initCalendar(); 
             renderDayRecords(); 
@@ -2096,6 +2214,7 @@
             if(event) event.stopPropagation();
             if(confirm('❌ 確定要刪除這筆紀錄嗎？')) {
                 records = records.filter(r => r.id !== id);
+                refreshCustomerDatalist();
                 initCalendar(); 
                 renderDayRecords(); 
                 renderReports(); 
@@ -2527,6 +2646,7 @@
 
             customerCRM[name] = { phone: phone, birthday: birth, tag: tag, note: note };
             closeAddCustomerModal();
+            refreshCustomerDatalist();
             renderCustomerPage();
             scheduleAutoSave();
         }
@@ -2548,6 +2668,7 @@
             } else {
                 customerCRM[oldName] = { phone: phoneVal, birthday: birthVal, tag: tagVal, note: noteVal };
             }
+            refreshCustomerDatalist();
             renderCustomerPage();
             renderReports();
             scheduleAutoSave();
@@ -2557,6 +2678,7 @@
             if (confirm('確定要刪除此顧客?')) {
                 if (customerCRM[name]) delete customerCRM[name];
                 if (blacklist[name]) delete blacklist[name];
+                refreshCustomerDatalist();
                 renderCustomerPage();
                 scheduleAutoSave();
             }
