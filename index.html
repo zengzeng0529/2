@@ -840,8 +840,9 @@
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <input type="number" id="add-amount" class="input-style" style="grid-column: 1 / -1;" placeholder="本次收支金額" inputmode="numeric">
+                    <div class="form-group" id="amount-discount-row">
+                        <input type="number" id="add-amount" class="input-style" placeholder="本次收支金額" inputmode="numeric">
+                        <input type="text" id="add-discount" class="input-style" placeholder="折數 (例: 8、88、8折)">
                     </div>
 
                     <div class="form-group" id="deposit-wrapper-row">
@@ -1309,9 +1310,15 @@
                 </div>
             </div>
 
-            <div style="margin-bottom: 12px;">
-                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">金額</label>
-                <input type="number" id="modal-edit-amount" class="input-style" style="background:#fff;" inputmode="numeric">
+            <div class="form-group" style="margin-bottom: 12px;">
+                <div>
+                    <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">金額</label>
+                    <input type="number" id="modal-edit-amount" class="input-style" style="background:#fff;" inputmode="numeric">
+                </div>
+                <div id="modal-discount-wrapper">
+                    <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;">折數</label>
+                    <input type="text" id="modal-edit-discount" class="input-style" style="background:#fff;" placeholder="例: 8、88、8折">
+                </div>
             </div>
 
             <div style="margin-bottom: 12px;" id="modal-deposit-wrapper">
@@ -1578,6 +1585,27 @@
             if (val === undefined || val === null || val === '') return '未記錄';
             return type === '課堂數' ? `${val} 堂` : `$${val}`;
         }
+        function formatDiscountDisplay(val) {
+            if (!val) return '';
+            const trimmed = String(val).trim();
+            if (!trimmed) return '';
+            if (trimmed.includes('折')) return trimmed;
+            return `${trimmed}折`;
+        }
+
+        function syncDiscountFieldVisibility() {
+            const amountEl = document.getElementById('add-amount');
+            const discountEl = document.getElementById('add-discount');
+            if (!amountEl || !discountEl) return;
+            if (currentRecordMode === '工作收支') {
+                amountEl.style.gridColumn = 'auto';
+                discountEl.style.display = 'block';
+            } else {
+                amountEl.style.gridColumn = '1 / -1';
+                discountEl.style.display = 'none';
+                discountEl.value = '';
+            }
+        }
 
         window.switchRecordMode = function(mode) {
             currentRecordMode = mode;
@@ -1591,12 +1619,14 @@
                 btnLife.classList.remove('active');
                 typeGroup.style.display = 'grid';
                 typeSelect.value = '收入';
+                syncDiscountFieldVisibility();
                 handleTypeChange();
             } else {
                 btnWork.classList.remove('active');
                 btnLife.classList.add('active');
                 typeGroup.style.display = 'grid';
                 typeSelect.value = '支出';
+                syncDiscountFieldVisibility();
                 handleTypeChange();
             }
         }
@@ -1637,6 +1667,7 @@
             const custWrapper = document.getElementById('cust-name-wrapper');
             const depositRow = document.getElementById('deposit-wrapper-row');
             const projectInput = document.getElementById('add-project');
+            syncDiscountFieldVisibility();
             
             if (currentRecordMode === '工作收支') {
                 if (type === '收入') {
@@ -1804,6 +1835,19 @@
             document.getElementById('modal-edit-amount').value = rec.amount;
             document.getElementById('modal-edit-note').value = rec.note || '';
 
+            const isWorkMode = (rec.mode || '工作收支') === '工作收支';
+            const discountWrapper = document.getElementById('modal-discount-wrapper');
+            const amountInput = document.getElementById('modal-edit-amount');
+            if (isWorkMode) {
+                discountWrapper.style.display = 'block';
+                amountInput.parentElement.style.gridColumn = 'auto';
+                document.getElementById('modal-edit-discount').value = rec.discount || '';
+            } else {
+                discountWrapper.style.display = 'none';
+                amountInput.parentElement.style.gridColumn = '1 / -1';
+                document.getElementById('modal-edit-discount').value = '';
+            }
+
             const d = rec.lashDetails || {};
             document.getElementById('modal-lash-style').value = d.style || '';
             document.getElementById('modal-lash-curl-len').value = d.curlLen || '';
@@ -1817,7 +1861,7 @@
 
             const nameWrapper = document.getElementById('modal-cust-wrapper');
             const depositWrapper = document.getElementById('modal-deposit-wrapper');
-            if(rec.type === '收入' && (rec.mode || '工作收支') === '工作收支') {
+            if(rec.type === '收入' && isWorkMode) {
                 nameWrapper.style.display = 'block'; depositWrapper.style.display = 'block';
                 document.getElementById('modal-edit-name').value = rec.custName || '';
                 document.getElementById('modal-edit-deposit-type').value = rec.depositType || '儲值金';
@@ -1843,10 +1887,14 @@
             const note = document.getElementById('modal-edit-note').value.trim();
             if (!date || isNaN(amount) || amount < 0) return alert('請輸入有效資料');
             
+            const isWorkMode = (records[recIndex].mode || '工作收支') === '工作收支';
+            const discountVal = isWorkMode ? document.getElementById('modal-edit-discount').value.trim() : '';
+
             const finalProject = project || (records[recIndex].type === '收入' ? '美睫服務' : '日常開銷');
             records[recIndex].date = date;
             records[recIndex].project = finalProject;
             records[recIndex].amount = amount;
+            records[recIndex].discount = discountVal;
             records[recIndex].note = note;
 
             const existingDetails = records[recIndex].lashDetails || {};
@@ -1868,7 +1916,7 @@
 
             records[recIndex].lashDetails = updatedDetails;
 
-            if (records[recIndex].type === '收入' && (records[recIndex].mode || '工作收支') === '工作收支') {
+            if (records[recIndex].type === '收入' && isWorkMode) {
                 const custName = document.getElementById('modal-edit-name').value.trim();
                 const depositType = document.getElementById('modal-edit-deposit-type').value;
                 const depositInput = document.getElementById('modal-edit-deposit').value.trim();
@@ -1951,13 +1999,16 @@
                 const mgmtSummary = (d.styleName || d.curlSize || d.mgmtNote)
                     ? ` | 睫毛管理: ${[d.styleName, d.curlSize, d.mgmtNote].filter(Boolean).join(' / ')}`
                     : '';
+                const discountText = ((rec.mode || '工作收支') === '工作收支' && rec.discount)
+                    ? ` | 折數: ${formatDiscountDisplay(rec.discount)}`
+                    : '';
 
                 li.innerHTML = `
                     <div class="rec-top">
                         <div><span class="type-tag ${typeClass}">${rec.mode || rec.type}</span><span style="font-weight:600;">${escapeHtml(displayName)}</span></div>
                         <div><span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span><button class="btn-delete" onclick="deleteRecord('${rec.id}', 'day', event)">🗑️</button></div>
                     </div>
-                    <div class="rec-mid">項目: ${escapeHtml(rec.project)} | 支付方式: ${rec.paymentMethod || '現金'}${mgmtSummary ? escapeHtml(mgmtSummary) : ''}</div>
+                    <div class="rec-mid">項目: ${escapeHtml(rec.project)} | 支付方式: ${rec.paymentMethod || '現金'}${escapeHtml(discountText)}${mgmtSummary ? escapeHtml(mgmtSummary) : ''}</div>
                     <div class="rec-bot">
                         ${isInc && rec.deposit !== undefined && rec.deposit !== '' ? `<span>${rec.depositType || '儲值金'}餘額: ${formatDepositDisplay(rec.deposit, rec.depositType)}</span>` : ''}
                         ${rec.note ? `<span style="margin-left:10px;">📝 ${escapeHtml(rec.note)}</span>` : ''}
@@ -1972,6 +2023,7 @@
             const paymentMethod = document.getElementById('add-payment').value;
             const depositType = (currentRecordMode === '工作收支' && type === '收入') ? document.getElementById('add-deposit-type').value : '儲值金';
             const depositInput = (currentRecordMode === '工作收支' && type === '收入') ? document.getElementById('add-deposit').value.trim() : '';
+            const discountVal = currentRecordMode === '工作收支' ? document.getElementById('add-discount').value.trim() : '';
             
             let defaultProj = currentRecordMode === '生活開銷' ? '生活開銷' : (type === '收入' ? '美睫服務' : '日常開銷');
             const project = document.getElementById('add-project').value.trim() || defaultProj;
@@ -2004,6 +2056,7 @@
                 paymentMethod: paymentMethod,
                 project: project, 
                 amount: amount,
+                discount: discountVal,
                 depositType: depositType, 
                 deposit: depositInput !== '' ? parseInt(depositInput) : '', 
                 note: note,
@@ -2017,6 +2070,7 @@
             document.getElementById('add-cust-name').value = ''; 
             document.getElementById('add-project').value = '';
             document.getElementById('add-amount').value = ''; 
+            document.getElementById('add-discount').value = '';
             document.getElementById('add-deposit').value = ''; 
             document.getElementById('add-note').value = '';
             document.getElementById('lash-style').value = '';
@@ -2054,7 +2108,7 @@
         window.renderAllRecords = function() {
             const container = document.getElementById('all-records-container'); if(!container) return;
             const searchKey = document.getElementById('search-input').value.toLowerCase().trim(); container.innerHTML = '';
-            let filtered = records.filter(r => r.project.toLowerCase().includes(searchKey) || (r.custName && r.custName.toLowerCase().includes(searchKey)) || (r.note && r.note.toLowerCase().includes(searchKey)));
+            let filtered = records.filter(r => r.project.toLowerCase().includes(searchKey) || (r.custName && r.custName.toLowerCase().includes(searchKey)) || (r.note && r.note.toLowerCase().includes(searchKey)) || (r.discount && String(r.discount).toLowerCase().includes(searchKey)));
             if (filtered.length === 0) { container.innerHTML = '<div class="no-data">找不到相關紀錄</div>'; return; }
             filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
             let currentGroupDate = ""; let currentGroupDiv = null;
@@ -2076,12 +2130,16 @@
                     displayName = '店鋪';
                 }
 
+                const discountText = ((rec.mode || '工作收支') === '工作收支' && rec.discount)
+                    ? ` | 折數: ${formatDiscountDisplay(rec.discount)}`
+                    : '';
+
                 item.innerHTML = `
                     <div class="rec-top">
                         <div><span class="type-tag ${typeClass}">${rec.mode || rec.type}</span><span style="font-weight:600;">${escapeHtml(displayName)}</span></div>
                         <div><span class="record-amount ${typeClass}">${isInc?'+':'-'}$${rec.amount}</span><button class="btn-delete" onclick="deleteRecord('${rec.id}', 'all', event)">🗑️</button></div>
                     </div>
-                    <div class="rec-mid">項目: ${escapeHtml(rec.project)} | 支付: ${rec.paymentMethod || '現金'}</div>`;
+                    <div class="rec-mid">項目: ${escapeHtml(rec.project)} | 支付: ${rec.paymentMethod || '現金'}${escapeHtml(discountText)}</div>`;
                 currentGroupDiv.appendChild(item);
             });
         }
@@ -2196,9 +2254,10 @@
             else {
                 filtered.forEach(r => {
                     let isInc = r.type === '收入';
+                    let discStr = r.discount ? ` | 折數: ${formatDiscountDisplay(r.discount)}` : '';
                     html += `<div style="border-bottom:1px dashed var(--accent-latte); padding:8px 0;">
                         <div><strong>${r.date}</strong> | ${escapeHtml(r.project)} <span style="color:${isInc?'var(--income-green)':'var(--delete-red)'}; font-weight:bold;">${isInc?'+':'-'}$${r.amount}</span></div>
-                        <div style="font-size:11px; color:var(--text-muted);">客戶: ${escapeHtml(r.custName || '無')} | 備註: ${escapeHtml(r.note || '無')}</div>
+                        <div style="font-size:11px; color:var(--text-muted);">客戶: ${escapeHtml(r.custName || '無')}${escapeHtml(discStr)} | 備註: ${escapeHtml(r.note || '無')}</div>
                     </div>`;
                 });
             }
@@ -2210,9 +2269,9 @@
 
         window.exportTaxWorkReport = function() {
             let workRecords = records.filter(r => (r.mode || '工作收支') === '工作收支');
-            let content = "日期,類型,客戶,項目,金額,支付方式,備註\n";
+            let content = "日期,類型,客戶,項目,金額,折數,支付方式,備註\n";
             workRecords.forEach(r => {
-                content += `${r.date},${r.type},${r.custName || ''},${r.project},${r.amount},${r.paymentMethod || '現金'},${r.note || ''}\n`;
+                content += `${r.date},${r.type},${r.custName || ''},${r.project},${r.amount},${r.discount || ''},${r.paymentMethod || '現金'},${r.note || ''}\n`;
             });
             let blob = new Blob(["\ufeff" + content], { type: 'text/csv;charset=utf-8;' });
             let url = URL.createObjectURL(blob);
@@ -2354,7 +2413,7 @@
                 }
 
                 let hHtml = cust.history.map(h => `<div style="border-top:1px dashed rgba(227,213,202,0.3); padding-top:6px; margin-top:6px; display:flex; justify-content:space-between; align-items:center;">
-                    <span>${h.date} - ${escapeHtml(h.project)} ($${h.amount})</span>
+                    <span>${h.date} - ${escapeHtml(h.project)} ($${h.amount}${h.discount ? ` / ${escapeHtml(formatDiscountDisplay(h.discount))}` : ''})</span>
                     <button class="quick-tag" onclick="openCustomerRecordDetail('${h.id}', event)">查看美睫紀錄</button>
                 </div>`).join('');
                 
@@ -2421,7 +2480,7 @@
                 <div><strong>日期：</strong>${r.date}</div>
                 <div><strong>客戶：</strong>${escapeHtml(r.custName || '一般客人')}</div>
                 <div><strong>項目：</strong>${escapeHtml(r.project)}</div>
-                <div><strong>金額：</strong>$${r.amount}</div>
+                <div><strong>金額：</strong>$${r.amount}${r.discount ? `（折數：${escapeHtml(formatDiscountDisplay(r.discount))}）` : ''}</div>
                 <hr style="margin:8px 0; border:0; border-top:1px dashed var(--accent-latte);">
                 <div><strong>款式/款式名稱：</strong>${escapeHtml(d.style || d.styleName || '未記錄')}</div>
                 <div><strong>卷度與長度/尺寸：</strong>${escapeHtml(d.curlLen || d.curlSize || '未記錄')}</div>
