@@ -2595,6 +2595,8 @@
             let r = records.find(item => item.id === recId);
             if (!r) return;
             let d = r.lashDetails || {};
+            let lashOrMgmtNote = d.lashNote || d.mgmtNote || '無';
+            let currentRecordNote = r.note || '無';
             let html = `
                 <div><strong>日期：</strong>${r.date}</div>
                 <div><strong>客戶：</strong>${escapeHtml(r.custName || '一般客人')}</div>
@@ -2605,7 +2607,8 @@
                 <div><strong>卷度與長度/尺寸：</strong>${escapeHtml(d.curlLen || d.curlSize || '未記錄')}</div>
                 <div><strong>粗度：</strong>${escapeHtml(d.thickness || '不適用')}</div>
                 <div><strong>膠水：</strong>${escapeHtml(d.glue || '不適用')}</div>
-                <div><strong>眼型/備註：</strong>${escapeHtml(d.lashNote || d.mgmtNote || r.note || '無')}</div>
+                <div><strong>眼型/睫毛備註：</strong>${escapeHtml(lashOrMgmtNote)}</div>
+                <div><strong>當次備註：</strong>${escapeHtml(currentRecordNote)}</div>
             `;
             document.getElementById('record-detail-content').innerHTML = html;
             document.getElementById('record-detail-modal').style.display = 'flex';
